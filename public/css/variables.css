@@ -1,0 +1,9 @@
+:root {
+    --bs-primary:    #1D4ED8;  /* xanh dương chủ đạo */
+    --primary-dark:  #1E3A8A;  /* xanh navy đậm */
+    --primary-light: #4E7CFF;  /* xanh nhạt */
+    --accent-gold:   #FFB100;  /* vàng cam - giá, nút CTA, khuyến mãi */
+    --support-green: #16A34A;  /* xanh lá - chính hãng, còn hàng */
+    --ink:           #101828;  /* màu chữ chính */
+    --bg-soft:       #F5F8FF;  /* nền xám-xanh nhạt cho section */
+}

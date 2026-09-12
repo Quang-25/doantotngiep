@@ -1,0 +1,545 @@
+/* =====================================================
+   FOOTER
+===================================================== */
+
+.site-footer {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    color: #ffffff;
+}
+
+/* =====================================================
+   FOOTER TOP - NỀN ĐEN
+===================================================== */
+
+.footer-top {
+    width: 100%;
+    background: #181a1f;
+    padding: 40px 0 45px;
+}
+
+/* Khung footer full màn hình */
+
+.footer-top .container,
+.footer-container {
+    width: 100%;
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 0 70px;
+}
+
+/* =====================================================
+   4 CỘT FOOTER
+===================================================== */
+
+.footer-top .row {
+    display: grid !important;
+
+    grid-template-columns:
+        1.15fr
+        1.15fr
+        0.9fr
+        0.95fr;
+
+    column-gap: 70px;
+    row-gap: 30px;
+
+    width: 100%;
+    margin: 0;
+}
+
+/* Bỏ padding mặc định Bootstrap */
+
+.footer-top .row > div {
+    width: auto !important;
+    max-width: none !important;
+    padding: 0 !important;
+}
+
+/* =====================================================
+   TIÊU ĐỀ
+===================================================== */
+
+.footer-top h4 {
+    margin: 0 0 18px;
+
+    color: #ffffff;
+
+    font-size: 18px;
+    font-weight: 600;
+
+    line-height: 1.4;
+
+    white-space: nowrap;
+}
+
+/* =====================================================
+   ĐOẠN VĂN
+===================================================== */
+
+.footer-top p {
+    margin: 0 0 10px;
+
+    color: #e5e7eb;
+
+    font-size: 15px;
+    font-weight: 400;
+
+    line-height: 1.65;
+}
+
+/* =====================================================
+   CHỮ NHẤN - XANH DỊU
+===================================================== */
+
+.footer-top strong {
+    color: #60a5fa;
+    font-weight: 600;
+}
+
+.footer-top span {
+    color: #e5e7eb;
+}
+
+/* Link */
+
+.footer-link {
+    color: #60a5fa !important;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* =====================================================
+   DANH SÁCH
+===================================================== */
+
+.footer-top ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.footer-top ul li {
+    margin: 0 0 13px;
+
+    padding-left: 2px;
+
+    color: #e5e7eb;
+
+    font-size: 15px;
+    font-weight: 400;
+
+    line-height: 1.55;
+
+    cursor: pointer;
+
+    transition: color 0.25s ease;
+}
+
+.footer-top ul li:hover {
+    color: #60a5fa;
+}
+
+/* =====================================================
+   SOCIAL
+===================================================== */
+
+.footer-social {
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    margin-top: 14px;
+}
+
+.footer-social a {
+    width: 38px;
+    height: 38px;
+
+    border: 1px solid #9ca3af;
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #ffffff;
+
+    text-decoration: none;
+
+    transition: all 0.3s ease;
+}
+
+.footer-social a:hover {
+    background: #3b82f6;
+    border-color: #3b82f6;
+
+    transform: translateY(-2px);
+}
+
+.footer-social i {
+    font-size: 17px;
+}
+
+/* =====================================================
+   FOOTER BOTTOM - XANH ĐẬM
+===================================================== */
+
+.footer-bottom {
+    width: 100%;
+
+    margin: 0;
+    padding: 16px 20px 12px;
+
+    background: #1f5fc4;
+
+    text-align: center;
+}
+
+.footer-bottom p {
+    margin: 0 0 5px;
+
+    color: #ffffff;
+
+    font-size: 15px;
+    font-weight: 400;
+
+    line-height: 1.55;
+}
+
+.footer-bottom p:first-child {
+    font-size: 17px;
+    font-weight: 600;
+}
+
+/* =====================================================
+   GIỎ HÀNG
+===================================================== */
+
+.floating-cart {
+    position: fixed;
+
+    left: 8px;
+    bottom: 8px;
+
+    height: 55px;
+
+    padding: 0 22px 0 12px;
+
+    background: #6b7280;
+    color: #ffffff;
+
+    border-radius: 30px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    text-decoration: none;
+
+    font-size: 16px;
+    font-weight: 600;
+
+    z-index: 9999;
+
+    transition: all 0.3s ease;
+}
+
+.floating-cart:hover {
+    background: #4b5563;
+    color: #ffffff;
+
+    transform: translateY(-2px);
+}
+
+.floating-cart i {
+    width: 40px;
+    height: 40px;
+
+    background: #fbbf24;
+    color: #ffffff;
+
+    border-radius: 8px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 21px;
+}
+
+/* =====================================================
+   ZALO
+===================================================== */
+
+.floating-zalo {
+    position: fixed;
+
+    right: 15px;
+    bottom: 60px;
+
+    width: 58px;
+    height: 58px;
+
+    background: #ffffff;
+
+    border: 4px solid #1685ff;
+
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #1264d8;
+
+    font-size: 18px;
+    font-weight: 600;
+
+    text-decoration: none;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+    z-index: 9999;
+
+    transition: all 0.3s ease;
+}
+
+.floating-zalo:hover {
+    color: #1264d8;
+
+    transform: scale(1.05);
+}
+
+/* =====================================================
+   HỆ THỐNG CỬA HÀNG
+===================================================== */
+
+.floating-store {
+    position: fixed;
+
+    right: 0;
+    bottom: 0;
+
+    height: 50px;
+
+    padding: 0 23px;
+
+    background: #1685ff;
+    color: #ffffff;
+
+    border-radius: 28px 0 0 0;
+
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    text-decoration: none;
+
+    font-size: 17px;
+    font-weight: 600;
+
+    z-index: 9998;
+
+    transition: all 0.3s ease;
+}
+
+.floating-store:hover {
+    background: #0d6efd;
+    color: #ffffff;
+}
+
+/* =====================================================
+   NÚT LÊN ĐẦU TRANG
+===================================================== */
+
+.back-to-top {
+    position: fixed;
+
+    right: 18px;
+    bottom: 140px;
+
+    width: 40px;
+    height: 40px;
+
+    padding: 0;
+
+    border: none;
+
+    background: transparent;
+
+    color: #ffffff;
+
+    font-size: 27px;
+
+    z-index: 9999;
+
+    cursor: pointer;
+
+    transition: all 0.3s ease;
+}
+
+.back-to-top:hover {
+    transform: translateY(-3px);
+}
+
+.back-to-top i {
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* =====================================================
+   MÀN HÌNH 1600PX TRỞ LÊN
+===================================================== */
+
+@media (min-width: 1600px) {
+
+    .footer-top .container,
+    .footer-container {
+        max-width: 1800px;
+        padding-left: 70px;
+        padding-right: 70px;
+    }
+
+    .footer-top .row {
+        column-gap: 75px;
+    }
+}
+
+/* =====================================================
+   LAPTOP
+===================================================== */
+
+@media (max-width: 1400px) {
+
+    .footer-top .container,
+    .footer-container {
+        padding-left: 55px;
+        padding-right: 55px;
+    }
+
+    .footer-top .row {
+        column-gap: 50px;
+    }
+}
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width: 991px) {
+
+    .footer-top {
+        padding: 35px 0 40px;
+    }
+
+    .footer-top .container,
+    .footer-container {
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+
+    .footer-top .row {
+        grid-template-columns: 1fr 1fr;
+
+        column-gap: 40px;
+        row-gap: 35px;
+    }
+
+    .footer-top h4 {
+        font-size: 17px;
+        margin-bottom: 16px;
+    }
+
+    .footer-top p,
+    .footer-top ul li {
+        font-size: 14px;
+    }
+
+    .footer-top ul li {
+        margin-bottom: 12px;
+    }
+}
+
+/* =====================================================
+   ĐIỆN THOẠI
+===================================================== */
+
+@media (max-width: 575px) {
+
+    .footer-top {
+        padding: 30px 0 35px;
+    }
+
+    .footer-top .container,
+    .footer-container {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .footer-top .row {
+        grid-template-columns: 1fr;
+
+        gap: 30px;
+    }
+
+    .footer-top h4 {
+        font-size: 17px;
+        margin-bottom: 15px;
+    }
+
+    .footer-top p,
+    .footer-top ul li {
+        font-size: 14px;
+        line-height: 1.65;
+    }
+
+    .footer-bottom {
+        padding: 14px 12px 10px;
+    }
+
+    .footer-bottom p {
+        font-size: 13px;
+    }
+
+    .footer-bottom p:first-child {
+        font-size: 16px;
+    }
+
+    .floating-cart {
+        height: 48px;
+        padding: 0 15px 0 9px;
+        font-size: 13px;
+    }
+
+    .floating-cart i {
+        width: 34px;
+        height: 34px;
+        font-size: 17px;
+    }
+
+    .floating-zalo {
+        width: 48px;
+        height: 48px;
+
+        right: 8px;
+        bottom: 55px;
+
+        font-size: 15px;
+    }
+
+    .floating-store {
+        height: 43px;
+        padding: 0 14px;
+        font-size: 13px;
+    }
+
+    .back-to-top {
+        right: 10px;
+        bottom: 120px;
+        font-size: 23px;
+    }
+}

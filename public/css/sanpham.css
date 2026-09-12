@@ -1,0 +1,163 @@
+/* ================= TRANG SẢN PHẨM ================= */
+
+.sanpham-page {
+    padding: 40px 0 60px;
+    background: #fff;
+}
+
+/* ================= BỘ LỌC ================= */
+
+.filter-section {
+    padding: 25px;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    background: #fff;
+    position: sticky;
+    top: 20px;
+}
+
+.filter-section h4 {
+    margin-bottom: 25px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.filter-section .form-label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.filter-section .form-select,
+.filter-section .form-control {
+    font-size: 14px;
+    border-radius: 7px;
+}
+
+.filter-section .btn {
+    font-size: 14px;
+    border-radius: 7px;
+}
+
+
+/* ================= TIÊU ĐỀ SẢN PHẨM ================= */
+
+.product-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 25px;
+}
+
+.product-header h2 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 600;
+}
+
+.product-header span {
+    color: #777;
+    font-size: 14px;
+}
+
+
+/* ================= CARD SẢN PHẨM ================= */
+
+.product-card {
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid #e8e8e8;
+    border-radius: 12px;
+    background: #fff;
+    transition: .3s;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, .08);
+}
+
+
+/* ================= HÌNH ẢNH ================= */
+
+.product-image {
+    height: 240px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: .3s;
+}
+
+.product-card:hover .product-image img {
+    transform: scale(1.05);
+}
+
+
+/* ================= THÔNG TIN ================= */
+
+.product-info {
+    padding: 18px;
+}
+
+.product-info h5 {
+    height: 48px;
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.5;
+    overflow: hidden;
+}
+
+.product-price {
+    min-height: 45px;
+    margin-bottom: 12px;
+    color: #e63946;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.product-price del {
+    display: block;
+    margin-top: 3px;
+    color: #999;
+    font-size: 13px;
+    font-weight: 400;
+}
+
+
+/* ================= NÚT ================= */
+
+.product-info .btn {
+    font-size: 13px;
+    border-radius: 7px;
+}
+
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 991px) {
+    .filter-section {
+        position: static;
+    }
+}
+
+@media (max-width: 576px) {
+    .sanpham-page {
+        padding: 25px 0 40px;
+    }
+
+    .product-header h2 {
+        font-size: 22px;
+    }
+
+    .product-image {
+        height: 210px;
+    }
+}

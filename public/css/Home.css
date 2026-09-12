@@ -1,0 +1,386 @@
+/* =========================
+   BANNER
+========================= */
+.anhsanpham {
+    background: linear-gradient(120deg, var(--primary-dark) 0%, var(--bs-primary) 55%, var(--primary-light) 100%);
+    color: #fff;
+    padding: 15px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.anhsanpham::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 82% 30%, rgba(255,255,255,.18), transparent 55%);
+    pointer-events: none;
+}
+
+.eyebrow-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.35);
+    border-radius: 999px;
+    padding: 6px 16px;
+    font-size: .85rem;
+    margin-bottom: 18px;
+}
+
+.anhsanpham h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.4rem, 5vw, 4.2rem);
+    line-height: 1.05;
+    margin-bottom: 18px;
+}
+
+.anhsanpham p.lead {
+    max-width: 480px;
+    opacity: .92;
+}
+
+.anhsanpham .btn-cta {
+    background: var(--accent-gold);
+    color: var(--ink);
+    font-weight: 600;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 8px;
+    transition: transform .15s ease;
+}
+
+.anhsanpham .btn-cta:hover {
+    transform: translateY(-2px);
+    color: var(--ink);
+}
+
+.hero-price-tag {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.6rem;
+    color: var(--accent-gold);
+}
+
+/* =========================
+   SẢN PHẨM BÁN CHẠY
+========================= */
+.featured-products {
+    background: #fff;
+    padding: 20px 0;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.section-title h2 {
+    color: #2563eb;
+    font-size: 32px;
+    font-weight: 600;
+    margin-bottom: 18px;
+}
+
+.title-line {
+    width: 200px;
+    height: 7px;
+    background: #e5e7eb;
+    border-radius: 10px;
+    margin: auto;
+    position: relative;
+}
+
+.title-line span {
+    position: absolute;
+    width: 62px;
+    height: 7px;
+    background: #2563eb;
+    border-radius: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* =========================
+   TAB DANH MỤC
+========================= */
+.product-tabs {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+}
+
+.product-tabs a {
+    text-decoration: none;
+    color: #555;
+    font-size: 22px;
+    font-weight: 600;
+    text-align: center;
+    padding: 15px 10px;
+    border-right: 1px solid #ddd;
+    transition: .3s;
+}
+
+.product-tabs a:last-child {
+    border-right: none;
+}
+
+.product-tabs a:hover {
+    color: #2563eb;
+}
+
+.product-tabs a.active {
+    background: #2563eb;
+    color: #fff;
+}
+
+/* =========================
+   KHUNG SẢN PHẨM
+========================= */
+.product-wrapper {
+    position: relative;
+    background: #2563eb;
+    padding: 32px 25px 18px;
+    border-radius: 0 0 10px 10px;
+    overflow: hidden;
+}
+
+.product-list {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 20px;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding: 0;
+    margin: 0;
+}
+
+.product-list::-webkit-scrollbar {
+    display: none;
+}
+
+/* =========================
+   CARD
+========================= */
+.product-card {
+    background: #fff;
+    overflow: hidden;
+    transition: .3s;
+    flex: 0 0 calc((100% - 80px) / 5);
+    min-width: 0;
+    scroll-snap-align: start;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,.12);
+}
+
+.product-image {
+    height: 270px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.product-info {
+    padding: 5px 12px 14px;
+}
+
+.product-info h3 {
+    font-size: 16px;
+    font-weight: 400;
+    color: #444;
+    line-height: 1.6;
+    min-height: 52px;
+    margin: 0 0 5px;
+}
+
+.product-price {
+    color: #ef233c;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* =========================
+   MŨI TÊN
+========================= */
+.product-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 45px;
+    height: 60px;
+    border: none;
+    background: transparent;
+    font-size: 38px;
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.product-arrow:hover {
+    color: #2563eb;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.product-arrow.left {
+    left: 3px;
+}
+
+.product-arrow.right {
+    right: 3px;
+}
+
+.product-arrow.disabled {
+    opacity: .25;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* =========================
+   RESPONSIVE SẢN PHẨM
+========================= */
+@media (max-width: 992px) {
+    .product-card {
+        flex: 0 0 calc((100% - 40px) / 3);
+    }
+
+    .product-tabs {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .product-card {
+        flex: 0 0 calc((100% - 20px) / 2);
+    }
+
+    .product-tabs {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .product-tabs a {
+        font-size: 16px;
+    }
+
+    .product-image {
+        height: 200px;
+    }
+
+    .product-wrapper {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .product-arrow {
+        width: 35px;
+        height: 50px;
+        font-size: 30px;
+    }
+}
+
+/* =========================
+   SALE OFF
+========================= */
+.sale {
+    background: #fff;
+    padding: 15px 0 55px;
+}
+
+.product-sale {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    width: 100%;
+    margin-top: 24px;
+}
+
+.sale-item {
+    background: #fff;
+    overflow: hidden;
+    border-radius: 10px;
+    border: 1px solid #eee;
+    transition: .3s;
+}
+
+.sale-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,.12);
+}
+
+.sale-item img {
+    width: 100%;
+    height: 280px;
+    object-fit: contain;
+    display: block;
+    background: #fff;
+    padding: 15px;
+    transition: transform .3s ease;
+}
+
+.sale-item:hover img {
+    transform: scale(1.05);
+}
+
+.sale-info {
+    padding: 10px 15px 18px;
+}
+
+.sale-info h3 {
+    font-size: 16px;
+    font-weight: 400;
+    color: #444;
+    line-height: 1.6;
+    min-height: 52px;
+    margin: 0 0 5px;
+}
+
+.old-price {
+    color: #999;
+    font-size: 15px;
+    text-decoration: line-through;
+    margin-bottom: 3px;
+}
+
+.sale-price {
+    color: #ef233c;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+/* =========================
+   RESPONSIVE SALE OFF
+========================= */
+@media (max-width: 992px) {
+    .product-sale {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .product-sale {
+        grid-template-columns: 1fr;
+    }
+
+    .sale-item img {
+        height: 240px;
+    }
+}
