@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     'Accept': 'application/json'
                 },
                 // Cho phép trình duyệt nhận Session Cookie từ Laravel
-                credentials: 'same-origin',
+                credentials: 'include',
                 body: JSON.stringify({
                     email: email,
                     password: password

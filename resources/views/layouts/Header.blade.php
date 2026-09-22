@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- THÊM DÒNG NÀY: CSRF Token để bảo mật các request POST (Đăng nhập, Đăng xuất) -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    
     <title>Badminton Shop</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -64,7 +61,6 @@
                         <div class="account-menu">
                             <a href="#" class="account-main">
                                 <i class="bi bi-person"></i>
-                                <!-- Thẻ span hiển thị tên lấy từ JavaScript -->
                                 <span id="accountName">Tài khoản</span>
                             </a>
 
@@ -77,7 +73,6 @@
                                     Đăng nhập
                                 </a>
 
-                                <!-- Nút Đăng xuất ẩn mặc định, JS sẽ hiện lên khi có user -->
                                 <a href="#" id="logoutButton" style="display: none;">
                                     Đăng xuất
                                 </a>
@@ -89,10 +84,10 @@
                             <span>Yêu thích</span>
                         </a>
 
-                        <a href="#" class="cart-link">
-                            <i class="bi bi-cart3"></i>
-                            <span>Giỏ hàng</span>
-                            <span class="cart-badge" id="cart-count">0</span>
+                        <a href="{{ url('/giohang') }}" class="cart-link">
+                        <i class="bi bi-cart3"></i>
+                        <span>Giỏ hàng</span>
+                        <span class="cart-badge" id="cart-count">0</span>
                         </a>
 
                     </div>

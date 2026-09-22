@@ -1,6 +1,3 @@
-/* =========================
-   BANNER
-========================= */
 .anhsanpham {
     background: linear-gradient(120deg, var(--primary-dark) 0%, var(--bs-primary) 55%, var(--primary-light) 100%);
     color: #fff;
@@ -62,9 +59,61 @@
     color: var(--accent-gold);
 }
 
-/* =========================
-   SẢN PHẨM BÁN CHẠY
-========================= */
+.store-policies {
+    padding-top: 20px;
+    padding-bottom: 10px;
+}
+
+.policy-box {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    border: 1px solid #ebebeb;
+    border-radius: 8px;
+    background-color: #ffffff;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.policy-box:hover {
+    border-color: #2563eb; 
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.1);
+}
+
+.policy-icon {
+    font-size: 2.2rem;
+    color: #2563eb;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.policy-info h6 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2563eb;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.policy-info p {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+    .policy-box {
+        flex-direction: column;
+        text-align: center;
+        padding: 15px 10px;
+    }
+    .policy-icon {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+}
+
 .featured-products {
     background: #fff;
     padding: 20px 0;
@@ -101,9 +150,6 @@
     transform: translateX(-50%);
 }
 
-/* =========================
-   TAB DANH MỤC
-========================= */
 .product-tabs {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
@@ -135,9 +181,6 @@
     color: #fff;
 }
 
-/* =========================
-   KHUNG SẢN PHẨM
-========================= */
 .product-wrapper {
     position: relative;
     background: #2563eb;
@@ -164,9 +207,6 @@
     display: none;
 }
 
-/* =========================
-   CARD
-========================= */
 .product-card {
     background: #fff;
     overflow: hidden;
@@ -215,9 +255,6 @@
     font-weight: 600;
 }
 
-/* =========================
-   MŨI TÊN
-========================= */
 .product-arrow {
     position: absolute;
     top: 50%;
@@ -255,9 +292,6 @@
     pointer-events: none;
 }
 
-/* =========================
-   RESPONSIVE SẢN PHẨM
-========================= */
 @media (max-width: 992px) {
     .product-card {
         flex: 0 0 calc((100% - 40px) / 3);
@@ -297,9 +331,6 @@
     }
 }
 
-/* =========================
-   SALE OFF
-========================= */
 .sale {
     background: #fff;
     padding: 15px 0 55px;
@@ -366,9 +397,10 @@
     font-weight: 600;
 }
 
-/* =========================
-   RESPONSIVE SALE OFF
-========================= */
+.policy {
+    margin-top: 30px; /* Tăng giảm con số này tùy ý bạn */
+    margin-bottom: 20px;
+}
 @media (max-width: 992px) {
     .product-sale {
         grid-template-columns: repeat(2, 1fr);
