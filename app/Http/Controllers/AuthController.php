@@ -45,20 +45,17 @@ class AuthController extends Controller
                     'VaiTro' => 'KhachHang',
                     'TrangThai' => 'HoatDong',
                 ]);
-
                 $khachHang = KhachHang::create([
                     'ID_TaiKhoan' => $taiKhoan->ID_TaiKhoan,
                     'HoTen' => $validated['name'],
                     'SoDienThoai' => $validated['SoDienThoai'],
                     'DiaChi' => $validated['DiaChi']
                 ]);
-
                 return [
                     'taiKhoan' => $taiKhoan,
                     'khachHang' => $khachHang,
                 ];
             });
-
             return response()->json([
                 'success' => true,
                 'message' => 'Đăng ký tài khoản thành công.',
@@ -109,10 +106,8 @@ class AuthController extends Controller
 
         // Lấy thông tin khách hàng thông qua relationship
         $khachHang = $taiKhoan->khachHang;
-
         // Lưu thông tin tài khoản đang đăng nhập vào Session Laravel
         $request->session()->regenerate();
-        
         $request->session()->put([
             'ID_TaiKhoan' => $taiKhoan->ID_TaiKhoan,
             'ID_KhachHang' => $khachHang ? $khachHang->ID_KhachHang : null,
@@ -145,7 +140,6 @@ class AuthController extends Controller
                 'message' => 'Chưa đăng nhập.'
             ], 401);
         }
-
         return response()->json([
             'success' => true,
             'user' => [ // Đổi từ 'data' thành 'user'

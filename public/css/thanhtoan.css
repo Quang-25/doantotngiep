@@ -1,0 +1,56 @@
+body {
+    background-color: #fafafa;
+}
+
+.checkout-page {
+    font-family: 'Poppins', sans-serif;
+}
+
+.customer-info-form .form-label {
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.customer-info-form .form-control {
+    padding: 10px 15px;
+    color: #444;
+    background-color: #eef1f5 !important; /* Màu nền xám nhạt giống ảnh */
+    pointer-events: none; /* Khóa click tạm thời */
+}
+
+.customer-info-form .form-check-input:checked {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+.btn-dat-hang {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.btn-dat-hang:hover {
+    background-color: #1d4ed8;
+    border-color: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.cart-summary {
+    background-color: #fff;
+    border-color: #eaeaea !important;
+}
+
+.cart-summary .list-group-item {
+    border-color: #eaeaea;
+}
+
+.cart-summary .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.cart-summary .btn-secondary:hover {
+    background-color: #5c636a;
+}
