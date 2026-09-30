@@ -25,7 +25,6 @@
 
             <form action="{{ route('thanhtoan.vnpay') }}" method="POST" class="customer-info-form">
                 @csrf
-                <!-- Truyền ID khách hàng ngầm để Server lưu vào bảng DonHang -->
                 <input type="hidden" name="id_khachhang" value="{{ $khachHang->ID_KhachHang ?? 0 }}">
                 
                 <div class="row g-4">
@@ -64,7 +63,6 @@
                                 
                                 @if(isset($cartItems) && count($cartItems) > 0)
                                     @foreach($cartItems as $index => $item)
-                                        <!-- Đóng gói dữ liệu mảng chi tiết sản phẩm để gửi lên Server lưu bảng ChiTietDonHang -->
                                         <input type="hidden" name="cart_items[{{ $index }}][id_sanpham]" value="{{ $item->ID_SanPham }}">
                                         <input type="hidden" name="cart_items[{{ $index }}][so_luong]" value="{{ $item->SoLuong }}">
                                         <input type="hidden" name="cart_items[{{ $index }}][gia_mua]" value="{{ $item->GiaThucTe }}">
@@ -83,24 +81,36 @@
 
                                 <li class="list-group-item d-flex justify-content-between bg-light p-3 align-items-center">
                                     <span class="fw-medium text-dark">Tổng thành tiền</span>
-                                    <strong class="text-danger fs-5">{{ number_format($tongTien ?? 0, 0, ',', '.') }}đ</strong>
+                                    <strong id="hienThiTongTien" class="text-danger fs-5">{{ number_format($tongTien ?? 0, 0, ',', '.') }}đ</strong>
                                 </li>
                             </ul>
 
                             <input type="hidden" name="tong_tien" value="{{ $tongTien ?? 0 }}">
 
+                            <!-- Khu Vực Mã Giảm Giá Shopee (Thay thế ô nhập cũ) -->
                             <div class="p-3 border-bottom">
-                                <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Mã khuyến mãi">
-                                    <button type="button" class="btn btn-secondary px-4">Xác nhận</button>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-semibold text-danger"><i class="bi bi-ticket-perforated"></i> Voucher của Shop</span>
+                                    <button type="button" id="btnMoPopupVoucher" class="btn btn-outline-primary btn-sm fw-bold">
+                                        Chọn Mã
+                                    </button>
                                 </div>
+                                
+                                <div id="voucherDaChon" class="alert alert-success p-2 mb-0 mt-3" style="display: none; border-style: dashed;">
+                                    <div class="d-flex justify-content-between">
+                                        <span id="textMaCode" class="fw-bold"></span>
+                                        <span id="textTienGiam" class="fw-bold text-danger"></span>
+                                    </div>
+                                    <button type="button" id="btnHuyVoucher" class="btn btn-link p-0 text-muted text-decoration-none mt-1" style="font-size: 0.85rem;">[Hủy bỏ]</button>
+                                </div>
+                                
+                                <input type="hidden" name="id_khuyenmai" id="inputHiddenIdKhuyenMai" value="">
                             </div>
 
                             <div class="p-4">
                                 <h5 class="mb-3 text-dark fw-semibold">Hình thức thanh toán</h5>
                                 <div class="payment-methods">
                                     <div class="form-check mb-2">
-                                        <!-- Đổi tên thành phuong_thuc để khớp biến $request->phuong_thuc -->
                                         <input class="form-check-input" type="radio" name="phuong_thuc" value="COD" id="cod" checked>
                                         <label class="form-check-label text-muted" for="cod">Thanh toán khi nhận hàng (COD)</label>
                                     </div>
@@ -119,6 +129,52 @@
             
         </div>
     </main>
+
+    <!-- Modal Popup Danh Sách Khuyến Mãi -->
+    <div id="modalVoucher" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1050;">
+        <div class="bg-white rounded-3 p-4 mx-auto mt-5 shadow-lg" style="width: 100%; max-width: 450px;">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+                <h5 class="mb-0 fw-bold">Chọn Khuyến Mãi</h5>
+                <button type="button" id="dongModal" class="btn-close" aria-label="Close"></button>
+            </div>
+            
+            <div style="max-height: 55vh; overflow-y: auto;" class="pe-2">
+                @if(isset($danhSachKhuyenMai) && $danhSachKhuyenMai->isEmpty())
+                    <p class="text-center text-muted my-4">Hiện tại chưa có mã giảm giá nào.</p>
+                @elseif(isset($danhSachKhuyenMai))
+                    @foreach($danhSachKhuyenMai as $km)
+                        <div class="card mb-3 border-0 shadow-sm" style="border-left: 5px solid #ee4d2d !important; background-color: #fafafa;">
+                            <div class="card-body d-flex justify-content-between align-items-center p-3">
+                                <div>
+                                    <h6 class="fw-bold mb-1 text-dark">{{ $km->MaCode }}</h6>
+                                    <div class="text-danger fw-semibold mb-1" style="font-size: 0.9rem;">
+                                        Giảm {{ $km->LoaiGiam == 'PhanTram' ? $km->GiaTriGiam.'%' : number_format($km->GiaTriGiam, 0, ',', '.').'đ' }}
+                                    </div>
+                                    <small class="text-muted" style="font-size: 0.8rem;">Đơn tối thiểu: {{ number_format($km->GiaTriDonToiThieu, 0, ',', '.') }}đ</small>
+                                </div>
+                                
+                                @if(isset($tongTien) && $tongTien >= $km->GiaTriDonToiThieu)
+                                    <button type="button" class="btn btn-sm btn-danger px-3 fw-semibold btnApDungVoucher" 
+                                            data-id="{{ $km->ID_KhuyenMai }}" 
+                                            data-code="{{ $km->MaCode }}" 
+                                            data-loai="{{ $km->LoaiGiam }}" 
+                                            data-giatri="{{ $km->GiaTriGiam }}"
+                                            style="background-color: #ee4d2d; border:none;">
+                                        Dùng ngay
+                                    </button>
+                                @else
+                                    <button type="button" class="btn btn-sm btn-secondary px-3" disabled style="opacity: 0.5;">
+                                        Chưa đạt
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                @endif
+            </div>
+        </div>
+    </div>
+
     @include('layouts.footer')
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/header.js') }}"></script>

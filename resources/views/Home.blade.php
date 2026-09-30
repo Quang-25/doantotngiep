@@ -137,21 +137,19 @@
         </div>
     </section>
     
-    <section class="featured sale">
-        <div class="container">
-            <div class="section-title">
-                <h2>Sale off</h2>
-                <div class="title-line">
-                    <span></span>
-                </div>
-            </div>
-            <div class="product-sale" id="product-sale">
-            </div>
+    <section class="featured sale sale-section">
+    <div class="container">
+        <div class="sale-heading">
+            <h2><span>Sale off</span></h2>
+            <p>Giá sốc mỗi ngày, số lượng có hạn</p>
         </div>
-    </section>
+        <div class="product-sale" id="product-sale">
+        </div>
+    </div>
+</section>
     
     @include('layouts.footer')
-    
+   @include('layouts.chatbot')
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/home.js') }}"></script>
 </body>

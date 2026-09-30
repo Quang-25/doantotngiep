@@ -82,13 +82,23 @@ function renderProducts(products) {
     }
 
     products.forEach(function (sp) {
+        // Xử lý link ảnh local và online
+        let hinhAnhSrc = '';
+        if (sp.HinhAnh) {
+            hinhAnhSrc = sp.HinhAnh.startsWith('http') ? sp.HinhAnh : `/images/${sp.HinhAnh}`;
+        }
+
         productList.innerHTML += `
             <div class="product-card">
                 <div class="product-image">
-                    <img src="${sp.HinhAnh}" alt="${sp.TenSanPham}">
+                    <a href="/san-pham/${sp.ID_SanPham}">
+                        <img src="${hinhAnhSrc}" alt="${sp.TenSanPham}">
+                    </a>
                 </div>
                 <div class="product-info">
-                    <h3>${sp.TenSanPham}</h3>
+                    <a href="/san-pham/${sp.ID_SanPham}" style="text-decoration: none; color: inherit;">
+                        <h3>${sp.TenSanPham}</h3>
+                    </a>
 
                     <div class="product-price">
                         ${formatPrice(sp.GiaBan)} đ
@@ -105,32 +115,54 @@ function renderProducts(products) {
     ganSuKienThemGio();
 }
 
-function renderSaleProducts(products) {
-    const productSale = document.getElementById('product-sale');
-    if (!productSale) return;
-    productSale.innerHTML = '';
-    products.forEach(function (sp) {
-        productSale.innerHTML += `
-            <div class="sale-item">
-                <img src="${sp.HinhAnh}" alt="${sp.TenSanPham}">
-                <div class="sale-info">
-                    <h3>${sp.TenSanPham}</h3>
-                    <div class="old-price">
-                        ${formatPrice(sp.GiaBan)} đ
-                    </div>
-                    <div class="sale-price">
-                        ${formatPrice(sp.GiaKhuyenMai)} đ
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-}
+
 
 function formatPrice(price) {
     return Number(price).toLocaleString('vi-VN');
 }
+function renderSaleProducts(products) {
+    const productSale = document.getElementById('product-sale');
+    if (!productSale) return;
 
+    if (!products || products.length === 0) {
+        productSale.innerHTML = '<p class="text-center text-white w-100 py-4">Chưa có sản phẩm khuyến mãi.</p>';
+        return;
+    }
+
+    // Dùng map + join thay cho += để render nhanh hơn
+    productSale.innerHTML = products.map(function (sp) {
+        let hinhAnhSrc = '/images/no-image.jpg';
+        if (sp.HinhAnh) {
+            hinhAnhSrc = sp.HinhAnh.startsWith('http') ? sp.HinhAnh : `/images/${sp.HinhAnh}`;
+        }
+
+       const giaBan = Number(sp.GiaBan);
+       const giaKM  = Number(sp.GiaKhuyenMai) || 0;
+
+// GiaKhuyenMai = giá bán sau khi giảm (giống dữ liệu MySQL)
+      const coKhuyenMai = giaKM > 0 && giaKM < giaBan;
+      const giaCuoi  = coKhuyenMai ? giaKM : giaBan;
+      const phanTram = coKhuyenMai ? Math.round((1 - giaKM / giaBan) * 100) : 0;
+        return `
+            <div class="sale-item">
+                <a href="/san-pham/${sp.ID_SanPham}" class="sale-thumb">
+                    <img src="${hinhAnhSrc}" alt="${sp.TenSanPham}">
+                    ${coKhuyenMai ? `<div class="sale-ribbon">GIẢM ${phanTram}%</div>` : ''}
+                </a>
+                <div class="sale-info">
+                    <a href="/san-pham/${sp.ID_SanPham}" style="text-decoration: none; color: inherit;">
+                        <h3>${sp.TenSanPham}</h3>
+                    </a>
+                    <div class="price-row">
+                        <span class="sale-price">${formatPrice(giaCuoi)} đ</span>
+                        ${coKhuyenMai ? `<span class="old-price">${formatPrice(giaBan)} đ</span>` : ''}
+                    </div>
+                    <a href="/san-pham/${sp.ID_SanPham}" class="sale-btn">Xem ngay</a>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
 function initProductSlider() {
     const productList = document.querySelector('.product-list');
     let leftArrow = document.querySelector('.product-arrow.left');

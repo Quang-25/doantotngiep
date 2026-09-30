@@ -56,14 +56,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     `; 
                 } 
 
+                // Xử lý link ảnh mượt mà (hỗ trợ cả link online và local)
+                let hinhAnhSrc = '';
+                if (sp.HinhAnh) {
+                    hinhAnhSrc = sp.HinhAnh.startsWith('http') ? sp.HinhAnh : `/images/${sp.HinhAnh}`;
+                }
+
+                // Gắn thẻ <a> trỏ về /san-pham/{id} cho cả Hình ảnh và Tên sản phẩm
                 list.innerHTML += ` 
                     <div class="col-md-6 col-xl-4"> 
                         <div class="product-card"> 
-                            <div class="product-image"> 
-                                <img src="${sp.HinhAnh || ''}" alt="${sp.TenSanPham}"> 
-                            </div> 
+                           <div class="product-image text-center"> 
+                            <a href="/san-pham/${sp.ID_SanPham}">
+                            <img src="${hinhAnhSrc}" alt="${sp.TenSanPham}" style="height: 250px; width: 100%; object-fit: contain; padding: 15px;"> 
+                            </a>
+                            </div>
                             <div class="product-info"> 
-                                <h5>${sp.TenSanPham}</h5> 
+                                <a href="/san-pham/${sp.ID_SanPham}" class="text-decoration-none text-dark">
+                                    <h5>${sp.TenSanPham}</h5> 
+                                </a>
                                 ${giaHTML} 
                                 <button class="btn btn-primary w-100 btn-them-gio" data-id="${sp.ID_SanPham}"> 
                                     <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng 
@@ -133,11 +144,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json(); 
 
             if (data.success) { 
-                // GỌI TRỰC TIẾP HÀM ĐẾM TỪ HEADER.JS
                 if (typeof window.laySoLuongGioHangToanCuc === 'function') {
                     window.laySoLuongGioHangToanCuc();
                 }
-                
                 alert(data.message); 
             } else { 
                 alert(data.message || 'Không thể thêm sản phẩm.'); 

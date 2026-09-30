@@ -1,20 +1,18 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\SanPhamController;
 use App\Http\Controllers\GioHangController;
-
+use App\Http\Controllers\ChatbotController;
 Route::get('/sanpham', [SanPhamController::class, 'api']);
 Route::get('/home', [HomeController::class, 'api']);
 Route::post('/register', [AuthController::class, 'register']);
-
+Route::post('/chatbot/tu-van', [ChatbotController::class, 'tuVan']);
 Route::middleware('web')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
-
     Route::get('/gio-hang', [GioHangController::class, 'getCart']);
     Route::post('/gio-hang/them', [GioHangController::class, 'them']);
     Route::post('/gio-hang/cap-nhat', [GioHangController::class, 'capNhat']);

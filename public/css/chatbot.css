@@ -1,0 +1,35 @@
+/* Nút bật tắt chatbot */
+#btn-chatbot-toggle {
+    position: fixed;
+    bottom: 130px; /* Nút Zalo cao 55px + bottom 60px = 115px. Đặt 130px để cách Zalo 15px và nằm dưới mũi tên */
+    right: 15px;   /* Đổi thành 15px để thẳng hàng tuyệt đối với trục dọc của Zalo */
+    z-index: 1050; /* Đảm bảo nút luôn nổi lên trên cùng */
+    cursor: pointer;
+    width: 55px;   /* Kích thước bằng đúng nút Zalo */
+    height: 55px;  /* Sửa thành 55px để nút tròn đều, không bị méo */
+    background-color: #2563eb;
+    border-radius: 50%; /* Dùng 50% để tạo hình tròn hoàn hảo */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: transform 0.2s ease;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+/* Khung chatbot */
+#chatbot-window {
+    position: fixed;
+    bottom: 200px; /* Đặt cao hơn nút toggle 15px (130px + 55px + 15px) để tạo khe hở đẹp */
+    right: 15px;   /* Giữ nguyên 15px để thẳng hàng với cả 2 nút bên dưới */
+    width: 360px;
+    height: 520px;
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
