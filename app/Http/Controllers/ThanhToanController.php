@@ -43,7 +43,18 @@ class ThanhToanController extends Controller
             $item->GiaThucTe = $giaThucTe;
         }
 
-        return view('thanhtoan', compact('khachHang', 'cartItems', 'tongTien'));
+        // Lấy danh sách mã khuyến mãi hợp lệ hiển thị ra Popup
+        $today = date('Y-m-d');
+        $danhSachKhuyenMai = DB::table('KhuyenMai')
+            ->where('TrangThai', 'HoatDong')
+            ->where('NgayBatDau', '<=', $today)
+            ->where('NgayKetThuc', '>=', $today)
+            ->where(function($query) {
+                $query->whereNull('SoLuong')->orWhere('SoLuong', '>', 0);
+            })
+            ->get();
+
+        return view('thanhtoan', compact('khachHang', 'cartItems', 'tongTien', 'danhSachKhuyenMai'));
     }
     
     public function processCheckout(Request $request)
@@ -54,10 +65,34 @@ class ThanhToanController extends Controller
             $trangThaiDon = ($phuongThucRequest === 'VNPay') ? 'ChoXacNhan' : 'DangGiao';
             $phuongThucDonHang = ($phuongThucRequest === 'VNPay') ? 'VNPay' : 'COD';
 
+            // XỬ LÝ TÍNH TOÁN KHUYẾN MÃI BẢO MẬT TRÊN SERVER
+            $tongTien = $request->tong_tien;
+            $tienGiam = 0;
+            $thanhTien = $tongTien;
+            $idKhuyenMai = $request->id_khuyenmai ?? null;
+
+            if ($idKhuyenMai) {
+                $km = DB::table('KhuyenMai')->where('ID_KhuyenMai', $idKhuyenMai)->where('TrangThai', 'HoatDong')->first();
+                if ($km) {
+                    $tienGiam = ($km->LoaiGiam == 'PhanTram') ? ($tongTien * $km->GiaTriGiam) / 100 : $km->GiaTriGiam;
+                    if ($tienGiam > $tongTien) $tienGiam = $tongTien; // Không giảm âm tiền
+                    $thanhTien = $tongTien - $tienGiam;
+
+                    // Trừ đi 1 lượt sử dụng của mã khuyến mãi
+                    if ($km->SoLuong > 0) {
+                        DB::table('KhuyenMai')->where('ID_KhuyenMai', $idKhuyenMai)->decrement('SoLuong', 1);
+                    }
+                } else {
+                    $idKhuyenMai = null; // Trùng hợp mã bị khóa trong lúc đang đặt hàng
+                }
+            }
+
             $idDonHang = DB::table('DonHang')->insertGetId([
                 'ID_KhachHang' => $request->id_khachhang,
-                'TongTien' => $request->tong_tien,
-                'ThanhTien' => $request->tong_tien,
+                'ID_KhuyenMai' => $idKhuyenMai,
+                'TongTien' => $tongTien,
+                'TienGiam' => $tienGiam,
+                'ThanhTien' => $thanhTien,
                 'TenNguoiNhan' => $request->ten_nguoi_nhan,
                 'SoDienThoaiNhan' => $request->so_dien_thoai,
                 'DiaChiGiaoHang' => $request->dia_chi,
@@ -91,7 +126,7 @@ class ThanhToanController extends Controller
             if ($phuongThucRequest === 'VNPay') {
                 DB::table('ThanhToan')->insert([
                     'ID_DonHang' => $idDonHang,
-                    'SoTien' => $request->tong_tien,
+                    'SoTien' => $thanhTien, // VNPay thanh toán số tiền đã trừ khuyến mãi
                     'PhuongThuc' => 'VNPay',
                     'TrangThaiGiaoDich' => 'ChoThanhToan',
                     'NgayGiaoDich' => now(),
@@ -108,7 +143,7 @@ class ThanhToanController extends Controller
             DB::commit();
 
             if ($phuongThucRequest === 'VNPay') {
-                $vnp_Url = $this->createVNPayUrl($idDonHang, $request->tong_tien, $request->ip());
+                $vnp_Url = $this->createVNPayUrl($idDonHang, $thanhTien, $request->ip());
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Xác thực thành công, đang chuyển hướng...',
@@ -165,6 +200,26 @@ class ThanhToanController extends Controller
 
             return redirect('/thanhtoan')->with('error', 'Giao dịch thanh toán đã bị hủy. Đơn hàng đã cập nhật thành đã hủy!');
         }
+    }
+
+    public function theoDoiDonHang()
+    {
+        $idTaiKhoan = session('ID_TaiKhoan');
+        if (!$idTaiKhoan) {
+            return redirect('/Dangnhap')->with('error', 'Vui lòng đăng nhập để xem đơn hàng.');
+        }
+
+        $khachHang = DB::table('KhachHang')->where('ID_TaiKhoan', $idTaiKhoan)->first();
+        if (!$khachHang) {
+            return redirect('/')->with('error', 'Không tìm thấy hồ sơ khách hàng.');
+        }
+
+        $donHangs = DB::table('DonHang')
+            ->where('ID_KhachHang', $khachHang->ID_KhachHang)
+            ->orderBy('NgayDat', 'desc')
+            ->get();
+
+        return view('theo-doi-don-hang', compact('donHangs'));
     }
 
     private function sendOrderEmail($idDonHang)

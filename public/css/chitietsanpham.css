@@ -1,0 +1,80 @@
+/* public/css/chitietsanpham.css */
+
+.breadcrumb {
+    font-size: 0.9rem;
+    background-color: transparent;
+    padding: 0;
+    margin-bottom: 20px;
+}
+.breadcrumb-item a { color: #0056b3; text-decoration: none; transition: 0.2s;}
+.breadcrumb-item a:hover { color: #0d6efd; text-decoration: underline; }
+
+.main-image-container {
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+}
+.main-image { 
+    width: 100%; 
+    height: 400px; 
+    object-fit: contain; 
+}
+.gallery-thumb { 
+    width: 75px; 
+    height: 75px; 
+    object-fit: cover; 
+    cursor: pointer; 
+    border: 2px solid transparent; 
+    border-radius: 5px; 
+    opacity: 0.5; 
+    transition: all 0.3s ease; 
+}
+.gallery-thumb:hover { opacity: 0.8; }
+.gallery-thumb.active { 
+    border-color: #0d6efd; 
+    opacity: 1; 
+}
+
+.price-box { 
+    background: #fafafa; 
+    padding: 20px; 
+    border-radius: 8px; 
+    display: flex;
+    align-items: center;
+}
+.old-price { 
+    text-decoration: line-through; 
+    color: #929292; 
+    font-size: 1.1rem; 
+    margin-right: 15px;
+}
+.current-price { 
+    color: #dc3545; 
+    font-size: 2rem; 
+    font-weight: 700; 
+}
+.discount-badge {
+    background-color: #dc3545;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-left: 15px;
+    text-transform: uppercase;
+}
+
+.spec-table th { 
+    width: 35%; 
+    background-color: #f4f4f4; 
+    font-weight: 600; 
+    color: #555;
+}
+.spec-table td {
+    color: #333;
+}

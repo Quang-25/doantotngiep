@@ -35,7 +35,7 @@
                     </p>
                     <p>
                         <strong>Địa chỉ:</strong>
-                        <span>Tổ 4, Tân Lập,Từ Sơn,Bắc Ninh</span>
+                        <span>Tổ 4, Đền Rồng, Phường Từ Sơn, Thành Phố Bắc Ninh</span>
                     </p>
                     <p>
                         <strong>Người liên hệ:</strong>
@@ -98,7 +98,7 @@
         <p>
             <strong>BADMINTON SHOP</strong>
         </p>
-        <p>Địa chỉ: Tổ 4, Tân Lập, Từ Sơn, Bắc Ninh</p>
+        <p>Địa chỉ: Tổ 4, Đền Rồng, Phường Từ Sơn, Thành Phố Bắc Ninh</p>
         <p>Email: Cohoi2512@gmail.com</p>
         <p>Người liên hệ: Trần Minh Quang</p>
         <p>Website bán hàng và phụ kiện cầu lông trực tuyến</p>
@@ -126,3 +126,4 @@
 <button class="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
     <i class="bi bi-chevron-up"></i>
 </button>
+@include('layouts.Chatbot')
