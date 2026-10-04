@@ -1,0 +1,228 @@
+:root {
+    --sidebar-w: 250px;
+    --admin-bg: #f4f6fb;
+    --admin-primary: #2563eb;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--admin-bg);
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    color: #334155;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Ngăn xuất hiện thanh cuộn ngang */
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-w);
+    padding: 24px 14px;
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    color: #fff;
+    overflow-y: auto;
+    z-index: 1040; /* Đẩy Sidebar lên lớp cao nhất */
+}
+
+.sidebar h4 {
+    letter-spacing: 1px;
+    padding-bottom: 18px;
+    margin-bottom: 24px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, .12);
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.sidebar a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    margin-bottom: 6px;
+    border-radius: 8px;
+    color: #cbd5e1;
+    font-size: 15px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.sidebar a i {
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.sidebar a:hover {
+    background: rgba(255, 255, 255, .08);
+    color: #fff;
+    transform: translateX(4px);
+}
+
+.sidebar a.active {
+    background: var(--admin-primary);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, .3);
+}
+
+/* ===== NỘI DUNG CHÍNH (Đã fix lỗi bị đè) ===== */
+.main-content {
+    margin-left: var(--sidebar-w) !important; 
+    width: calc(100% - var(--sidebar-w)) !important; /* Trừ chính xác 250px của sidebar */
+    padding: 24px 28px 40px;
+    min-height: 100vh;
+}
+
+/* ===== TOPBAR ===== */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 16px 24px;
+    margin-bottom: 24px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, .04);
+}
+
+/* ===== THAO TÁC NHANH ===== */
+.quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.quick-actions .btn {
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 8px 16px;
+}
+
+/* ===== THẺ KPI ===== */
+.stat-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 24px;
+    border-radius: 12px;
+    color: #fff;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, .08);
+    transition: transform .25s, box-shadow .25s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, .15);
+}
+
+.stat-card h3 {
+    margin: 0 0 5px;
+    font-size: 28px;
+    font-weight: 700;
+    position: relative;
+    z-index: 2;
+}
+
+.stat-card span {
+    font-size: 14px;
+    opacity: .9;
+    position: relative;
+    z-index: 2;
+}
+
+.stat-card > i {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 50px;
+    opacity: .2;
+    z-index: 1;
+}
+
+.bg-revenue   { background: linear-gradient(135deg, #2563eb, #1e40af); }
+.bg-orders    { background: linear-gradient(135deg, #10b981, #047857); }
+.bg-customers { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+.bg-pending   { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+
+/* ===== CARD CHUNG ===== */
+.card {
+    border-radius: 12px !important;
+    overflow: hidden;
+    border: none !important;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, .04);
+}
+
+.card-header {
+    background: #fff !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+}
+
+.card-header h6 {
+    font-size: 15px;
+}
+
+.chart-box {
+    position: relative;
+    height: 320px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-warning {
+    border-left: 4px solid #dc3545 !important;
+}
+
+/* ===== BẢNG ĐƠN HÀNG ===== */
+.table { margin-bottom: 0; }
+
+.table thead th {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: #64748b;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 14px 16px;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.table tbody td {
+    padding: 16px;
+    vertical-align: middle;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.table-hover tbody tr:hover { background: #f8fafc; }
+
+.icon-box {
+    background: #f1f5f9;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 18px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+    .sidebar { position: static; width: 100%; display: flex; flex-wrap: wrap; padding: 14px; }
+    .sidebar h4 { width: 100%; }
+    .sidebar a { margin: 0; padding: 8px 12px; font-size: 14px; }
+    .main-content { 
+        margin-left: 0 !important; 
+        width: 100% !important; 
+        padding: 16px; 
+    }
+}

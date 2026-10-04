@@ -6,18 +6,20 @@ document.addEventListener('DOMContentLoaded', function () {
     const buttonText = document.getElementById('loginButtonText');
     const buttonIcon = document.getElementById('loginButtonIcon');
     if (!form) return;
+    
     form.addEventListener('submit', async function (e) {
         // Ngăn chặn reload trang mặc định của form
         e.preventDefault();
         messageBox.innerHTML = '';
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
+        
         // Kiểm tra email
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             showMessage('Email không hợp lệ.', 'danger');
             return;
         }
-        // Kiểm tra mật khẩu (Lưu ý: Nếu test với tài khoản cũ pass '123' thì phải tạm đổi số 8 thành 3 nhé)
+        // Kiểm tra mật khẩu
         if (password.length < 8) {
             showMessage('Mật khẩu phải có ít nhất 8 ký tự.', 'danger');
             return;
@@ -32,7 +34,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    // ĐỌC TOKEN BẢO MẬT TỪ THẺ META (TRÁNH LỖI 419)
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
                 // Cho phép trình duyệt nhận Session Cookie từ Laravel
                 credentials: 'include',
@@ -52,18 +56,25 @@ document.addEventListener('DOMContentLoaded', function () {
                     'success'
                 );
 
-                // FIX QUAN TRỌNG: Lưu thông tin tài khoản vào LocalStorage 
-                // để file header.js có thể lấy ra hiển thị tên người dùng
+                // Lưu thông tin tài khoản vào LocalStorage 
                 if (result.user) {
                     localStorage.setItem('user', JSON.stringify(result.user));
                 }
-                // Chuyển hướng về trang chủ
+                
+                // KIỂM TRA QUYỀN VÀ CHUYỂN HƯỚNG
                 setTimeout(() => {
-                    window.location.href = '/';
+                    if (result.user && result.user.VaiTro === 'Admin') {
+                        // Nếu là Admin -> Vào Dashboard
+                        window.location.href = '/admin/dashboard';
+                    } else {
+                        // Nếu là Khách Hàng -> Ra trang chủ
+                        window.location.href = '/';
+                    }
                 }, 1000);
 
                 return;
             }
+            
             // Xử lý lỗi trả về từ server
             let message = result.message || 'Đăng nhập thất bại.';
             if (result.errors) {
@@ -96,6 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
     }
 });
+
 function toggleLoginPassword() {
     const password = document.getElementById('password');
     const icon = document.getElementById('passwordIcon');
