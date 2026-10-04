@@ -1,0 +1,14 @@
+/* Khung tìm kiếm */
+.search-form {
+    width: 400px;
+}
+
+/* Rút gọn văn bản dài (áp dụng cho cột Địa chỉ) */
+.address-text {
+    max-width: 250px;
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle; /* Căn giữa theo chiều dọc cho đẹp */
+}

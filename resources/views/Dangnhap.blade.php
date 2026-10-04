@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- BẮT BUỘC CÓ ĐỂ LARAVEL CHO PHÉP JAVASCRIPT GỬI DATA POST -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>Đăng nhập - Badminton ProShop</title>
 
@@ -27,24 +30,14 @@
 
             <section class="login-image">
                 <div class="image-content">
-
                     <div class="logo-wrapper">
-                        <img
-                            src="{{ asset('images/logo.png') }}"
-                            alt="Badminton ProShop"
-                            class="login-logo">
+                        <img src="{{ asset('images/logo.png') }}" alt="Badminton ProShop" class="login-logo">
                     </div>
 
                     <h1>BADMINTON PROSHOP</h1>
-
                     <p>Chào mừng bạn đến với Badminton ProShop!</p>
-
                     <div class="image-line"></div>
-
-                    <span>
-                        Đăng nhập để trải nghiệm mua sắm tuyệt vời tại Badminton ProShop!
-                    </span>
-
+                    <span>Đăng nhập để trải nghiệm mua sắm tuyệt vời tại Badminton ProShop!</span>
                 </div>
             </section>
 
@@ -57,40 +50,18 @@
 
                         <div class="form-group">
                             <label for="email">Email</label>
-
                             <div class="input-box">
                                 <i class="bi bi-envelope"></i>
-
-                                <input
-                                    type="email"
-                                    id="email"
-                                    name="email"
-                                    placeholder="Nhập địa chỉ email"
-                                    autocomplete="email"
-                                    required>
+                                <input type="email" id="email" name="email" placeholder="Nhập địa chỉ email" autocomplete="email" required>
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label for="password">Mật khẩu</label>
-
                             <div class="input-box">
                                 <i class="bi bi-lock"></i>
-
-                                <input
-                                    type="password"
-                                    id="password"
-                                    name="password"
-                                    placeholder="Nhập mật khẩu"
-                                    autocomplete="current-password"
-                                    required>
-
-                                <button
-                                    type="button"
-                                    class="show-password"
-                                    onclick="toggleLoginPassword()"
-                                    aria-label="Hiện hoặc ẩn mật khẩu">
-
+                                <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" autocomplete="current-password" required>
+                                <button type="button" class="show-password" onclick="toggleLoginPassword()" aria-label="Hiện hoặc ẩn mật khẩu">
                                     <i id="passwordIcon" class="bi bi-eye"></i>
                                 </button>
                             </div>
@@ -101,21 +72,12 @@
                                 <input type="checkbox" id="remember">
                                 <span>Ghi nhớ đăng nhập</span>
                             </label>
-
                             <a href="#">Quên mật khẩu?</a>
                         </div>
 
-                        <button
-                            type="submit"
-                            class="login-btn"
-                            id="loginButton">
-
+                        <button type="submit" class="login-btn" id="loginButton">
                             <span id="loginButtonText">Đăng nhập</span>
-
-                            <i
-                                class="bi bi-arrow-right"
-                                id="loginButtonIcon">
-                            </i>
+                            <i class="bi bi-arrow-right" id="loginButtonIcon"></i>
                         </button>
 
                     </form>

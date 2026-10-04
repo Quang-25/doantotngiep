@@ -1,0 +1,12 @@
+.order-product-img { 
+    width: 50px; 
+    height: 50px; 
+    object-fit: cover; 
+    border-radius: 6px; 
+}
+
+/* Định dạng kích thước cho các nhãn (badge) trạng thái */
+.badge-status { 
+    font-size: 13px; 
+    padding: 6px 12px; 
+}
