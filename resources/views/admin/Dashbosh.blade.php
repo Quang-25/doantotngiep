@@ -5,14 +5,7 @@
 @endsection
 
 @section('content')
-    <!-- KHỐI 1: THAO TÁC NHANH -->
-    <div class="quick-actions mb-4">
-        <button class="btn btn-primary shadow-sm"><i class="fas fa-plus-circle"></i> Thêm Sản Phẩm Mới</button>
-        <button class="btn btn-success shadow-sm"><i class="fas fa-ticket-alt"></i> Tạo Khuyến Mãi</button>
-        <button class="btn btn-info text-white shadow-sm"><i class="fas fa-file-export"></i> Xuất Báo Cáo Excel</button>
-    </div>
-
-    <!-- KHỐI 2: 4 THẺ KPI -->
+    <!-- KHỐI 1 & 2: 4 THẺ KPI TỔNG QUAN -->
     <div class="row g-3 mb-4">
         <div class="col-xl-3 col-md-6">
             <div class="stat-card bg-revenue">
@@ -66,30 +59,49 @@
             </div>
         </div>
 
-        <!-- Cảnh báo tồn kho -->
+        <!-- Tình trạng tồn kho -->
         <div class="col-lg-6">
             <div class="card border-0 shadow-sm h-100 card-warning">
                 <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 fw-bold text-danger"><i class="fas fa-exclamation-triangle"></i> Cảnh Báo Tồn Kho Hạn Mức</h6>
-                    <span class="badge bg-danger">Sắp hết hàng</span>
+                    <h6 class="m-0 fw-bold text-danger"><i class="fas fa-exclamation-triangle"></i> Tình Trạng Tồn Kho</h6>
+                    <span class="badge bg-primary">Tất cả sản phẩm</span>
                 </div>
                 <div class="card-body p-0">
-                    <ul class="list-group list-group-flush">
+                    <!-- Danh sách có thanh cuộn dọc -->
+                    <ul class="list-group list-group-flush" style="max-height: 380px; overflow-y: auto;">
                         @forelse($spHetHang ?? [] as $sp)
                             <li class="list-group-item d-flex justify-content-between align-items-center py-3">
                                 <div class="d-flex align-items-center">
-                                    <div class="icon-box me-3"><i class="fas fa-box-open text-muted"></i></div>
-                                    <div>
-                                        <h6 class="mb-0 text-truncate stock-name" title="{{ $sp->TenSanPham }}">{{ $sp->TenSanPham }}</h6>
-                                        <small class="text-danger fw-bold">Chỉ còn: {{ $sp->SoLuongTon }} sản phẩm</small>
+                                    
+                                    <!-- HIỂN THỊ HÌNH ẢNH SẢN PHẨM -->
+                                    <div class="me-3">
+                                        @if(!empty($sp->HinhAnh))
+                                            <img src="{{ $sp->HinhAnh }}" alt="{{ $sp->TenSanPham }}" class="rounded border" style="width: 50px; height: 50px; object-fit: cover;">
+                                        @else
+                                            <div class="d-flex align-items-center justify-content-center bg-light rounded border" style="width: 50px; height: 50px;">
+                                                <i class="fas fa-box-open text-muted fs-5"></i>
+                                            </div>
+                                        @endif
                                     </div>
+                                    
+                                    <!-- THÔNG TIN SẢN PHẨM & CẢNH BÁO -->
+                                    <div>
+                                        <h6 class="mb-0 text-truncate stock-name" title="{{ $sp->TenSanPham }}" style="max-width: 250px;">{{ $sp->TenSanPham }}</h6>
+                                        
+                                        @if($sp->SoLuongTon < 5)
+                                            <small class="text-danger fw-bold">Chỉ còn: {{ $sp->SoLuongTon }} sản phẩm (Sắp hết)</small>
+                                        @else
+                                            <small class="text-success fw-bold">Trong kho còn: {{ $sp->SoLuongTon }} sản phẩm</small>
+                                        @endif
+                                    </div>
+
                                 </div>
-                                <button class="btn btn-sm btn-outline-primary">Nhập hàng</button>
+                                <a href="/admin/san-pham" class="btn btn-sm btn-outline-primary">Nhập hàng</a>
                             </li>
                         @empty
                             <li class="list-group-item text-center text-success py-5">
                                 <i class="fas fa-check-circle fs-3 mb-2"></i><br>
-                                Kho hàng ổn định, chưa có sản phẩm nào sắp hết.
+                                Cửa hàng hiện chưa có sản phẩm nào.
                             </li>
                         @endforelse
                     </ul>
@@ -98,9 +110,7 @@
         </div>
     </div>
 
-    <!-- KHỐI 4: ĐƠN HÀNG MỚI (Đã tích hợp xử lý thông minh) -->
     <!-- KHỐI 4: ĐƠN HÀNG MỚI -->
-    <!-- KHỐI 4: ĐƠN HÀNG MỚI (Đã bỏ cột Xử Lý, tự động đồng bộ trạng thái) -->
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 fw-bold text-primary"><i class="fas fa-clipboard-list"></i> Theo Dõi Đơn Hàng Mới Nhất</h6>
@@ -155,8 +165,7 @@
 @endsection
 
 @section('scripts')
-    <!-- JS xử lý biểu đồ -->
+    <!-- JS xử lý biểu đồ và các sự kiện -->
     <script src="{{ asset('js/admin/admin.js') }}"></script>
-    <!-- ĐÃ THÊM: Gọi file donhang.js vào để bắt sự kiện click nút Duyệt/Hoàn thành -->
     <script src="{{ asset('js/admin/donhang.js') }}"></script>
 @endsection

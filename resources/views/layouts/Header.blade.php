@@ -65,17 +65,9 @@
                             </a>
 
                             <div class="account-dropdown">
-                                <a href="{{ url('/Dangky') }}" id="registerLink">
-                                    Đăng ký
-                                </a>
-
-                                <a href="{{ url('/Dangnhap') }}" id="loginLink">
-                                    Đăng nhập
-                                </a>
-
-                                <a href="#" id="logoutButton" style="display: none;">
-                                    Đăng xuất
-                                </a>
+                                <a href="{{ url('/Dangky') }}" id="registerLink">Đăng ký</a>
+                                <a href="{{ url('/Dangnhap') }}" id="loginLink">Đăng nhập</a>
+                                <a href="#" id="logoutButton" style="display: none;">Đăng xuất</a>
                             </div>
                         </div>
 
@@ -85,9 +77,9 @@
                         </a>
 
                         <a href="{{ url('/giohang') }}" class="cart-link">
-                        <i class="bi bi-cart3"></i>
-                        <span>Giỏ hàng</span>
-                        <span class="cart-badge" id="cart-count">0</span>
+                            <i class="bi bi-cart3"></i>
+                            <span>Giỏ hàng</span>
+                            <span class="cart-badge" id="cart-count">0</span>
                         </a>
 
                     </div>
@@ -109,101 +101,103 @@
                 <ul class="navbar-nav mx-auto">
 
                     <li class="nav-item">
-                        <a class="nav-link active" href="{{ url('/') }}">
-                            Trang chủ
-                        </a>
+                        <a class="nav-link active" href="{{ url('/') }}">Trang chủ</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url('/sanpham') }}">
-                            Sản phẩm
-                        </a>
+                        <a class="nav-link" href="{{ url('/sanpham') }}">Sản phẩm</a>
                     </li>
 
+                    <!-- MENU VỢT CẦU LÔNG (Danh mục 1) -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle" href="{{ url('/sanpham?danh_muc=1') }}" role="button" data-bs-toggle="dropdown">
                             Vợt cầu lông
                         </a>
-
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Tất cả vợt cầu lông</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=1') }}">Tất cả vợt cầu lông</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Vợt Yonex</a></li>
-                            <li><a class="dropdown-item" href="#">Vợt Lining</a></li>
-                            <li><a class="dropdown-item" href="#">Vợt Victor</a></li>
-                            <li><a class="dropdown-item" href="#">Vợt Mizuno</a></li>
-                            <li><a class="dropdown-item" href="#">Vợt Gosen</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=1&thuong_hieu=1') }}">Vợt Yonex</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=1&thuong_hieu=2') }}">Vợt Lining</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=1&thuong_hieu=3') }}">Vợt Victor</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=1&thuong_hieu=4') }}">Vợt Mizuno</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=1&thuong_hieu=5') }}">Vợt Gosen</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Vợt cho người mới</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=1&trinh_do=MoiChoi') }}">Vợt cho người mới</a></li>
                         </ul>
                     </li>
 
+                    <!-- MENU GIÀY (Danh mục 2) -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle" href="{{ url('/sanpham?danh_muc=2') }}" role="button" data-bs-toggle="dropdown">
                             Giày
                         </a>
-
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Tất cả giày</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=2') }}">Tất cả giày</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Giày Yonex</a></li>
-                            <li><a class="dropdown-item" href="#">Giày Lining</a></li>
-                            <li><a class="dropdown-item" href="#">Giày Victor</a></li>
-                            <li><a class="dropdown-item" href="#">Giày nam</a></li>
-                            <li><a class="dropdown-item" href="#">Giày nữ</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=2&thuong_hieu=1') }}">Giày Yonex</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=2&thuong_hieu=2') }}">Giày Lining</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=2&thuong_hieu=3') }}">Giày Victor</a></li>
                         </ul>
                     </li>
 
+                   
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle" href="{{ url('/sanpham?danh_muc=3,5') }}" role="button" data-bs-toggle="dropdown">
                             Quần áo
                         </a>
-
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Tất cả quần áo</a></li>
+                            <!-- Đã ghép ID 3 (Quần áo) và 5 (Váy) để hiện TẤT CẢ -->
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=3,5') }}">Tất cả quần áo & váy</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Áo cầu lông</a></li>
-                            <li><a class="dropdown-item" href="#">Quần cầu lông</a></li>
-                            <li><a class="dropdown-item" href="#">Váy cầu lông</a></li>
+                            
+                            <!-- Lọc chính xác Áo hoặc Quần -->
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=3&search=áo') }}">Áo cầu lông</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=3&search=quần') }}">Quần cầu lông</a></li>
+                            
+                            <!-- Váy cầu lông trỏ về Danh mục số 5 -->
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=5') }}">Váy cầu lông</a></li>
                         </ul>
                     </li>
 
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                    <!-- MENU PHỤ KIỆN (Danh mục 4) -->
+                   <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="{{ url('/sanpham?danh_muc=4') }}" role="button" data-bs-toggle="dropdown">
                             Phụ kiện
                         </a>
-
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Tất cả phụ kiện</a></li>
+                            <!-- Bấm vào đây sẽ ra TOÀN BỘ phụ kiện thuộc danh mục 4 -->
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=4') }}">Tất cả phụ kiện</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Cước cầu lông</a></li>
-                            <li><a class="dropdown-item" href="#">Quấn cán</a></li>
-                            <li><a class="dropdown-item" href="#">Túi vợt</a></li>
-                            <li><a class="dropdown-item" href="#">Balo cầu lông</a></li>
-                            <li><a class="dropdown-item" href="#">Quả cầu</a></li>
+                            
+                            <!-- Truyền thêm biến search để Controller tự động lọc riêng từng món -->
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=4&search=cước') }}">Cước cầu lông</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=4&search=quấn') }}">Quấn cán</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=4&search=túi') }}">Túi vợt</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=4&search=balo') }}">Balo cầu lông</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=4&search=quả cầu') }}">Quả cầu</a></li>
                         </ul>
                     </li>
 
+                    <!-- MENU THƯƠNG HIỆU -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             Thương hiệu
                         </a>
-
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Yonex</a></li>
-                            <li><a class="dropdown-item" href="#">Lining</a></li>
-                            <li><a class="dropdown-item" href="#">Victor</a></li>
-                            <li><a class="dropdown-item" href="#">Mizuno</a></li>
-                            <li><a class="dropdown-item" href="#">Gosen</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?thuong_hieu=1') }}">Yonex</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?thuong_hieu=2') }}">Lining</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?thuong_hieu=3') }}">Victor</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?thuong_hieu=4') }}">Mizuno</a></li>
                         </ul>
                     </li>
 
+                    <!-- MENU KHÁC -->
                     <li class="nav-item">
                         <a class="nav-link sale" href="#">Flash Sale</a>
                     </li>
 
                     <li class="nav-item">
-                    <a class="nav-link" href="{{ route('tintuc.index') }}">Tin tức</a>
+                        <a class="nav-link" href="{{ route('tintuc.index') }}">Tin tức</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Liên hệ</a>

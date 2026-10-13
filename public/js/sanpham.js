@@ -3,16 +3,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadSanPham() { 
         if (!list) return; 
-        const params = new URLSearchParams(); 
+        
+        // 1. ĐỌC THAM SỐ TỪ URL (Menu truyền xuống)
         const urlParams = new URLSearchParams(window.location.search); 
         const search = urlParams.get('search'); 
-        const danhMuc = document.querySelector('[name="danhmuc"]'); 
-        const thuongHieu = document.querySelector('[name="thuonghieu"]'); 
+        const danhMucUrl = urlParams.get('danh_muc'); 
+        const thuongHieuUrl = urlParams.get('thuong_hieu');
+        const trinhDoUrl = urlParams.get('trinh_do');
+
+        // ĐỌC THAM SỐ TỪ BỘ LỌC (Form bên trái)
+        const danhMucForm = document.querySelector('[name="danhmuc"]'); 
+        const thuongHieuForm = document.querySelector('[name="thuonghieu"]'); 
         const gia = document.querySelector('[name="gia"]'); 
+
+        // 2. GỘP CHUNG VÀO 1 PARAMS ĐỂ GỬI API
+        const params = new URLSearchParams(); 
         
         if (search) params.append('search', search); 
-        if (danhMuc && danhMuc.value) params.append('danhmuc', danhMuc.value); 
-        if (thuongHieu && thuongHieu.value) params.append('thuonghieu', thuongHieu.value); 
+        
+        // Ưu tiên lấy từ Form lọc trước, nếu không có mới lấy từ URL Menu
+        const finalDanhMuc = (danhMucForm && danhMucForm.value) ? danhMucForm.value : danhMucUrl;
+        if (finalDanhMuc) params.append('danh_muc', finalDanhMuc); 
+        
+        const finalThuongHieu = (thuongHieuForm && thuongHieuForm.value) ? thuongHieuForm.value : thuongHieuUrl;
+        if (finalThuongHieu) params.append('thuong_hieu', finalThuongHieu); 
+
+        if (trinhDoUrl) params.append('trinh_do', trinhDoUrl);
+
         if (gia && gia.value) params.append('gia', gia.value); 
 
         try { 
@@ -56,13 +73,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     `; 
                 } 
 
-                // Xử lý link ảnh mượt mà (hỗ trợ cả link online và local)
                 let hinhAnhSrc = '';
                 if (sp.HinhAnh) {
                     hinhAnhSrc = sp.HinhAnh.startsWith('http') ? sp.HinhAnh : `/images/${sp.HinhAnh}`;
                 }
 
-                // Gắn thẻ <a> trỏ về /san-pham/{id} cho cả Hình ảnh và Tên sản phẩm
                 list.innerHTML += ` 
                     <div class="col-md-6 col-xl-4"> 
                         <div class="product-card"> 
@@ -109,25 +124,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }); 
     } 
 
-    function layMaPhien() { 
-        let maPhien = localStorage.getItem('MaPhien'); 
-        if (!maPhien) { 
-            maPhien = crypto.randomUUID(); 
-            localStorage.setItem('MaPhien', maPhien); 
-        } 
-        return maPhien; 
-    } 
+    // ĐÃ XÓA hàm layMaPhien() tại đây
 
     async function themVaoGio(idSanPham, button) { 
         try { 
             const user = JSON.parse(localStorage.getItem('user')); 
-            const body = { ID_SanPham: idSanPham, SoLuong: 1 }; 
+            
+            // KIỂM TRA ĐĂNG NHẬP
+            if (!user || !user.ID_KhachHang) {
+                alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!');
+                window.location.href = '/Dangnhap'; // Thay đổi đường dẫn này nếu route đăng nhập của bạn khác
+                return; 
+            }
 
-            if (user && user.ID_KhachHang) { 
-                body.ID_KhachHang = user.ID_KhachHang; 
-            } else { 
-                body.MaPhien = layMaPhien(); 
-            } 
+            // Chỉ gắn ID_KhachHang vì đã bỏ luồng MaPhien
+            const body = { 
+                ID_SanPham: idSanPham, 
+                SoLuong: 1,
+                ID_KhachHang: user.ID_KhachHang
+            }; 
 
             button.disabled = true; 
 
@@ -172,11 +187,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const thuongHieu = document.querySelector('[name="thuonghieu"]'); 
             const gia = document.querySelector('[name="gia"]'); 
 
-            if (danhMuc && danhMuc.value) params.set('danhmuc', danhMuc.value); 
-            else params.delete('danhmuc'); 
+            if (danhMuc && danhMuc.value) params.set('danh_muc', danhMuc.value); 
+            else params.delete('danh_muc'); 
 
-            if (thuongHieu && thuongHieu.value) params.set('thuonghieu', thuongHieu.value); 
-            else params.delete('thuonghieu'); 
+            if (thuongHieu && thuongHieu.value) params.set('thuong_hieu', thuongHieu.value); 
+            else params.delete('thuong_hieu'); 
 
             if (gia && gia.value) params.set('gia', gia.value); 
             else params.delete('gia'); 

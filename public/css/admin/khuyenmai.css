@@ -1,0 +1,14 @@
+.search-form {
+    width: 400px;
+}
+
+.discount-code-badge {
+    border: 2px dashed #dc3545;
+    color: #dc3545;
+    background-color: #fff;
+    padding: 4px 10px;
+    font-weight: bold;
+    font-size: 14px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+}

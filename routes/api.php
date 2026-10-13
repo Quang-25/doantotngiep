@@ -8,6 +8,7 @@ use App\Http\Controllers\ChatbotController;
 Route::get('/sanpham', [SanPhamController::class, 'api']);
 Route::get('/home', [HomeController::class, 'api']);
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::post('/chatbot/tu-van', [ChatbotController::class, 'tuVan']);
 Route::middleware('web')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);

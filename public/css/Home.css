@@ -5,7 +5,6 @@
     position: relative;
     overflow: hidden;
 }
-
 .anhsanpham::after {
     content: "";
     position: absolute;
@@ -13,7 +12,6 @@
     background: radial-gradient(circle at 82% 30%, rgba(255,255,255,.18), transparent 55%);
     pointer-events: none;
 }
-
 .eyebrow-badge {
     display: inline-flex;
     align-items: center;
@@ -25,19 +23,16 @@
     font-size: .85rem;
     margin-bottom: 18px;
 }
-
 .anhsanpham h1 {
     font-family: 'Bebas Neue', sans-serif;
     font-size: clamp(2.4rem, 5vw, 4.2rem);
     line-height: 1.05;
     margin-bottom: 18px;
 }
-
 .anhsanpham p.lead {
     max-width: 480px;
     opacity: .92;
 }
-
 .anhsanpham .btn-cta {
     background: var(--accent-gold);
     color: var(--ink);
@@ -47,23 +42,52 @@
     border-radius: 8px;
     transition: transform .15s ease;
 }
-
 .anhsanpham .btn-cta:hover {
     transform: translateY(-2px);
     color: var(--ink);
 }
-
 .hero-price-tag {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 2.6rem;
     color: var(--accent-gold);
 }
+.banner-slider-wrapper {
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+}
 
+.banner-slider-track {
+    display: flex;
+    transition: transform 0.6s ease-in-out;
+    width: 100%;
+}
+.banner-slider-track .anhsanpham {
+    min-width: 100%;
+    flex-shrink: 0;
+}
+.anhsanpham.banner-slide-2 {
+    background:
+        linear-gradient(90deg, rgba(0,0,0,.65) 0%, rgba(0,0,0,.25) 55%, rgba(0,0,0,0) 100%),
+        url('/images/banner3.jpg') center / cover no-repeat;
+}
+.anhsanpham.banner-slide-3 {
+    background:
+        linear-gradient(90deg, rgba(0,0,0,.65) 0%, rgba(0,0,0,.25) 55%, rgba(0,0,0,0) 100%),
+        url('/images/banner4.jpg') center / cover no-repeat;
+}
+.anhsanpham.banner-slide-2::after,
+.anhsanpham.banner-slide-3::after {
+    display: none;
+}
+.banner-slide-2 h1, .banner-slide-3 h1,
+.banner-slide-2 p,  .banner-slide-3 p {
+    text-shadow: 0 2px 8px rgba(0,0,0,.55);
+}
 .store-policies {
     padding-top: 20px;
     padding-bottom: 10px;
 }
-
 .policy-box {
     display: flex;
     align-items: center;
@@ -74,12 +98,10 @@
     height: 100%;
     transition: all 0.3s ease;
 }
-
 .policy-box:hover {
     border-color: #2563eb; 
     box-shadow: 0 4px 15px rgba(37, 99, 235, 0.1);
 }
-
 .policy-icon {
     font-size: 2.2rem;
     color: #2563eb;
@@ -87,7 +109,6 @@
     display: flex;
     align-items: center;
 }
-
 .policy-info h6 {
     font-size: 14px;
     font-weight: 600;
@@ -95,13 +116,11 @@
     margin-bottom: 4px;
     line-height: 1.4;
 }
-
 .policy-info p {
     font-size: 13px;
     color: #666;
     margin-bottom: 0;
 }
-
 @media (max-width: 768px) {
     .policy-box {
         flex-direction: column;
@@ -113,24 +132,20 @@
         margin-bottom: 10px;
     }
 }
-
 .featured-products {
     background: #fff;
     padding: 20px 0;
 }
-
 .section-title {
     text-align: center;
     margin-bottom: 35px;
 }
-
 .section-title h2 {
     color: #2563eb;
     font-size: 32px;
     font-weight: 600;
     margin-bottom: 18px;
 }
-
 .title-line {
     width: 200px;
     height: 7px;
@@ -139,7 +154,6 @@
     margin: auto;
     position: relative;
 }
-
 .title-line span {
     position: absolute;
     width: 62px;
@@ -149,14 +163,12 @@
     left: 50%;
     transform: translateX(-50%);
 }
-
 .product-tabs {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
 }
-
 .product-tabs a {
     text-decoration: none;
     color: #555;
@@ -167,20 +179,16 @@
     border-right: 1px solid #ddd;
     transition: .3s;
 }
-
 .product-tabs a:last-child {
     border-right: none;
 }
-
 .product-tabs a:hover {
     color: #2563eb;
 }
-
 .product-tabs a.active {
    background: #3b82f6;  
     color: #fff;
 }
-
 .product-wrapper {
     position: relative;
     background: var(--blue-gradient);
@@ -188,7 +196,6 @@
     border-radius: 0 0 10px 10px;
     overflow: hidden;
 }
-
 .product-list {
     display: flex;
     flex-wrap: nowrap;
@@ -330,13 +337,9 @@
         font-size: 30px;
     }
 }
-
-
-/* ===== SECTION NỀN XANH ===== */
-/* ===== SECTION SALE: NỀN XANH ===== */
 .sale-section {
     position: relative;
-    margin-top: 0px;                 /* tách khỏi khối xanh sản phẩm phía trên */
+    margin-top: 0px;                
     padding: 40px 0 50px;
     background:
         radial-gradient(circle at 8% 15%, rgba(255,255,255,.16) 0 50px, transparent 51px),
@@ -344,8 +347,6 @@
         linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1e40af 100%);
     overflow: hidden;
 }
-
-/* sọc chéo mờ */
 .sale-section::before {
     content: "";
     position: absolute;
@@ -442,11 +443,9 @@
     object-fit: contain;
     transition: transform .3s;
 }
-
 .sale-item:hover .sale-thumb img {
     transform: scale(1.08);
 }
-
 .sale-ribbon {
     position: absolute;
     left: -8%;
@@ -462,7 +461,6 @@
     transform: rotate(-4deg);
     box-shadow: 0 3px 8px rgba(30,64,175,.4);
 }
-
 /* ===== THÔNG TIN ===== */
 .sale-info {
     display: flex;
@@ -471,7 +469,6 @@
     padding: 12px 14px 16px;
     text-align: center;
 }
-
 .sale-info h3 {
     margin: 0 0 8px;
     font-size: 14px;
@@ -485,7 +482,6 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
-
 .price-row {
     display: flex;
     justify-content: center;
@@ -495,19 +491,16 @@
     margin-top: auto;                 /* đẩy giá + nút xuống đáy thẻ */
     margin-bottom: 12px;
 }
-
 .sale-price {
     color: #ef233c;
     font-size: 18px;
     font-weight: 800;
 }
-
 .old-price {
     color: #9ca3af;
     font-size: 13px;
     text-decoration: line-through;
 }
-
 /* ===== NÚT ===== */
 .sale-btn {
     display: block;
@@ -521,33 +514,26 @@
     text-decoration: none;
     transition: background .2s, color .2s;
 }
-
 .sale-btn:hover {
     background: #fbbf24;
     color: #1e3a8a;
 }
-
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1200px) {
     .product-sale { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
-
 @media (max-width: 768px) {
     .sale-section { padding: 30px 0 36px; }
-
     .product-sale {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
     }
-
     .sale-thumb { padding: 10px 10px 30px; }
     .sale-thumb img { height: 135px; }
-
     .sale-heading h2 { padding: 8px 30px; }
     .sale-heading h2 span { font-size: 22px; }
     .sale-heading p { font-size: 13px; }
 }
-
 @media (max-width: 480px) {
     .product-sale { gap: 10px; }
     .sale-thumb img { height: 115px; }
@@ -557,3 +543,6 @@
     .sale-ribbon { font-size: 11px; }
     .sale-btn { font-size: 13px; }
 }
+
+
+

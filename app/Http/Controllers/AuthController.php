@@ -151,7 +151,56 @@ class AuthController extends Controller
             ]
         ]);
     }
+    /// Reset mật khẩu 
+    public function resetPassword(Request $request): JsonResponse
+    {
+        // Kiểm tra dữ liệu đầu vào
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
+            'SoDienThoai' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'], // Yêu cầu biến 'password_confirmation' trên giao diện
+        ], [
+            'password.confirmed' => 'Mật khẩu xác nhận không khớp.',
+            'password.min' => 'Mật khẩu phải có ít nhất 8 ký tự.'
+        ]);
 
+        // 1. Kiểm tra Email có tồn tại trong bảng TaiKhoan không
+        $taiKhoan = TaiKhoan::where('Email', $validated['email'])->first();
+
+        if (!$taiKhoan) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email này không tồn tại trong hệ thống.'
+            ], 404);
+        }
+
+        // 2. Lấy thông tin khách hàng và đối chiếu Số điện thoại
+        $khachHang = $taiKhoan->khachHang;
+        
+        if (!$khachHang || $khachHang->SoDienThoai !== $validated['SoDienThoai']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Số điện thoại xác thực không chính xác.'
+            ], 403);
+        }
+
+        // 3. Nếu khớp Email + SĐT -> Tiến hành đổi mật khẩu
+        try {
+            $taiKhoan->MatKhau = Hash::make($validated['password']);
+            $taiKhoan->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Đổi mật khẩu thành công! Vui lòng đăng nhập lại.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra, vui lòng thử lại sau.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
     // Đăng xuất bằng API
     public function logout(Request $request): JsonResponse
     {

@@ -27,9 +27,10 @@
         <a href="{{ route('admin.dashboard') }}" class="{{ request()->is('admin/dashboard') ? 'active' : '' }}"><i class="fas fa-tachometer-alt"></i> Tổng Quan</a>
         <a href="{{ url('/admin/san-pham') }}" class="{{ request()->is('admin/san-pham') ? 'active' : '' }}"><i class="fas fa-box"></i> Quản lý Sản phẩm</a>
         <a href="{{ url('/admin/khach-hang') }}" class="{{ request()->is('admin/khach-hang') ? 'active' : '' }}"><i class="fas fa-users"></i> Quản lý Khách hàng</a>
+       <a href="{{ url('/admin/tai-khoan') }}" class="{{ request()->is('admin/tai-khoan') ? 'active' : '' }}"><i class="fas fa-user-shield"></i> Quản lý Tài khoản</a>
         <a href="{{ url('/admin/don-hang') }}" class="{{ request()->is('admin/don-hang') ? 'active' : '' }}"><i class="fas fa-shopping-cart"></i> Quản lý Đơn hàng</a>
-        <a href="#"><i class="fas fa-tags"></i> Quản lý Khuyến mãi</a>
-        <a href="#"><i class="fas fa-chart-bar"></i> Thống kê - Báo cáo</a>
+        <a href="{{ url('/admin/khuyen-mai') }}" class="{{ request()->is('admin/khuyen-mai') ? 'active' : '' }}"><i class="fas fa-tags"></i> Quản lý Khuyến mãi</a>
+        <a href="{{ url('/admin/bao-cao') }}" class="{{ request()->is('admin/bao-cao') ? 'active' : '' }}"><i class="fas fa-chart-line"></i> Báo cáo & Thống kê</a>
     </div>
 
     <!-- MAIN CONTENT -->

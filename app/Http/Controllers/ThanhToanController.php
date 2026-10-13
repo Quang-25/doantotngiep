@@ -222,7 +222,7 @@ class ThanhToanController extends Controller
         return view('theo-doi-don-hang', compact('donHangs'));
     }
 
-    private function sendOrderEmail($idDonHang)
+    private function sendOrderEmail(int $idDonHang)
     {
         try {
             $donHang = DB::table('DonHang')->where('ID_DonHang', $idDonHang)->first();

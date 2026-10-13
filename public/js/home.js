@@ -1,7 +1,21 @@
 document.addEventListener('DOMContentLoaded', function () {
     loadHomeData();
     initTabs();
+    initBannerSlider();
 });
+
+function initBannerSlider() {
+    const track = document.getElementById('bannerTrack');
+    if (!track || track.children.length <= 1) return;
+
+    let currentIndex = 0;
+    const totalSlides = track.children.length;
+
+    setInterval(function () {
+        currentIndex = (currentIndex + 1) % totalSlides;
+        track.style.transform = `translateX(-${currentIndex * 100}%)`;
+    }, 3500); // Tự động lướt sang banner tiếp theo sau mỗi 3.5 giây
+}
 
 async function loadHomeData() {
     const productList = document.getElementById('product-list');
@@ -115,11 +129,10 @@ function renderProducts(products) {
     ganSuKienThemGio();
 }
 
-
-
 function formatPrice(price) {
     return Number(price).toLocaleString('vi-VN');
 }
+
 function renderSaleProducts(products) {
     const productSale = document.getElementById('product-sale');
     if (!productSale) return;
@@ -139,10 +152,9 @@ function renderSaleProducts(products) {
        const giaBan = Number(sp.GiaBan);
        const giaKM  = Number(sp.GiaKhuyenMai) || 0;
 
-// GiaKhuyenMai = giá bán sau khi giảm (giống dữ liệu MySQL)
-      const coKhuyenMai = giaKM > 0 && giaKM < giaBan;
-      const giaCuoi  = coKhuyenMai ? giaKM : giaBan;
-      const phanTram = coKhuyenMai ? Math.round((1 - giaKM / giaBan) * 100) : 0;
+       const coKhuyenMai = giaKM > 0 && giaKM < giaBan;
+       const giaCuoi  = coKhuyenMai ? giaKM : giaBan;
+       const phanTram = coKhuyenMai ? Math.round((1 - giaKM / giaBan) * 100) : 0;
         return `
             <div class="sale-item">
                 <a href="/san-pham/${sp.ID_SanPham}" class="sale-thumb">
@@ -163,6 +175,7 @@ function renderSaleProducts(products) {
         `;
     }).join('');
 }
+
 function initProductSlider() {
     const productList = document.querySelector('.product-list');
     let leftArrow = document.querySelector('.product-arrow.left');
@@ -229,21 +242,24 @@ function ganSuKienThemGio() {
     });
 }
 
+// HÀM ĐÃ ĐƯỢC FIX LẠI BẢO MẬT
 async function themVaoGio(idSanPham, button) {
     try {
         const user = JSON.parse(localStorage.getItem('user'));
-        const body = { ID_SanPham: idSanPham, SoLuong: 1 };
 
-        if (user && user.ID_KhachHang) {
-            body.ID_KhachHang = user.ID_KhachHang;
-        } else {
-            let maPhien = localStorage.getItem('MaPhien');
-            if (!maPhien) {
-                maPhien = crypto.randomUUID ? crypto.randomUUID() : 'guest-' + new Date().getTime();
-                localStorage.setItem('MaPhien', maPhien);
-            }
-            body.MaPhien = maPhien;
+        // CHỐT CHẶN BẢO MẬT: Chặn ngay nếu chưa đăng nhập
+        if (!user || !user.ID_KhachHang) {
+            alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!');
+            window.location.href = '/Dangnhap'; // Đổi lại đúng link trang đăng nhập của bạn
+            return; 
         }
+
+        // Chỉ gửi ID_KhachHang, xóa bỏ hoàn toàn luồng MaPhien
+        const body = { 
+            ID_SanPham: idSanPham, 
+            SoLuong: 1,
+            ID_KhachHang: user.ID_KhachHang
+        };
 
         button.disabled = true;
 

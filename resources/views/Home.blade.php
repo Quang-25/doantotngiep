@@ -16,40 +16,117 @@
     @include('layouts.header')
     
     <main>
-        <section class="anhsanpham">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-lg-7">
-                        <span class="eyebrow-badge">
-                            <i class="bi bi-lightning-charge-fill"></i>
-                            Ưu đãi mùa giải mới
-                        </span>
-                        
-                        <h1>
-                            VỢT CẦU LÔNG<br>
-                            CHÍNH HÃNG<br>
-                            GIẢM ĐẾN 50%
-                        </h1>
-                        
-                        <p class="lead">
-                            Từ người mới tập đến vận động viên phong trào —
-                            chọn đúng vợt, đúng lối chơi, đúng ngân sách.
-                        </p>
-                        
-                        <a href="#san-pham-noi-bat" class="btn btn-cta mt-2">
-                            Mua ngay
-                            <i class="bi bi-arrow-right"></i>
-                        </a>
-                    </div>
+        <div class="banner-slider-wrapper">
+            <div class="banner-slider-track" id="bannerTrack">
 
-                    <div class="col-lg-5 text-center mt-4 mt-lg-0">
-                        <div class="hero-price-tag">Chỉ từ 399K</div>
-                        <p class="mb-0">Áp dụng cho người mới chơi</p>
+                <!-- SLIDE 1: BANNER GỐC CỦA BẠN (GIỮ NGUYÊN 100%) -->
+                <section class="anhsanpham">
+                    <div class="container">
+                        <div class="row align-items-center">
+                            <div class="col-lg-7">
+                                <span class="eyebrow-badge">
+                                    <i class="bi bi-lightning-charge-fill"></i>
+                                    Ưu đãi mùa giải mới
+                                </span>
+                                
+                                <h1>
+                                    VỢT CẦU LÔNG<br>
+                                    CHÍNH HÃNG<br>
+                                    GIẢM ĐẾN 50%
+                                </h1>
+                                
+                                <p class="lead">
+                                    Từ người mới tập đến vận động viên phong trào —
+                                    chọn đúng vợt, đúng lối chơi, đúng ngân sách.
+                                </p>
+                                
+                                <a href="#san-pham-noi-bat" class="btn btn-cta mt-2">
+                                    Mua ngay
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+
+                            <div class="col-lg-5 text-center mt-4 mt-lg-0">
+                                <div class="hero-price-tag">Chỉ từ 399K</div>
+                                <p class="mb-0">Áp dụng cho người mới chơi</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </section>
+
+                <!-- SLIDE 2: DÙNG ẢNH banner1.jpg -->
+                <section class="anhsanpham banner-slide-2">
+                    <div class="container">
+                        <div class="row align-items-center">
+                            <div class="col-lg-7">
+                                <span class="eyebrow-badge">
+                                    <i class="bi bi-fire"></i>
+                                    Bộ sưu tập mới nhất
+                                </span>
+                                
+                                <h1>
+                                    ĐA DẠNG MẪU MÃ<br>
+                                    CÔNG THỦ TOÀN DIỆN<br>
+                                    TRỢ LỰC TỐI ĐA
+                                </h1>
+                                
+                                <p class="lead">
+                                    Đầy đủ các dòng vợt bền đẹp, căng sẵn lưới chuẩn —
+                                    sẵn sàng cùng bạn bùng nổ trên mọi mặt sân.
+                                </p>
+                                
+                                <a href="#san-pham-noi-bat" class="btn btn-cta mt-2">
+                                    Khám phá ngay
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+
+                            <div class="col-lg-5 text-center mt-4 mt-lg-0">
+                                <div class="hero-price-tag">Tặng Quấn Cán</div>
+                                <p class="mb-0">Bảo hành chính hãng uy tín</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SLIDE 3: DÙNG ẢNH banner2.jpg -->
+                <section class="anhsanpham banner-slide-3">
+                    <div class="container">
+                        <div class="row align-items-center">
+                            <div class="col-lg-7">
+                                <span class="eyebrow-badge">
+                                    <i class="bi bi-heart-fill"></i>
+                                    Đam mê cầu lông
+                                </span>
+                                
+                                <h1>
+                                    KẾT NỐI ĐAM MÊ<br>
+                                    COMBO VỢT ĐÔI<br>
+                                    ƯU ĐÃI CỰC SỐC
+                                </h1>
+                                
+                                <p class="lead">
+                                    Mua theo cặp tiết kiệm hơn — lựa chọn tuyệt vời để
+                                    rèn luyện sức khỏe cùng bạn bè và người thân.
+                                </p>
+                                
+                                <a href="#san-pham-noi-bat" class="btn btn-cta mt-2">
+                                    Xem ưu đãi
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+
+                            <div class="col-lg-5 text-center mt-4 mt-lg-0">
+                                <div class="hero-price-tag">Freeship Toàn Quốc</div>
+                                <p class="mb-0">Áp dụng khi mua từ 2 cây</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
             </div>
-        </section>
-    </main>
+        </div>
+    </main> 
         <section class="policy">
         <div class="container">
             <div class="row g-3">
