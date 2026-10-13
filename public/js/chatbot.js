@@ -1,9 +1,7 @@
 console.log("Đang kiểm tra nạp file Chatbot JS...");
 
 document.addEventListener('DOMContentLoaded', function() {
-    // ---------------------------------------------------------
-    // CHỐT CHẶN TRÁNH XUNG ĐỘT: Nếu đã chạy rồi thì dừng lại ngay
-    // ---------------------------------------------------------
+   
     if (window.chatbotInitialized) {
         console.log("Chatbot JS bị gọi trùng, đã tự động ngăn chặn!");
         return;

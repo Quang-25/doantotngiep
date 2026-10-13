@@ -8,6 +8,9 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminSanPhamController;
 use App\Http\Controllers\Admin\AdminKhachHangController;
 use App\Http\Controllers\Admin\AdminDonHangController;
+use App\Http\Controllers\Admin\AdminTaiKhoanController;
+use App\Http\Controllers\Admin\AdminKhuyenMaiController;
+use App\Http\Controllers\Admin\AdminBaoCaoController;
 Route::get('/', function () {
     return view('Home');
 });
@@ -22,11 +25,21 @@ Route::get('/Dangnhap', function () {
     return view('DangNhap');
 });
 
+Route::get('/Dangnhap', function () {
+    return view('DangNhap');
+});
+
+
+Route::get('/quen-mat-khau', function () {
+    return view('quenmatkhau'); 
+});
+
 Route::get('/giohang', function () {
     return view('GioHang');
 });
 
 Route::post('/thanhtoan/vnpay', [ThanhToanController::class, 'processCheckout'])->name('thanhtoan.vnpay');
+
 
 Route::get('/thanhtoan', [ThanhToanController::class, 'index']);
 
@@ -60,5 +73,22 @@ Route::prefix('admin')->middleware(['admin.auth'])->group(function () {
     Route::get ('/don-hang', [AdminDonHangController::class, 'quanLyDonHang']);
     Route::get ('/api/don-hang/{id}', [AdminDonHangController::class, 'chiTietDonHang']);
     Route::post('/api/don-hang/{id}', [AdminDonHangController::class, 'capNhatTrangThai']);
+
+    // QUẢN LÝ TÀI KHOẢN
+    // Nhớ thêm dòng này ở trên cùng file: 
+// 
+    // QUẢN LÝ NGƯỜI DÙNG & PHÂN QUYỀN
+    Route::get('/tai-khoan', [AdminTaiKhoanController::class, 'quanLyTaiKhoan']);
+    Route::post('/api/tai-khoan/{id}', [AdminTaiKhoanController::class, 'suaTaiKhoan']);
+    Route::delete('/api/tai-khoan/{id}', [AdminTaiKhoanController::class, 'xoaTaiKhoan']);
+    Route::post('/api/tai-khoan/khoa/{id}', [AdminTaiKhoanController::class, 'khoaTaiKhoan']);
     
+    Route::get ('/khuyen-mai', [AdminKhuyenMaiController::class, 'quanLyKhuyenMai']);
+    Route::post('/api/khuyen-mai', [AdminKhuyenMaiController::class, 'themKhuyenMai']);
+    Route::post('/api/khuyen-mai/{id}', [AdminKhuyenMaiController::class, 'suaKhuyenMai']);
+    Route::post('/api/khuyen-mai/trang-thai/{id}', [AdminKhuyenMaiController::class, 'doiTrangThai']);
+
+    Route::get('/bao-cao', [AdminBaoCaoController::class, 'baoCao']);
+   Route::get('/bao-cao', [AdminBaoCaoController::class, 'thongKeBaoCao']);
+    Route::get('/bao-cao/xuat-excel', [AdminBaoCaoController::class, 'xuatExcel']);
 });

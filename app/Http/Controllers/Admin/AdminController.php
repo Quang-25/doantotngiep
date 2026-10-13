@@ -31,11 +31,9 @@ class AdminController extends Controller
         ];
 
         // 3. Cảnh báo tồn kho (< 5)
-        $spHetHang = DB::table('sanpham')
+       $spHetHang = DB::table('sanpham')
             ->where('TrangThai', 'DangBan')
-            ->where('SoLuongTon', '<', 5)
-            ->orderBy('SoLuongTon', 'asc')
-            ->limit(5)
+            ->orderBy('SoLuongTon', 'asc') // Sắp xếp tăng dần theo số lượng
             ->get();
 
         // 4. 5 đơn hàng mới nhất

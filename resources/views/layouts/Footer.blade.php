@@ -105,14 +105,62 @@
     </div>
 </footer>
 
-<a href="{{ url('/cart') }}" class="floating-cart">
+<a href="{{ url('/giohang') }}" class="floating-cart">
     <i class="bi bi-bag-fill"></i>
     <span>
-        Xem giỏ hàng (0)
+        Xem giỏ hàng (<span id="floating-cart-count">0</span>)
     </span>
 </a>
+<script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        const countEl = document.getElementById('floating-cart-count');
+        if (!countEl) return;
 
-<a href="#" class="floating-zalo">
+        // 1. Lấy sẵn ID_KhachHang từ Session Laravel (nếu đang đăng nhập)
+        let idKhachHang = "{{ session('ID_KhachHang') }}";
+
+        // 2. Nếu chưa lấy được từ blade, gọi sang API /api/user có sẵn của bạn để lấy ID_KhachHang
+        if (!idKhachHang) {
+            try {
+                const userRes = await fetch('/api/user', { credentials: 'same-origin' });
+                if (userRes.ok) {
+                    const userData = await userRes.json();
+                    if (userData.success && userData.user && userData.user.ID_KhachHang) {
+                        idKhachHang = userData.user.ID_KhachHang;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // 3. Xây dựng đường dẫn truyền đúng tham số mà hàm getCart() gốc của bạn yêu cầu
+        let url = '';
+        if (idKhachHang) {
+            url = '/api/gio-hang?ID_KhachHang=' + encodeURIComponent(idKhachHang);
+        } else {
+            // Nếu chưa đăng nhập thì kiểm tra xem có lưu MaPhien trong trình duyệt không
+            const maPhien = localStorage.getItem('MaPhien') || localStorage.getItem('maPhien') || sessionStorage.getItem('MaPhien');
+            if (maPhien) {
+                url = '/api/gio-hang?MaPhien=' + encodeURIComponent(maPhien);
+            }
+        }
+
+        // 4. Gọi API lấy tổng số lượng hiển thị lên nút
+        if (url) {
+            try {
+                const cartRes = await fetch(url, { credentials: 'same-origin' });
+                const cartData = await cartRes.json();
+                if (cartData.success) {
+                    // Hiển thị tổng số lượng sản phẩm (hoặc đổi thành cartData.items.length nếu muốn đếm số loại SP)
+                    countEl.innerText = cartData.totalQuantity || 0;
+                }
+            } catch (err) {
+                console.error('Lỗi lấy số lượng giỏ hàng:', err);
+            }
+        }
+    });
+</script>
+
+<a href="https://zalo.me/0352143569" target="_blank" class="floating-zalo">
     Zalo
 </a>
 

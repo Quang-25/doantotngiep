@@ -1,6 +1,16 @@
 document.addEventListener('DOMContentLoaded', function() {
     
     // ==========================================
+    // BƯỚC BẢO MẬT: KIỂM TRA ĐĂNG NHẬP
+    // ==========================================
+    const user = JSON.parse(localStorage.getItem('user')); 
+    if (!user || !user.ID_KhachHang) {
+        alert('Vui lòng đăng nhập để tiến hành thanh toán!');
+        window.location.href = '/Dangnhap'; // Chuyển hướng về trang đăng nhập
+        return; // Dừng toàn bộ script nếu chưa đăng nhập
+    }
+
+    // ==========================================
     // PHẦN 1: XỬ LÝ POPUP CHỌN MÃ KHUYẾN MÃI
     // ==========================================
     const tongTienInput = document.querySelector('input[name="tong_tien"]');
@@ -69,6 +79,14 @@ document.addEventListener('DOMContentLoaded', function() {
         checkoutForm.addEventListener('submit', function(e) {
             e.preventDefault();
 
+            // Kiểm tra lại user một lần nữa đề phòng khách hàng mở nhiều tab và vô tình đăng xuất
+            const currentUser = JSON.parse(localStorage.getItem('user'));
+            if (!currentUser || !currentUser.ID_KhachHang) {
+                alert('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!');
+                window.location.href = '/Dangnhap'; // Chuyển hướng về trang đăng nhập
+                return;
+            }
+
             // Hiệu ứng Loading
             const originalBtnText = submitBtn.innerHTML;
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang xử lý...';
@@ -76,6 +94,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Đóng gói toàn bộ dữ liệu form (Bao gồm cả id_khuyenmai ẩn phía trên)
             const formData = new FormData(checkoutForm);
+
+            // BỔ SUNG QUAN TRỌNG: Gắn ID_KhachHang vào gói dữ liệu gửi lên Backend
+            formData.append('ID_KhachHang', currentUser.ID_KhachHang);
 
             fetch(checkoutForm.action, {
                 method: 'POST',

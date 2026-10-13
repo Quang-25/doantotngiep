@@ -72,7 +72,7 @@
                                 <input type="checkbox" id="remember">
                                 <span>Ghi nhớ đăng nhập</span>
                             </label>
-                            <a href="#">Quên mật khẩu?</a>
+                            <a href="{{ url('/quen-mat-khau') }}">Quên mật khẩu?</a>
                         </div>
 
                         <button type="submit" class="login-btn" id="loginButton">
