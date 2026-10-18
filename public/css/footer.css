@@ -255,105 +255,305 @@
         padding-left: 70px;
         padding-right: 70px;
     }
-    .footer-top .row {
-        column-gap: 75px;
-    }
-}
 
-@media (max-width: 1400px) {
-    .footer-top .container,
-    .footer-container {
-        padding-left: 55px;
-        padding-right: 55px;
-    }
     .footer-top .row {
-        column-gap: 50px;
-    }
-}
-
-@media (max-width: 991px) {
-    .footer-top {
-        padding: 25px 0 30px;
-    }
-    .footer-top .container,
-    .footer-container {
-        padding-left: 30px;
-        padding-right: 30px;
-    }
-    .footer-top .row {
-        grid-template-columns: 1fr 1fr;
         column-gap: 40px;
-        row-gap: 25px;
-    }
-    .footer-top h4 {
-        font-size: 16px;
-        margin-bottom: 12px;
-    }
-    .footer-top p,
-    .footer-top ul li {
-        font-size: 13px;
-    }
-    .footer-top ul li {
-        margin-bottom: 10px;
     }
 }
 
-@media (max-width: 575px) {
+/* Laptop và tablet */
+
+/* Điện thoại */
+
+/* ========================================
+   FOOTER MOBILE RESPONSIVE
+======================================== */
+
+/* ========================================
+   FOOTER MOBILE - RESPONSIVE HOÀN CHỈNH
+======================================== */
+
+/* ========================================
+   FOOTER MOBILE - BADMINTON PROSHOP
+======================================== */
+
+/* ========================================
+   FOOTER MOBILE - BADMINTON PROSHOP
+======================================== */
+@media (max-width: 575.98px) {
+
+    /* FOOTER CONTENT */
     .footer-top {
-        padding: 20px 0 25px;
+        padding: 28px 0 35px;
+        overflow-wrap: anywhere;
     }
+
     .footer-top .container,
     .footer-container {
+        width: 100%;
+        max-width: 100%;
         padding-left: 20px;
         padding-right: 20px;
     }
+
+    /* Xếp các khu vực thành một cột */
     .footer-top .row {
-        grid-template-columns: 1fr;
-        gap: 20px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 32px;
+        margin-left: 0;
+        margin-right: 0;
     }
+
+    .footer-top .row > * {
+        width: auto;
+        max-width: 100%;
+        min-width: 0;
+        padding-left: 0;
+        padding-right: 0;
+        margin-top: 0;
+    }
+
+    /* Tiêu đề */
     .footer-top h4 {
-        font-size: 16px;
+        width: 100%;
+        font-size: 17px;
+        line-height: 1.45;
+        text-align: center;
+        margin: 0 0 16px;
+    }
+
+    /* Thông tin liên hệ và giới thiệu */
+    .footer-top p {
+        font-size: 14px;
+        line-height: 1.75;
+        text-align: center;
+        margin-bottom: 10px;
+        overflow-wrap: anywhere;
+    }
+
+    /* Danh sách chính sách và hướng dẫn */
+    .footer-top ul {
+        display: table;
+        width: auto;
+        max-width: 100%;
+        margin: 0 auto;
+        padding-left: 22px;
+        text-align: left;
+    }
+
+    .footer-top ul li {
+        font-size: 14px;
+        line-height: 1.7;
+        text-align: left;
+        overflow-wrap: anywhere;
         margin-bottom: 10px;
     }
-    .footer-top p,
-    .footer-top ul li {
-        font-size: 13px;
-        line-height: 1.5;
+
+    .footer-top img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin-left: auto;
+        margin-right: auto;
     }
+
+    /* FACEBOOK VÀ YOUTUBE CĂN GIỮA */
+    .footer-top .footer-social {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        flex-wrap: wrap;
+        gap: 16px;
+        width: 100%;
+        margin: 16px auto 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box;
+    }
+
+    .footer-top .footer-social a {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 44px;
+        width: 44px;
+        height: 44px;
+        margin: 0 !important;
+        padding: 0 !important;
+        border-radius: 50%;
+        box-sizing: border-box;
+    }
+
+    .footer-top .footer-social a i {
+        margin: 0;
+        line-height: 1;
+    }
+
+    /* FOOTER BOTTOM */
     .footer-bottom {
-        padding: 12px 12px 8px;
+        padding: 18px 16px 100px !important;
+        text-align: center;
     }
+
     .footer-bottom p {
         font-size: 12px;
+        line-height: 1.7;
+        text-align: center;
+        margin-bottom: 7px;
+        overflow-wrap: anywhere;
     }
+
     .footer-bottom p:first-child {
         font-size: 14px;
+        font-weight: 600;
     }
+
+    /* GIỎ HÀNG - GÓC DƯỚI TRÁI */
     .floating-cart {
-        height: 45px;
-        padding: 0 12px 0 8px;
-        font-size: 13px;
+        position: fixed !important;
+        left: 10px !important;
+        right: auto !important;
+        bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+        top: auto !important;
+        z-index: 1090;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        width: auto;
+        max-width: calc(50vw - 16px);
+        height: 44px;
+        padding: 0 10px 0 7px;
+        font-size: 11px;
+        white-space: nowrap;
+        box-sizing: border-box;
     }
+
     .floating-cart i {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 30px;
         width: 30px;
         height: 30px;
         font-size: 15px;
     }
-    .floating-zalo {
-        width: 45px;
-        height: 45px;
-        right: 8px;
-        bottom: 55px;
-        font-size: 14px;
-    }
+
+    /* HỆ THỐNG CỬA HÀNG - GÓC DƯỚI PHẢI */
     .floating-store {
-        height: 40px;
-        padding: 0 12px;
-        font-size: 13px;
+        position: fixed !important;
+        left: auto !important;
+        right: 10px !important;
+        bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+        top: auto !important;
+        z-index: 1090;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        width: auto;
+        max-width: calc(50vw - 16px);
+        height: 44px;
+        padding: 0 8px;
+        font-size: 10px;
+        white-space: nowrap;
+        box-sizing: border-box;
     }
+
+    /* MŨI TÊN QUAY LÊN - TRÊN CÙNG */
     .back-to-top {
-        right: 10px;
-        bottom: 110px;
+        position: fixed !important;
+        left: auto !important;
+        right: 12px !important;
+        bottom: calc(204px + env(safe-area-inset-bottom)) !important;
+        top: auto !important;
+        z-index: 1082;
         font-size: 20px;
     }
+
+    /* CHATBOT - DƯỚI MŨI TÊN, THẲNG HÀNG VỚI ZALO */
+    .chatbot-toggle {
+        position: fixed !important;
+        left: auto !important;
+        right: 12px !important;
+        bottom: calc(138px + env(safe-area-inset-bottom)) !important;
+        top: auto !important;
+        z-index: 1081;
+        width: 54px;
+        height: 54px;
+        max-width: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* ZALO - DƯỚI CHATBOT */
+    .floating-zalo {
+        position: fixed !important;
+        left: auto !important;
+        right: 12px !important;
+        bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+        top: auto !important;
+        z-index: 1080;
+        width: 54px;
+        height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+    }
 }
+
+/* ========================================
+   ĐIỆN THOẠI MÀN HÌNH RẤT NHỎ
+======================================== */
+@media (max-width: 380px) {
+
+    .footer-top .container,
+    .footer-container {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .footer-top h4 {
+        font-size: 16px;
+    }
+
+    .footer-top p,
+    .footer-top ul li {
+        font-size: 13px;
+    }
+
+    .floating-cart {
+        max-width: calc(50vw - 14px);
+        padding: 0 6px;
+        gap: 5px;
+        font-size: 10px;
+    }
+
+    .floating-cart i {
+        flex-basis: 26px;
+        width: 26px;
+        height: 26px;
+    }
+
+    .floating-store {
+        max-width: calc(50vw - 14px);
+        padding: 0 5px;
+        gap: 3px;
+        font-size: 9px;
+    }
+
+    /* Giữ các nút bên phải cùng một trục */
+    .back-to-top {
+        right: 12px !important;
+    }
+
+    .chatbot-toggle,
+    .floating-zalo {
+        right: 10px !important;
+    }
+}
+
+
+
+ 

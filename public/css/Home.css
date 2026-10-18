@@ -519,30 +519,462 @@
     color: #1e3a8a;
 }
 /* ===== RESPONSIVE ===== */
-@media (max-width: 1200px) {
-    .product-sale { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
-@media (max-width: 768px) {
-    .sale-section { padding: 30px 0 36px; }
-    .product-sale {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
+
+/* ========================================
+   RESPONSIVE - SALE OFF
+======================================== */
+
+/* Máy tính bảng và laptop nhỏ */
+
+/* =========================================
+   FIX BANNER CHỈ TRÊN ĐIỆN THOẠI
+   Giữ nguyên giao diện máy tính
+========================================= */
+
+@media (max-width: 767.98px) {
+
+    .banner-slider-wrapper {
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
     }
-    .sale-thumb { padding: 10px 10px 30px; }
-    .sale-thumb img { height: 135px; }
-    .sale-heading h2 { padding: 8px 30px; }
-    .sale-heading h2 span { font-size: 22px; }
-    .sale-heading p { font-size: 13px; }
+
+    .banner-slider-track {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .banner-slider-track > .anhsanpham {
+        flex: 0 0 100%;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        padding: 24px 0 30px;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    .banner-slider-track > .anhsanpham > .container {
+        width: 100%;
+        max-width: 100%;
+        padding-left: 15px;
+        padding-right: 15px;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
+
+    .banner-slider-track > .anhsanpham .row {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        margin: 0;
+        align-items: stretch;
+    }
+
+    .banner-slider-track > .anhsanpham .row > .col-lg-7,
+    .banner-slider-track > .anhsanpham .row > .col-lg-5 {
+        flex: 0 0 100%;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        padding-left: 0;
+        padding-right: 0;
+        margin-top: 0 !important;
+    }
+
+    .banner-slider-track > .anhsanpham h1 {
+        width: 100%;
+        max-width: 100%;
+        font-size: clamp(28px, 7.5vw, 38px);
+        line-height: 1.12;
+        overflow-wrap: break-word;
+        word-break: normal;
+    }
+
+    .banner-slider-track > .anhsanpham p.lead {
+        width: 100%;
+        max-width: 100%;
+        font-size: clamp(15px, 4.2vw, 18px);
+        line-height: 1.65;
+        white-space: normal;
+        overflow-wrap: break-word;
+        word-break: normal;
+    }
+
+    .banner-slider-track > .anhsanpham .eyebrow-badge {
+        max-width: 100%;
+        white-space: normal;
+        flex-wrap: wrap;
+        font-size: 13px;
+    }
+
+    .banner-slider-track > .anhsanpham .btn-cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        max-width: 100%;
+        white-space: normal;
+        padding: 12px 24px;
+    }
+
+    .banner-slider-track > .anhsanpham .row > .col-lg-5 {
+        margin-top: 22px !important;
+        text-align: center;
+    }
+
+    .banner-slider-track > .anhsanpham .hero-price-tag {
+        max-width: 100%;
+        font-size: clamp(26px, 8vw, 36px);
+        overflow-wrap: break-word;
+    }
+
+    .banner-slider-track > .anhsanpham .col-lg-5 p {
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: break-word;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .banner-slider-track > .anhsanpham .text-center {
+        overflow-wrap: break-word;
+    }
 }
+
+/* Điện thoại màn hình nhỏ */
+@media (max-width: 380px) {
+
+    .banner-slider-track > .anhsanpham > .container {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .banner-slider-track > .anhsanpham h1 {
+        font-size: 28px;
+    }
+
+    .banner-slider-track > .anhsanpham p.lead {
+        font-size: 15px;
+    }
+
+    .banner-slider-track > .anhsanpham .btn-cta {
+        padding: 11px 20px;
+    }
+    
+}
+
+/* =========================================
+   RESPONSIVE SALE OFF
+   Giữ nguyên toàn bộ CSS banner hiện tại
+========================================= */
+
+/* Laptop nhỏ và máy tính bảng ngang */
+@media (max-width: 1200px) {
+    .sale-section .product-sale {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .sale-section .sale-item {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .sale-section .sale-thumb img {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        object-position: center;
+    }
+}
+
+/* Máy tính bảng và điện thoại */
+@media (max-width: 767.98px) {
+    .sale-section {
+        width: 100%;
+        max-width: 100%;
+        padding: 28px 0 36px;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    .sale-section > .container {
+        width: 100%;
+        max-width: 100%;
+        padding-left: 15px;
+        padding-right: 15px;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
+
+    /* Tiêu đề Sale Off */
+    .sale-section .sale-heading {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto 24px;
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+    .sale-section .sale-heading h2 {
+        display: inline-block;
+        max-width: 100%;
+        padding: 8px 20px;
+        box-sizing: border-box;
+    }
+
+    .sale-section .sale-heading h2 span {
+        font-size: 22px;
+        letter-spacing: 0.5px;
+    }
+
+    .sale-section .sale-heading p {
+        font-size: 13px;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    }
+
+    /* Hai cột sản phẩm trên điện thoại */
+    .sale-section .product-sale {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: stretch;
+        gap: 12px;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    /* Thẻ sản phẩm */
+    .sale-section .sale-item {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        height: 100%;
+        margin: 0;
+        border-radius: 12px;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    /* Khung ảnh: chiều cao cố định để các thẻ đều nhau */
+    .sale-section .sale-thumb {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 145px;
+        min-height: 145px;
+        min-width: 0;
+        padding: 10px 8px;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    /* Hiển thị trọn ảnh sản phẩm */
+    .sale-section .sale-thumb img {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        min-height: 0;
+        margin: 0 auto;
+        object-fit: contain;
+        object-position: center;
+        transform: none;
+    }
+
+    /* Không phóng to ảnh làm mất phần nhìn trên điện thoại */
+    .sale-section .sale-item:hover .sale-thumb img {
+        transform: none;
+    }
+
+    /* Nhãn khuyến mãi */
+    .sale-section .sale-ribbon {
+        left: -8%;
+        bottom: 8px;
+        width: 116%;
+        padding: 4px 0;
+        font-size: 10px;
+        letter-spacing: 0;
+        white-space: nowrap;
+    }
+
+    /* Nội dung sản phẩm */
+    .sale-section .sale-info {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        width: 100%;
+        min-width: 0;
+        padding: 10px 9px 12px;
+        text-align: center;
+        overflow-wrap: anywhere;
+        box-sizing: border-box;
+    }
+
+    .sale-section .sale-info h3 {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        min-height: 39px;
+        margin: 0 0 8px;
+        overflow: hidden;
+        font-size: 12px;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+    }
+
+    /* Giá sản phẩm */
+    .sale-section .price-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 4px 6px;
+        width: 100%;
+        min-width: 0;
+        margin-top: auto;
+        margin-bottom: 10px;
+    }
+
+    .sale-section .sale-price {
+        font-size: 14px;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    .sale-section .old-price {
+        font-size: 10px;
+        overflow-wrap: anywhere;
+    }
+
+    /* Nút xem ngay */
+    .sale-section .sale-btn {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        margin-top: auto;
+        padding: 9px 4px;
+        font-size: 12px;
+        line-height: 1.4;
+        text-align: center;
+        box-sizing: border-box;
+    }
+}
+
+/* Điện thoại thông thường */
 @media (max-width: 480px) {
-    .product-sale { gap: 10px; }
-    .sale-thumb img { height: 115px; }
-    .sale-info { padding: 10px 10px 12px; }
-    .sale-info h3 { font-size: 13px; min-height: 36px; }
-    .sale-price { font-size: 16px; }
-    .sale-ribbon { font-size: 11px; }
-    .sale-btn { font-size: 13px; }
+    .sale-section {
+        padding: 24px 0 30px;
+    }
+
+    .sale-section > .container {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .sale-section .product-sale {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .sale-section .sale-heading {
+        margin-bottom: 20px;
+    }
+
+    .sale-section .sale-heading h2 {
+        padding: 8px 18px;
+    }
+
+    .sale-section .sale-heading h2 span {
+        font-size: 20px;
+    }
+
+    .sale-section .sale-thumb {
+        height: 130px;
+        min-height: 130px;
+        padding: 8px 6px;
+    }
+
+    .sale-section .sale-info {
+        padding: 9px 7px 11px;
+    }
+
+    .sale-section .sale-info h3 {
+        min-height: 36px;
+        font-size: 11.5px;
+    }
+
+    .sale-section .sale-price {
+        font-size: 13px;
+    }
+
+    .sale-section .sale-btn {
+        padding: 8px 3px;
+        font-size: 11px;
+    }
 }
+
+/* Điện thoại màn hình rất nhỏ */
+@media (max-width: 360px) {
+    .sale-section > .container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .sale-section .product-sale {
+        gap: 8px;
+    }
+
+    .sale-section .sale-thumb {
+        height: 112px;
+        min-height: 112px;
+    }
+
+    .sale-section .sale-info {
+        padding: 8px 5px 10px;
+    }
+
+    .sale-section .sale-info h3 {
+        min-height: 34px;
+        font-size: 11px;
+    }
+
+    .sale-section .sale-price {
+        font-size: 12px;
+    }
+
+    .sale-section .old-price {
+        font-size: 9px;
+    }
+
+    .sale-section .sale-btn {
+        font-size: 10px;
+    }
+
+    .sale-section .sale-heading h2 span {
+        font-size: 18px;
+    }
+}
+
+
+
 
 
 

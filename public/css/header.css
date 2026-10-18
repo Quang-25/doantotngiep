@@ -406,14 +406,19 @@ body {
 /* =========================
    MOBILE HEADER
 ========================= */
+/* ========================================
+   FIX LỖI GIAO DIỆN MENU TRÊN ĐIỆN THOẠI 
+======================================== */
+
+
 
 @media (max-width: 767px) {
-
     .header {
         padding: 5px 0;
     }
 
     .logo {
+        display: flex;
         justify-content: center;
         margin-bottom: 8px;
     }
@@ -435,5 +440,5 @@ body {
         height: 40px;
         font-size: 18px;
     }
-
 }
+
