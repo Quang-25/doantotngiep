@@ -1,186 +1,90 @@
-
 console.log("Đang kiểm tra nạp file Chatbot JS...");
 
-function initChatbot() {
-    // Ngăn khởi tạo sự kiện nhiều lần
+document.addEventListener('DOMContentLoaded', function() {
     if (window.chatbotInitialized) {
         console.log("Chatbot JS bị gọi trùng, đã tự động ngăn chặn!");
         return;
     }
+    window.chatbotInitialized = true;
+    console.log("Khởi tạo Chatbot thành công!");
 
-    // Lấy các phần tử HTML
+    // ---------------------------------------------------------
     const btnToggle = document.getElementById('btn-chatbot-toggle');
     const btnClose = document.getElementById('btn-chatbot-close');
     const chatWindow = document.getElementById('chatbot-window');
     const chatForm = document.getElementById('chatbot-form');
     const chatInput = document.getElementById('chatbot-input');
     const chatMessages = document.getElementById('chatbot-messages');
-
-    // Màn hình gợi ý ban đầu
+    
+    // BỔ SUNG: Biến để ẩn khung gợi ý đi khi người dùng bắt đầu chat
     const welcomeScreen = document.getElementById('chatbot-welcome-screen');
 
-    // Kiểm tra HTML trước khi đánh dấu đã khởi tạo
-    if (
-        !btnToggle ||
-        !btnClose ||
-        !chatWindow ||
-        !chatForm ||
-        !chatInput ||
-        !chatMessages
-    ) {
-        console.error(
-            "Không tìm thấy đủ phần tử HTML của chatbot!",
-            {
-                btnToggle,
-                btnClose,
-                chatWindow,
-                chatForm,
-                chatInput,
-                chatMessages
-            }
-        );
-        return;
-    }
-
-    // Đánh dấu đã khởi tạo sau khi xác nhận đủ phần tử
-    window.chatbotInitialized = true;
-    console.log("Khởi tạo Chatbot thành công!");
-
-    // ---------------------------------------------------------
-    // MỞ / ĐÓNG KHUNG CHAT
-    // ---------------------------------------------------------
-
-    btnToggle.addEventListener('click', function (e) {
-        e.preventDefault();
-
+    // Mở / Đóng khung chat
+    btnToggle.addEventListener('click', () => {
         chatWindow.classList.toggle('d-none');
-
         if (!chatWindow.classList.contains('d-none')) {
             chatInput.focus();
         }
     });
-
-    btnClose.addEventListener('click', function (e) {
-        e.preventDefault();
+    
+    btnClose.addEventListener('click', () => {
         chatWindow.classList.add('d-none');
     });
 
-    // ---------------------------------------------------------
-    // XỬ LÝ CÁC NÚT CÂU HỎI GỢI Ý
-    // ---------------------------------------------------------
-
+    // BỔ SUNG: Xử lý khi click vào các nút câu hỏi gợi ý
     const suggestionBtns = document.querySelectorAll('.btn-suggestion');
-
-    suggestionBtns.forEach(function (btn) {
-        btn.addEventListener('click', function () {
+    suggestionBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Lấy text của nút, đưa vào input và tự động submit
             chatInput.value = this.innerText.trim();
-
-            // Gửi câu hỏi qua form hiện có
-            chatForm.dispatchEvent(
-                new Event('submit', {
-                    bubbles: true,
-                    cancelable: true
-                })
-            );
+            chatForm.dispatchEvent(new Event('submit'));
         });
     });
 
-    // ---------------------------------------------------------
-    // PHIÊN LÀM VIỆC CHATBOT
-    // ---------------------------------------------------------
-
+    // Phiên làm việc (Session) để lưu mạch chat
     let maPhienChat = localStorage.getItem('ChatbotSession_Badminton');
 
-    // ---------------------------------------------------------
-    // GỬI TIN NHẮN
-    // ---------------------------------------------------------
-
-    chatForm.addEventListener('submit', async function (e) {
+    chatForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-
         const message = chatInput.value.trim();
+        if (!message) return;
 
-        if (!message) {
-            return;
-        }
-
-        // Ẩn màn hình gợi ý khi khách gửi tin nhắn đầu tiên
+        // BỔ SUNG: Ẩn màn hình gợi ý ngay khi người dùng bắt đầu chat câu đầu tiên
         if (welcomeScreen) {
             welcomeScreen.style.display = 'none';
         }
 
-        // 1. Hiển thị tin nhắn của khách
-        // Dùng textContent để tránh chèn HTML không an toàn
-        const userMessage = document.createElement('div');
-        userMessage.className =
-            'd-flex flex-column align-items-end mb-3';
-
-        const userBubble = document.createElement('div');
-        userBubble.className =
-            'bg-primary text-white p-2 px-3 shadow-sm';
-        userBubble.style.maxWidth = '85%';
-        userBubble.style.borderRadius = '15px 15px 0 15px';
-        userBubble.textContent = message;
-
-        userMessage.appendChild(userBubble);
-        chatMessages.appendChild(userMessage);
-
+        // 1. In tin nhắn của Khách lên UI
+        chatMessages.innerHTML += `
+            <div class="d-flex flex-column align-items-end mb-3">
+                <div class="bg-primary text-white p-2 px-3 shadow-sm" style="max-width: 85%; border-radius: 15px 15px 0 15px;">
+                    ${message}
+                </div>
+            </div>`;
         chatInput.value = '';
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        // 2. Hiệu ứng chatbot đang xử lý
+        // 2. In hiệu ứng Bot đang gõ (Typing Indicator)
         const typingId = 'typing-' + Date.now();
-
-        const typingMessage = document.createElement('div');
-        typingMessage.id = typingId;
-        typingMessage.className =
-            'd-flex flex-column align-items-start mb-3';
-
-        typingMessage.innerHTML = `
-            <div class="bg-white text-muted p-2 px-3 rounded-3 shadow-sm border"
-                 style="max-width: 85%; border-radius: 15px 15px 15px 0;">
-                <span class="spinner-grow spinner-grow-sm text-primary"
-                      role="status"
-                      style="width: 10px; height: 10px;"></span>
-                Đang xử lý...
-            </div>
-        `;
-
-        chatMessages.appendChild(typingMessage);
+        chatMessages.innerHTML += `
+            <div id="${typingId}" class="d-flex flex-column align-items-start mb-3">
+                <div class="bg-white text-muted p-2 px-3 rounded-3 shadow-sm border" style="max-width: 85%; border-radius: 15px 15px 15px 0;">
+                    <span class="spinner-grow spinner-grow-sm text-primary" role="status" style="width: 10px; height: 10px;"></span> Đang xử lý...
+                </div>
+            </div>`;
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        // 3. Lấy phiên bản Standard hoặc Pro
-        const versionInput = document.querySelector(
-            'input[name="bot_version"]:checked'
-        );
+        // Lấy phiên bản Standard hay Pro
+        const botVersion = document.querySelector('input[name="bot_version"]:checked').value;
 
-        const botVersion = versionInput
-            ? versionInput.value
-            : 'standard';
-
-        // Lấy thông tin khách hàng từ LocalStorage
+        // Kiểm tra xem khách có đăng nhập không (Lấy từ LocalStorage trang web)
         let idKhachHang = null;
-
         try {
             const user = JSON.parse(localStorage.getItem('user'));
+            if (user && user.ID_KhachHang) idKhachHang = user.ID_KhachHang;
+        } catch(err) {}
 
-            if (user && user.ID_KhachHang) {
-                idKhachHang = user.ID_KhachHang;
-            }
-        } catch (err) {
-            console.warn('Không đọc được thông tin người dùng:', err);
-        }
-
-        // Hàm xóa hiệu ứng đang xử lý
-        function removeTypingIndicator() {
-            const typingElement = document.getElementById(typingId);
-
-            if (typingElement) {
-                typingElement.remove();
-            }
-        }
-
-        // 4. Gọi REST API Laravel
+        // 3. GỌI RESTFUL API LÊN LARAVEL
         try {
             const response = await fetch('/api/chatbot/tu-van', {
                 method: 'POST',
@@ -188,95 +92,40 @@ function initChatbot() {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({
-                    message: message,
-                    version: botVersion,
+                body: JSON.stringify({ 
+                    message: message, 
+                    version: botVersion, 
                     maPhienChat: maPhienChat,
                     idKhachHang: idKhachHang
                 })
             });
 
             const data = await response.json();
-
-            removeTypingIndicator();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message ||
-                    'Máy chủ trả về lỗi HTTP ' + response.status
-                );
-            }
+            document.getElementById(typingId).remove(); // Xóa chữ "Đang xử lý..."
 
             if (data.success) {
-                // Lưu mã phiên chat
-                if (!maPhienChat && data.maPhienChat) {
+                // Lưu ID phiên chat vào LocalStorage
+                if (!maPhienChat) {
                     maPhienChat = data.maPhienChat;
-
-                    localStorage.setItem(
-                        'ChatbotSession_Badminton',
-                        maPhienChat
-                    );
+                    localStorage.setItem('ChatbotSession_Badminton', maPhienChat);
                 }
 
-                // Hiển thị câu trả lời của chatbot
-                const botMessage = document.createElement('div');
-                botMessage.className =
-                    'd-flex flex-column align-items-start mb-3';
-
-                const botBubble = document.createElement('div');
-                botBubble.className =
-                    'bg-white p-2 px-3 shadow-sm border';
-                botBubble.style.maxWidth = '85%';
-                botBubble.style.borderRadius = '15px 15px 15px 0';
-                botBubble.style.lineHeight = '1.5';
-
-                // Cho phép hiển thị nội dung trả lời dạng văn bản an toàn
-                botBubble.textContent = data.reply ?? '';
-
-                botMessage.appendChild(botBubble);
-                chatMessages.appendChild(botMessage);
-            } else {
-                const errorMessage = document.createElement('div');
-                errorMessage.className = 'text-center mb-3';
-
-                const errorBadge = document.createElement('span');
-                errorBadge.className =
-                    'badge bg-warning text-dark rounded-pill px-3 py-2 fw-normal';
-                errorBadge.textContent =
-                    data.message ||
-                    data.reply ||
-                    'Chatbot chưa thể trả lời câu hỏi này.';
-
-                errorMessage.appendChild(errorBadge);
-                chatMessages.appendChild(errorMessage);
+                // 4. In câu trả lời của Server lên UI
+                chatMessages.innerHTML += `
+                    <div class="d-flex flex-column align-items-start mb-3">
+                        <div class="bg-white p-2 px-3 shadow-sm border" style="max-width: 85%; border-radius: 15px 15px 15px 0; line-height: 1.5;">
+                            ${data.reply}
+                        </div>
+                    </div>`;
             }
         } catch (error) {
-            removeTypingIndicator();
-
-            console.error('Lỗi gọi API chatbot:', error);
-
-            const errorMessage = document.createElement('div');
-            errorMessage.className = 'text-center mb-3';
-
-            const errorBadge = document.createElement('span');
-            errorBadge.className =
-                'badge bg-danger rounded-pill px-3 py-2 fw-normal';
-            errorBadge.textContent =
-                'Lỗi kết nối máy chủ. Vui lòng thử lại!';
-
-            errorMessage.appendChild(errorBadge);
-            chatMessages.appendChild(errorMessage);
+            document.getElementById(typingId).remove();
+            chatMessages.innerHTML += `
+                <div class="text-center mb-3">
+                    <span class="badge bg-danger rounded-pill px-3 py-2 fw-normal">Lỗi kết nối máy chủ. Vui lòng thử lại!</span>
+                </div>`;
         }
-
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Tự động cuộn xuống cuối
     });
-}
-
-// Hỗ trợ cả trường hợp file JS được tải trước hoặc sau DOMContentLoaded
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initChatbot, {
-        once: true
-    });
-} else {
-    initChatbot();
-}
+});

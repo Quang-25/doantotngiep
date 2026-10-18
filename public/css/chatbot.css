@@ -1,104 +1,47 @@
-
-/* ========================================
-   NÚT BẬT / TẮT CHATBOT
-======================================== */
+/* Nút bật tắt chatbot */
 #btn-chatbot-toggle {
     position: fixed;
-    right: 15px;
-    bottom: 130px;
-    z-index: 1051;
-
-    width: 55px;
-    height: 55px;
-
+    bottom: 130px; /* Nút Zalo cao 55px + bottom 60px = 115px. Đặt 130px để cách Zalo 15px và nằm dưới mũi tên */
+    right: 15px;   /* Đổi thành 15px để thẳng hàng tuyệt đối với trục dọc của Zalo */
+    z-index: 1050; /* Đảm bảo nút luôn nổi lên trên cùng */
+    cursor: pointer;
+    width: 55px;   /* Kích thước bằng đúng nút Zalo */
+    height: 55px;  /* Sửa thành 55px để nút tròn đều, không bị méo */
+    background-color: #2563eb;
+    border-radius: 50%; /* Dùng 50% để tạo hình tròn hoàn hảo */
     display: flex;
     align-items: center;
     justify-content: center;
-
-    background-color: #2563eb;
-    color: #fff;
-    border-radius: 50%;
-    cursor: pointer;
-
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    color: white;
     transition: transform 0.2s ease;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
-#btn-chatbot-toggle:hover {
-    transform: scale(1.05);
-}
-
-/* ========================================
-   KHUNG CHATBOT: CỐ ĐỊNH VỊ TRÍ VÀ KÍCH THƯỚC
-======================================== */
+/* Khung chatbot */
 #chatbot-window {
-    position: fixed !important;
-
-    right: 70px !important;
-    left: auto !important;
-    bottom: 105px !important;
-    top: auto !important;
-
-    width: 340px !important;
-    height: 500px !important;
-
-    max-width: calc(100vw - 90px);
-    max-height: calc(100dvh - 125px);
-
+    position: fixed;
+    bottom: 140px; /* Đặt cao hơn nút toggle 15px (130px + 55px + 15px) để tạo khe hở đẹp */
+    right: 70px;   /* Giữ nguyên 15px để thẳng hàng với cả 2 nút bên dưới */
+    width: 360px;
+    height: 520px;
+    z-index: 1050;
     display: flex;
     flex-direction: column;
-
-    box-sizing: border-box;
     overflow: hidden;
-
-    z-index: 1050;
-
-    background-color: #fff;
+    background-color: white;
     border: 1px solid #e5e7eb;
     border-radius: 16px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
-
-/* Không cho khung bị thay đổi kích thước khi có tin nhắn dài */
-#chatbot-window,
-#chatbot-window * {
-    box-sizing: border-box;
-}
-
-/* ========================================
-   HEADER: GIỮ NGUYÊN KÍCH THƯỚC
-======================================== */
-#chatbot-window > :first-child {
-    flex: 0 0 auto !important;
-    min-height: 70px;
-    height: auto !important;
-
-    padding: 10px 14px !important;
-    overflow: visible;
-}
-
-/* ========================================
-   VÙNG TIN NHẮN: CHỈ CUỘN Ở ĐÂY
-======================================== */
 #chatbot-messages {
-    flex: 1 1 0 !important;
-
-    height: 0;
-    min-height: 0;
-    max-height: 100%;
-
+    flex: 1 1 0;
+    overflow-y: auto; /* Bật thanh cuộn dọc khi nội dung vượt quá chiều cao */
     overflow-x: hidden;
-    overflow-y: auto;
-
-    overscroll-behavior-y: contain;
-    overflow-wrap: anywhere;
-    scrollbar-gutter: stable;
-
-    padding: 14px !important;
-    scroll-behavior: smooth;
+    padding: 15px;
+    scroll-behavior: smooth; /* Hiệu ứng cuộn mượt */
 }
 
-/* Thanh cuộn bên trong khung chat */
+/* Tùy chỉnh giao diện thanh cuộn (nhỏ gọn, tinh tế) */
 #chatbot-messages::-webkit-scrollbar {
     width: 6px;
 }
@@ -117,141 +60,8 @@
     background: #94a3b8;
 }
 
-/* Firefox */
+/* Hỗ trợ thanh cuộn cho Firefox */
 #chatbot-messages {
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 #f1f5f9;
-}
-
-/* Tin nhắn không được làm co header hoặc vùng nhập */
-#chatbot-messages > * {
-    flex-shrink: 0;
-}
-
-/* ========================================
-   VÙNG NHẬP: LUÔN NẰM DƯỚI CÙNG
-======================================== */
-#chatbot-window .p-2.bg-white.border-top {
-    position: relative;
-    z-index: 2;
-
-    flex: 0 0 auto !important;
-    width: 100%;
-
-    padding: 8px 10px !important;
-    margin-top: 0 !important;
-
-    background-color: #fff;
-    border-top: 1px solid #e5e7eb !important;
-}
-
-#chatbot-window #chatbot-form {
-    display: flex;
-    align-items: center;
-    gap: 8px !important;
-
-    width: 100%;
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
-/* Ô nhập câu hỏi */
-#chatbot-window #chatbot-input {
-    flex: 1 1 0;
-    min-width: 0;
-
-    height: 46px !important;
-    min-height: 46px !important;
-
-    padding: 0 14px !important;
-
-    background-color: #f8f9fa;
-    color: #212529;
-
-    border: 1px solid #ced4da !important;
-    border-radius: 10px !important;
-
-    outline: none !important;
-    box-shadow: none !important;
-}
-
-#chatbot-window #chatbot-input:focus,
-#chatbot-window #chatbot-input:focus-visible {
-    border-color: #adb5bd !important;
-    outline: none !important;
-    box-shadow: none !important;
-}
-
-/* Nút gửi */
-#chatbot-window #chatbot-form button[type="submit"] {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    flex: 0 0 44px;
-
-    width: 44px !important;
-    height: 44px !important;
-    min-width: 44px;
-
-    padding: 0 !important;
-    margin: 0 !important;
-
-    border-radius: 50% !important;
-}
-
-/* Dòng ghi chú dưới ô nhập */
-#chatbot-window .p-2.bg-white.border-top > .text-center {
-    margin-top: 5px !important;
-    line-height: 1.3;
-}
-
-
-/* Thu gọn chiều cao khu vực nhập câu hỏi */
-#chatbot-window .p-2.bg-white.border-top {
-    padding: 5px 8px !important;
-}
-
-/* Ô nhập thấp hơn một chút */
-#chatbot-window #chatbot-input {
-    height: 40px !important;
-    min-height: 40px !important;
-    padding: 0 12px !important;
-}
-
-/* Nút gửi cân đối với ô nhập */
-#chatbot-window #chatbot-form button[type="submit"] {
-    width: 40px !important;
-    height: 40px !important;
-    min-width: 40px !important;
-}
-
-/* Thu gọn khoảng cách dòng ghi chú */
-#chatbot-window .p-2.bg-white.border-top > .text-center {
-    margin-top: 3px !important;
-    line-height: 1.2;
-}
-
-/* ========================================
-   ĐIỆN THOẠI
-======================================== */
-@media (max-width: 480px) {
-    #chatbot-window {
-        right: 10px !important;
-        left: 10px !important;
-
-        bottom: 100px !important;
-        top: auto !important;
-
-        width: auto !important;
-        height: min(500px, calc(100dvh - 120px)) !important;
-
-        max-width: none;
-        max-height: calc(100dvh - 120px);
-    }
-
-    #btn-chatbot-toggle {
-        right: 15px;
-        bottom: 130px;
-    }
 }

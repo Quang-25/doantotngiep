@@ -17,10 +17,11 @@ class ChatbotService
 
     public function xuLyTinNhan(string $message, string $version, $idKhachHang = null)
     {
-        $messageLower = mb_strtolower($message);
+        $messageLower = mb_strtolower($message, 'UTF-8');
 
-        // 1. KỊCH BẢN TRA CỨU ĐƠN HÀNG (Giữ nguyên)
-        $isTraCuuKeyword = preg_match('/(tra cứu|kiểm tra|xem|tình trạng).*(đơn|mã|sdt|số điện thoại)/i', $messageLower) || preg_match('/(đơn hàng của tôi|tra cuu don hang)/i', $messageLower);
+        // 1. KỊCH BẢN TRA CỨU ĐƠN HÀNG (Đã fix regex tiếng Việt & mở rộng từ khóa)
+        $isTraCuuKeyword = preg_match('/(tra cứu|kiểm tra|xem|tình trạng).*(đơn|mã|sdt|số điện thoại)/iu', $messageLower) 
+                        || preg_match('/(đơn hàng|tra cuu don hang)/iu', $messageLower);
         $isPureNumber = preg_match('/^\d{5,}$/', trim($message)); 
 
         if ($isTraCuuKeyword || $isPureNumber) {
@@ -35,23 +36,22 @@ class ChatbotService
                 if ($ketQua) return $ketQua;
                 return "Dạ, hệ thống không tìm thấy đơn hàng nào khớp với thông tin bạn nhập. Bạn kiểm tra lại giúp nhé!";
             } else {
-                return "Dạ, để kiểm tra tình trạng đơn, bạn vui lòng cung cấp **Số điện thoại** đã đăng ký nhé! (Ví dụ: '0352143569')";
+                return "Dạ, để kiểm tra tình trạng đơn, bạn vui lòng cung cấp **Số điện thoại** hoặc **Mã đơn hàng** nhé! (Ví dụ: '0352143569')";
             }
         }
 
-        // 2. KỊCH BẢN TƯ VẤN SẢN PHẨM TRONG KHO (Giữ nguyên)
-        if (preg_match('/(vợt|vot|phụ kiện|giày|balo|túi|quần|áo|cước|quấn cán|tư vấn|mua)/i', $messageLower)) {
+        // 2. KỊCH BẢN TƯ VẤN SẢN PHẨM TRONG KHO (Thêm cờ 'u' để tránh lỗi byte)
+        if (preg_match('/(vợt|vot|phụ kiện|giày|balo|túi|quần|áo|cước|quấn cán|tư vấn|mua)/iu', $messageLower)) {
             return $this->tuVanSanPham($messageLower);
         }
 
-        // 3. KỊCH BẢN FAQ - DÒ TỪ KHÓA CHÍNH XÁC TỪ MYSQL (CODE CŨ)
+        // 3. KỊCH BẢN FAQ - DÒ TỪ KHÓA CHÍNH XÁC TỪ MYSQL
         $faqAnswer = $this->timKiemFAQ($messageLower);
         if ($faqAnswer) {
             return $faqAnswer; 
         }
 
-        // 4. KỊCH BẢN HỎI ĐÁP TỰ NHIÊN VỚI GEMINI (MỚI)
-        // Nếu qua bước 3 mà không khớp từ khóa nào, Gemini sẽ tự đọc DB và trả lời
+        // 4. KỊCH BẢN HỎI ĐÁP TỰ NHIÊN VỚI GEMINI
         return $this->troChuyenTuNhienVoiGemini($message);
     }
 
@@ -70,44 +70,45 @@ class ChatbotService
                        ->where('hinhanhsanpham.ThuTu', '=', 1);
               });
 
-        if (preg_match('/(vợt|giày|balo|túi|quần|áo|cước|quấn cán)/i', $message, $m)) {
-            $loai = mb_strtolower($m[1]);
+        // Bổ sung cờ 'iu' cho toàn bộ các hàm preg_match bên dưới
+        if (preg_match('/(vợt|giày|balo|túi|quần|áo|cước|quấn cán)/iu', $message, $m)) {
+            $loai = mb_strtolower($m[1], 'UTF-8');
             if ($loai == 'vot') $loai = 'vợt';
             $query->where('sanpham.TenSanPham', 'like', '%' . $loai . '%');
         }
 
-        if (preg_match('/(yonex|victor|lining|mizuno|kumpoo|kawasaki|apacs|vnb)/i', $message, $mBrand)) {
+        if (preg_match('/(yonex|victor|lining|mizuno|kumpoo|kawasaki|apacs|vnb)/iu', $message, $mBrand)) {
             $query->where('thuonghieu.TenThuongHieu', 'like', '%' . $mBrand[1] . '%');
         }
 
-        if (preg_match('/dưới\s*(\d+(?:\.\d+)?)\s*(triệu|tr|k|nghìn)/i', $message, $m)) {
+        if (preg_match('/dưới\s*(\d+(?:\.\d+)?)\s*(triệu|tr|k|nghìn)/iu', $message, $m)) {
             $tien = $m[1];
-            if (strtolower($m[2]) === 'k' || strtolower($m[2]) === 'nghìn') {
+            if (mb_strtolower($m[2], 'UTF-8') === 'k' || mb_strtolower($m[2], 'UTF-8') === 'nghìn') {
                 $query->where('sanpham.GiaBan', '<=', $tien * 1000);
             } else {
                 $query->where('sanpham.GiaBan', '<=', $tien * 1000000);
             }
         }
 
-        if (preg_match('/(mới chơi|cơ bản|nhập môn)/i', $message)) {
+        if (preg_match('/(mới chơi|cơ bản|nhập môn)/iu', $message)) {
             $query->where('thongsovot.TrinhDoPhuHop', 'MoiChoi');
-        } elseif (preg_match('/(chuyên nghiệp|nâng cao)/i', $message)) {
+        } elseif (preg_match('/(chuyên nghiệp|nâng cao)/iu', $message)) {
             $query->whereIn('thongsovot.TrinhDoPhuHop', ['NangCao', 'ChuyenNghiep']);
-        } elseif (preg_match('/(trung bình|trung cấp)/i', $message)) {
+        } elseif (preg_match('/(trung bình|trung cấp)/iu', $message)) {
             $query->where('thongsovot.TrinhDoPhuHop', 'TrungCap');
         }
 
-        if (preg_match('/(tấn công|sức mạnh|đập cầu|smash)/i', $message)) {
+        if (preg_match('/(tấn công|sức mạnh|đập cầu|smash)/iu', $message)) {
             $query->where(function($q) {
                 $q->where('thongsovot.DiemCanBang', 'like', '%Nặng đầu%')
                   ->orWhere('thongsovot.DoCung', 'like', '%Cứng%');
             });
-        } elseif (preg_match('/(phòng thủ|phản tạt|tốc độ|điều cầu)/i', $message)) {
+        } elseif (preg_match('/(phòng thủ|phản tạt|tốc độ|điều cầu)/iu', $message)) {
             $query->where(function($q) {
                 $q->where('thongsovot.DiemCanBang', 'like', '%Nhẹ đầu%')
                   ->orWhere('thongsovot.DiemCanBang', 'like', '%Cân bằng%');
             });
-        } elseif (preg_match('/(toàn diện|công thủ|linh hoạt)/i', $message)) {
+        } elseif (preg_match('/(toàn diện|công thủ|linh hoạt)/iu', $message)) {
             $query->where(function($q) {
                 $q->where('thongsovot.DiemCanBang', 'like', '%Cân bằng%')
                   ->orWhere('thongsovot.DoCung', 'like', '%Trung bình%')
@@ -115,19 +116,19 @@ class ChatbotService
             });
         }
 
-        if (preg_match('/([2-5]u|f)/i', $message, $m)) {
+        if (preg_match('/([2-5]u|f)/iu', $message, $m)) {
             $query->where('thongsovot.TrongLuong', 'like', '%' . strtoupper($m[1]) . '%');
         }
-        if (preg_match('/(nặng đầu)/i', $message)) {
+        if (preg_match('/(nặng đầu)/iu', $message)) {
             $query->where('thongsovot.DiemCanBang', 'like', '%Nặng đầu%');
-        } elseif (preg_match('/(nhẹ đầu)/i', $message)) {
+        } elseif (preg_match('/(nhẹ đầu)/iu', $message)) {
             $query->where('thongsovot.DiemCanBang', 'like', '%Nhẹ đầu%');
-        } elseif (preg_match('/(cân bằng)/i', $message)) {
+        } elseif (preg_match('/(cân bằng)/iu', $message)) {
             $query->where('thongsovot.DiemCanBang', 'like', '%Cân bằng%');
         }
-        if (preg_match('/(đũa cứng|thân cứng|vợt cứng)/i', $message)) {
+        if (preg_match('/(đũa cứng|thân cứng|vợt cứng)/iu', $message)) {
             $query->where('thongsovot.DoCung', 'like', '%Cứng%');
-        } elseif (preg_match('/(dẻo|thân dẻo)/i', $message)) {
+        } elseif (preg_match('/(dẻo|thân dẻo)/iu', $message)) {
             $query->where('thongsovot.DoCung', 'like', '%Dẻo%');
         }
 
@@ -179,7 +180,7 @@ class ChatbotService
     {
         $faqs = DB::table('cauhoichatbot')->where('TrangThai', 'HoatDong')->get();
         foreach ($faqs as $faq) {
-            $keywords = explode(',', mb_strtolower($faq->TuKhoa));
+            $keywords = explode(',', mb_strtolower($faq->TuKhoa, 'UTF-8'));
             foreach ($keywords as $kw) {
                 if (!empty(trim($kw)) && strpos($message, trim($kw)) !== false) {
                     return $faq->CauTraLoi;
@@ -221,14 +222,12 @@ class ChatbotService
 
     private function troChuyenTuNhienVoiGemini(string $message)
     {
-        // 1. Lấy toàn bộ FAQ từ MySQL để làm "Bộ não tri thức" cho Gemini
         $faqs = DB::table('cauhoichatbot')->where('TrangThai', 'HoatDong')->get();
         $nguCanh = "";
         foreach ($faqs as $faq) {
             $nguCanh .= "Hỏi: {$faq->TuKhoa} | Trả lời: {$faq->CauTraLoi}\n";
         }
 
-        // 2. Viết Prompt yêu cầu Gemini đóng vai nhân viên
         $prompt = "Bạn là trợ lý ảo thân thiện của cửa hàng cầu lông Badminton ProShop.\n"
                 . "Khách hàng nhắn: '{$message}'\n\n"
                 . "DƯỚI ĐÂY LÀ THÔNG TIN CHÍNH SÁCH CỦA CỬA HÀNG:\n"
@@ -254,7 +253,7 @@ class ChatbotService
             if ($response->successful()) {
                 $text = $response->json('candidates.0.content.parts.0.text');
                 if ($text) {
-                    return str_replace(['**', '*'], ['<b>', '</b>'], $text); // Xử lý Markdown thừa thành HTML
+                    return str_replace(['**', '*'], ['<b>', '</b>'], $text); 
                 }
             }
             
@@ -272,6 +271,8 @@ class ChatbotService
         $query = DB::table('donhang')->where('ID_KhachHang', $idKhachHang); 
         
         if (strlen($tuKhoa) >= 9) {
+            // Đã giữ nguyên logic cắt bỏ số 0 ở đầu để đảm bảo tra cứu đúng 
+            // như hệ thống ghi nhận từ trước.
             $sdtNhap = ltrim($tuKhoa, '0');
             $sdtTaiKhoan = ltrim($khachHang->SoDienThoai ?? '', '0');
             
