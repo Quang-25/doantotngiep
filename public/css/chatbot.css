@@ -65,3 +65,203 @@
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 #f1f5f9;
 }
+
+/* ========================================
+   FIX CHATBOT TRÊN ĐIỆN THOẠI
+======================================== */
+
+/* =========================================
+   CHATBOT - RESPONSIVE MOBILE
+========================================= */
+
+/* Nút mở chatbot */
+#btn-chatbot-toggle {
+    position: fixed;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    padding: 0 !important;
+    margin: 0;
+
+    box-sizing: border-box;
+    border-radius: 50%;
+    cursor: pointer;
+
+    z-index: 1081;
+}
+
+/* Căn icon robot chính giữa tuyệt đối */
+#btn-chatbot-toggle i {
+    display: block !important;
+    position: static !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    width: auto;
+    height: auto;
+
+    line-height: 1 !important;
+    font-size: 27px !important;
+
+    transform: none !important;
+    flex: 0 0 auto;
+}
+
+/* Khung chat và khu vực tin nhắn */
+#chatbot-window {
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+#chatbot-messages {
+    min-height: 0;
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* =========================================
+   ĐIỆN THOẠI
+========================================= */
+@media (max-width: 575.98px) {
+
+    /* Nút robot bằng kích thước nút Zalo */
+    #btn-chatbot-toggle {
+        width: 54px !important;
+        height: 54px !important;
+
+        right: 12px !important;
+        left: auto !important;
+
+        bottom: calc(138px + env(safe-area-inset-bottom)) !important;
+        top: auto !important;
+
+        min-width: 54px;
+        min-height: 54px;
+
+        z-index: 1081;
+    }
+
+    /* Icon robot ở chính giữa */
+    #btn-chatbot-toggle i {
+        font-size: 26px !important;
+        line-height: 1 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Khung hội thoại vừa màn hình */
+    #chatbot-window {
+        position: fixed !important;
+
+        width: calc(100vw - 24px) !important;
+        max-width: 360px !important;
+
+        height: min(440px, calc(100dvh - 190px)) !important;
+        max-height: calc(100dvh - 150px) !important;
+        min-height: 280px !important;
+
+        right: 12px !important;
+        left: auto !important;
+
+        bottom: calc(200px + env(safe-area-inset-bottom)) !important;
+        top: auto !important;
+
+        border-radius: 14px !important;
+        z-index: 1100;
+
+        flex-direction: column;
+    }
+
+    /* Header chatbot */
+    #chatbot-window > .bg-primary {
+        flex-shrink: 0;
+        border-radius: 14px 14px 0 0 !important;
+        padding: 12px !important;
+    }
+
+    /* Nội dung chat */
+    #chatbot-messages {
+        padding: 12px !important;
+        min-height: 0;
+        flex: 1 1 0 !important;
+        overflow-y: auto !important;
+    }
+
+    /* Câu hỏi gợi ý */
+    #chatbot-welcome-screen {
+        margin-top: 4px !important;
+        margin-bottom: 16px !important;
+    }
+
+    #chatbot-welcome-screen .d-flex.flex-column {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    #chatbot-welcome-screen .btn-suggestion {
+        width: 100%;
+        white-space: normal;
+        text-align: left;
+        line-height: 1.45;
+    }
+
+    /* Khu vực nhập tin nhắn */
+    #chatbot-form {
+        width: 100%;
+        min-width: 0;
+    }
+
+    #chatbot-input {
+        min-width: 0;
+        font-size: 14px !important;
+    }
+
+    #chatbot-form button {
+        flex: 0 0 40px;
+    }
+
+    /* Chân khung chat */
+    #chatbot-window > .border-top {
+        flex-shrink: 0;
+        padding: 8px !important;
+    }
+}
+
+/* =========================================
+   ĐIỆN THOẠI MÀN HÌNH NHỎ
+========================================= */
+@media (max-width: 380px) {
+
+    #btn-chatbot-toggle {
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px;
+        min-height: 48px;
+
+        right: 10px !important;
+    }
+
+    #btn-chatbot-toggle i {
+        font-size: 24px !important;
+    }
+
+    #chatbot-window {
+        width: calc(100vw - 20px) !important;
+        max-width: none !important;
+
+        height: min(400px, calc(100dvh - 170px)) !important;
+        max-height: calc(100dvh - 130px) !important;
+        min-height: 260px !important;
+
+        right: 10px !important;
+        bottom: calc(190px + env(safe-area-inset-bottom)) !important;
+    }
+
+    #chatbot-messages {
+        padding: 10px !important;
+    }
+}

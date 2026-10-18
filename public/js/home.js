@@ -4,18 +4,52 @@ document.addEventListener('DOMContentLoaded', function () {
     initBannerSlider();
 });
 
+
 function initBannerSlider() {
     const track = document.getElementById('bannerTrack');
+
     if (!track || track.children.length <= 1) return;
 
-    let currentIndex = 0;
-    const totalSlides = track.children.length;
+    const slides = Array.from(track.children);
+    const wrapper = track.parentElement;
 
-    setInterval(function () {
-        currentIndex = (currentIndex + 1) % totalSlides;
-        track.style.transform = `translateX(-${currentIndex * 100}%)`;
-    }, 3500); // Tự động lướt sang banner tiếp theo sau mỗi 3.5 giây
+    let currentIndex = 0;
+    let timer = null;
+
+    function moveToSlide(index, animate = true) {
+        const slideWidth = wrapper.getBoundingClientRect().width;
+
+        if (!slideWidth) return;
+
+        track.style.transition = animate
+            ? 'transform 0.6s ease-in-out'
+            : 'none';
+
+        track.style.transform =
+            `translate3d(-${index * slideWidth}px, 0, 0)`;
+    }
+
+    function startSlider() {
+        clearInterval(timer);
+
+        timer = setInterval(function () {
+            currentIndex = (currentIndex + 1) % slides.length;
+            moveToSlide(currentIndex);
+        }, 3500);
+    }
+
+    // Khởi tạo slide đầu tiên
+    moveToSlide(0, false);
+
+    // Khởi động tự động chuyển banner
+    startSlider();
+
+    // Cập nhật vị trí khi xoay điện thoại hoặc thay đổi kích thước
+    window.addEventListener('resize', function () {
+        moveToSlide(currentIndex, false);
+    });
 }
+
 
 async function loadHomeData() {
     const productList = document.getElementById('product-list');
