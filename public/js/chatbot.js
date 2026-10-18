@@ -1,21 +1,23 @@
 console.log("Đang kiểm tra nạp file Chatbot JS...");
 
 document.addEventListener('DOMContentLoaded', function() {
-   
     if (window.chatbotInitialized) {
         console.log("Chatbot JS bị gọi trùng, đã tự động ngăn chặn!");
         return;
     }
     window.chatbotInitialized = true;
     console.log("Khởi tạo Chatbot thành công!");
-    // ---------------------------------------------------------
 
+    // ---------------------------------------------------------
     const btnToggle = document.getElementById('btn-chatbot-toggle');
     const btnClose = document.getElementById('btn-chatbot-close');
     const chatWindow = document.getElementById('chatbot-window');
     const chatForm = document.getElementById('chatbot-form');
     const chatInput = document.getElementById('chatbot-input');
     const chatMessages = document.getElementById('chatbot-messages');
+    
+    // BỔ SUNG: Biến để ẩn khung gợi ý đi khi người dùng bắt đầu chat
+    const welcomeScreen = document.getElementById('chatbot-welcome-screen');
 
     // Mở / Đóng khung chat
     btnToggle.addEventListener('click', () => {
@@ -29,6 +31,16 @@ document.addEventListener('DOMContentLoaded', function() {
         chatWindow.classList.add('d-none');
     });
 
+    // BỔ SUNG: Xử lý khi click vào các nút câu hỏi gợi ý
+    const suggestionBtns = document.querySelectorAll('.btn-suggestion');
+    suggestionBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Lấy text của nút, đưa vào input và tự động submit
+            chatInput.value = this.innerText.trim();
+            chatForm.dispatchEvent(new Event('submit'));
+        });
+    });
+
     // Phiên làm việc (Session) để lưu mạch chat
     let maPhienChat = localStorage.getItem('ChatbotSession_Badminton');
 
@@ -36,6 +48,11 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const message = chatInput.value.trim();
         if (!message) return;
+
+        // BỔ SUNG: Ẩn màn hình gợi ý ngay khi người dùng bắt đầu chat câu đầu tiên
+        if (welcomeScreen) {
+            welcomeScreen.style.display = 'none';
+        }
 
         // 1. In tin nhắn của Khách lên UI
         chatMessages.innerHTML += `
