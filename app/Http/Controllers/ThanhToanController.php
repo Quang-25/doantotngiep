@@ -241,48 +241,76 @@ class ThanhToanController extends Controller
         }
     }
 
-    private function createVNPayUrl(int $idDonHang, float $amount, string $ipAddress)
-    {
-        $vnp_TmnCode = env('VNPAY_TMN_CODE', 'YOUR_TMN_CODE'); 
-        $vnp_HashSecret = env('VNPAY_HASH_SECRET', 'YOUR_HASH_SECRET'); 
-        $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-        $vnp_Returnurl = env('VNPAY_RETURN_URL', 'http://127.0.0.1:8000/thanh-toan-thanh-cong');
 
-        $inputData = array(
-            "vnp_Version" => "2.1.0",
-            "vnp_TmnCode" => $vnp_TmnCode,
-            "vnp_Amount" => $amount * 100,
-            "vnp_Command" => "pay",
-            "vnp_CreateDate" => date('YmdHis'),
-            "vnp_CurrCode" => "VND",
-            "vnp_IpAddr" => $ipAddress,
-            "vnp_Locale" => "vn",
-            "vnp_OrderInfo" => "Khach hang thanh toan $idDonHang",
-            "vnp_OrderType" => "billpayment",
-            "vnp_ReturnUrl" => $vnp_Returnurl,
-            "vnp_TxnRef" => $idDonHang,
-        );
+    private function createVNPayUrl(int $idDonHang, float $amount, string $ipAddress): string
+    {
+        $vnp_TmnCode = trim((string) env('VNPAY_TMN_CODE', ''));
+        $vnp_HashSecret = trim((string) env('VNPAY_HASH_SECRET', ''));
+        $vnp_Url = trim((string) env(
+            'VNPAY_URL',
+            'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'
+        ));
+        $vnp_Returnurl = trim((string) env('VNPAY_RETURN_URL', ''));
+
+        if (
+            $vnp_TmnCode === '' ||
+            $vnp_HashSecret === '' ||
+            $vnp_Url === '' ||
+            $vnp_Returnurl === ''
+        ) {
+            throw new \RuntimeException('Thiếu cấu hình VNPay.');
+        }
+
+        if (!filter_var($vnp_Returnurl, FILTER_VALIDATE_URL)) {
+            throw new \RuntimeException('VNPAY_RETURN_URL không hợp lệ.');
+        }
+
+        $isProduction = app()->environment('production');
+
+        if (
+            $isProduction &&
+            strtolower((string) parse_url($vnp_Returnurl, PHP_URL_SCHEME)) !== 'https'
+        ) {
+            throw new \RuntimeException(
+                'VNPAY_RETURN_URL phải dùng HTTPS trên môi trường production.'
+            );
+        }
+
+        $inputData = [
+            'vnp_Version' => '2.1.0',
+            'vnp_TmnCode' => $vnp_TmnCode,
+            'vnp_Amount' => (int) round($amount * 100),
+            'vnp_Command' => 'pay',
+            'vnp_CreateDate' => now()->format('YmdHis'),
+            'vnp_CurrCode' => 'VND',
+            'vnp_IpAddr' => $ipAddress,
+            'vnp_Locale' => 'vn',
+            'vnp_OrderInfo' => 'Thanh toan don hang ' . $idDonHang,
+            'vnp_OrderType' => 'billpayment',
+            'vnp_ReturnUrl' => $vnp_Returnurl,
+            'vnp_TxnRef' => (string) $idDonHang,
+        ];
 
         ksort($inputData);
-        $query = "";
-        $i = 0;
-        $hashdata = "";
+
+        $hashData = [];
+        $queryData = [];
+
         foreach ($inputData as $key => $value) {
-            if ($i == 1) {
-                $hashdata .= '&' . urlencode($key) . "=" . urlencode($value);
-            } else {
-                $hashdata .= urlencode($key) . "=" . urlencode($value);
-                $i = 1;
-            }
-            $query .= urlencode($key) . "=" . urlencode($value) . '&';
+            $encodedKey = urlencode((string) $key);
+            $encodedValue = urlencode((string) $value);
+
+            $hashData[] = $encodedKey . '=' . $encodedValue;
+            $queryData[] = $encodedKey . '=' . $encodedValue;
         }
 
-        $vnp_Url = $vnp_Url . "?" . $query;
-        if (isset($vnp_HashSecret)) {
-            $vnpSecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
-            $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
-        }
+        $secureHash = hash_hmac(
+            'sha512',
+            implode('&', $hashData),
+            $vnp_HashSecret
+        );
 
-        return $vnp_Url;
+        return $vnp_Url . '?' . implode('&', $queryData)
+            . '&vnp_SecureHash=' . $secureHash;
     }
 }
