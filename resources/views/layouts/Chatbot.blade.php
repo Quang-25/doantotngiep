@@ -11,15 +11,6 @@
             <i class="bi bi-robot fs-4"></i>
             <div class="d-flex flex-column">
                 <span class="fw-bold mb-1" style="font-size: 15px;">Trợ Lý Badminton</span>
-                
-                <!-- Chuyển đổi phiên bản -->
-                <div class="btn-group btn-group-sm" role="group">
-                    <input type="radio" class="btn-check" name="bot_version" id="bot_standard" value="standard" checked>
-                    <label class="btn btn-outline-light py-0" style="font-size: 11px;" for="bot_standard">Cơ bản</label>
-
-                    <input type="radio" class="btn-check" name="bot_version" id="bot_pro" value="pro">
-                    <label class="btn btn-outline-light py-0" style="font-size: 11px;" for="bot_pro"><i class="bi bi-stars"></i> Pro</label>
-                </div>
             </div>
         </div>
         <button id="btn-chatbot-close" class="btn-close btn-close-white"></button>
