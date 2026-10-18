@@ -4,8 +4,7 @@
 </div>
 
 <!-- KHUNG CHATBOT -->
-<div id="chatbot-window" class="shadow-lg bg-white rounded-4 d-none" style="display: flex; flex-direction: column; height: 500px; width: 350px;">
-    
+<div id="chatbot-window"class="shadow-lg bg-white rounded-4 d-none"style="flex-direction: column; height: 500px; width: 350px;">
     <!-- Header: Tên bot và Công tắc Standard/Pro -->
     <div class="bg-primary text-white p-3 d-flex justify-content-between align-items-center" style="border-radius: 1rem 1rem 0 0;">
         <div class="d-flex align-items-center gap-2">
