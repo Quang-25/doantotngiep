@@ -21,7 +21,6 @@ class ChatbotController extends Controller
     {
         // Nhận dữ liệu từ Fetch API
         $message = trim($request->input('message', ''));
-        $version = $request->input('version', 'standard');
         $maPhienChat = $request->input('maPhienChat') ?: Str::uuid()->toString();
         
         // FIX: BỘ LỌC ÉP KIỂU DỮ LIỆU TỪ JAVASCRIPT
@@ -44,8 +43,8 @@ class ChatbotController extends Controller
             'ThoiGian' => now()
         ]);
 
-        // Uỷ quyền xử lý logic cho Service (Lúc này $idKhachHang đã chuẩn 100%)
-        $reply = $this->chatbotService->xuLyTinNhan($message, $version, $idKhachHang);
+        // Uỷ quyền xử lý logic cho Service (Đã xóa biến $version, truyền cứng 'pro' để luôn chạy AI)
+        $reply = $this->chatbotService->xuLyTinNhan($message, 'pro', $idKhachHang);
 
         // Ghi Log tin nhắn Chatbot
         DB::table('lichsuchat')->insert([
