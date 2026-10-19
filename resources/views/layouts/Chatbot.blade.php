@@ -4,22 +4,15 @@
 </div>
 
 <!-- KHUNG CHATBOT -->
-<div id="chatbot-window"class="shadow-lg bg-white rounded-4 d-none"style="flex-direction: column; height: 500px; width: 350px;">
-    <!-- Header: Tên bot và Công tắc Standard/Pro -->
+<div id="chatbot-window" class="shadow-lg bg-white rounded-4 d-none" style="display: flex; flex-direction: column; height: 500px; width: 350px;">
+    
+    <!-- Header: Tên bot (Đã bỏ công tắc) -->
     <div class="bg-primary text-white p-3 d-flex justify-content-between align-items-center" style="border-radius: 1rem 1rem 0 0;">
         <div class="d-flex align-items-center gap-2">
             <i class="bi bi-robot fs-4"></i>
             <div class="d-flex flex-column">
-                <span class="fw-bold mb-1" style="font-size: 15px;">Trợ Lý Badminton</span>
-                
-                <!-- Chuyển đổi phiên bản -->
-                <div class="btn-group btn-group-sm" role="group">
-                    <input type="radio" class="btn-check" name="bot_version" id="bot_standard" value="standard" checked>
-                    <label class="btn btn-outline-light py-0" style="font-size: 11px;" for="bot_standard">Cơ bản</label>
-
-                    <input type="radio" class="btn-check" name="bot_version" id="bot_pro" value="pro">
-                    <label class="btn btn-outline-light py-0" style="font-size: 11px;" for="bot_pro"><i class="bi bi-stars"></i> Pro</label>
-                </div>
+                <span class="fw-bold mb-0" style="font-size: 15px;">Trợ Lý Badminton</span>
+                <span style="font-size: 11px; opacity: 0.8;"><i class="bi bi-stars"></i> AI Assistant</span>
             </div>
         </div>
         <button id="btn-chatbot-close" class="btn-close btn-close-white"></button>
@@ -28,7 +21,7 @@
     <!-- KHU VỰC HIỂN THỊ TIN NHẮN -->
     <div id="chatbot-messages" class="p-3" style="flex: 1; overflow-y: auto; background-color: #fcfcfc;">
         
-        <!-- BỔ SUNG: Màn hình Welcome & Câu hỏi gợi ý theo thiết kế -->
+        <!-- Màn hình Welcome & Câu hỏi gợi ý -->
         <div id="chatbot-welcome-screen" class="text-center mt-2 mb-4">
             <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-25 text-success rounded-circle mb-2" style="width: 45px; height: 45px;">
                 <i class="bi bi-chat-dots fs-4"></i>
@@ -53,8 +46,6 @@
                 </button>
             </div>
         </div>
-        <!-- Kết thúc màn hình Welcome -->
-
     </div>
 
     <!-- Vùng nhập câu hỏi -->

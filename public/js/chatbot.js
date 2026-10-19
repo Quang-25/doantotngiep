@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatInput = document.getElementById('chatbot-input');
     const chatMessages = document.getElementById('chatbot-messages');
     
-    // BỔ SUNG: Biến để ẩn khung gợi ý đi khi người dùng bắt đầu chat
+    // Biến để ẩn khung gợi ý đi khi người dùng bắt đầu chat
     const welcomeScreen = document.getElementById('chatbot-welcome-screen');
 
     // Mở / Đóng khung chat
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
         chatWindow.classList.add('d-none');
     });
 
-    // BỔ SUNG: Xử lý khi click vào các nút câu hỏi gợi ý
+    // Xử lý khi click vào các nút câu hỏi gợi ý
     const suggestionBtns = document.querySelectorAll('.btn-suggestion');
     suggestionBtns.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const message = chatInput.value.trim();
         if (!message) return;
 
-        // BỔ SUNG: Ẩn màn hình gợi ý ngay khi người dùng bắt đầu chat câu đầu tiên
+        // Ẩn màn hình gợi ý ngay khi người dùng bắt đầu chat câu đầu tiên
         if (welcomeScreen) {
             welcomeScreen.style.display = 'none';
         }
@@ -74,9 +74,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>`;
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        // Lấy phiên bản Standard hay Pro
-        const botVersion = document.querySelector('input[name="bot_version"]:checked').value;
-
         // Kiểm tra xem khách có đăng nhập không (Lấy từ LocalStorage trang web)
         let idKhachHang = null;
         try {
@@ -94,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({ 
                     message: message, 
-                    version: botVersion, 
+                    version: 'pro', // Mặc định truyền thẳng 'pro' lên backend, không cần kiểm tra HTML nữa
                     maPhienChat: maPhienChat,
                     idKhachHang: idKhachHang
                 })
