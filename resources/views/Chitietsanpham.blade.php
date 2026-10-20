@@ -27,7 +27,7 @@
         <div class="bg-white shadow-sm rounded-3 mb-4">
             
             <!-- PHẦN 1: THÔNG TIN SẢN PHẨM (Bên trên) -->
-            <div class="row p-4 border-bottom m-0">
+            <div class="row p-4 border-bottom m-0 product-info-row">
                 <!-- Cột Trái: Hình Ảnh -->
                 <div class="col-md-5 p-0 pe-md-3">
                     @php 
@@ -64,26 +64,28 @@
                         </span>
                     </div>
 
-                    <div class="price-box mb-4">
-                        @if($sanPham->GiaKhuyenMai && $sanPham->GiaKhuyenMai < $sanPham->GiaBan)
-                            <span class="old-price">{{ number_format($sanPham->GiaBan, 0, ',', '.') }}đ</span>
-                            <span class="current-price">{{ number_format($sanPham->GiaKhuyenMai, 0, ',', '.') }}đ</span>
-                            <span class="discount-badge">Giảm {{ round((($sanPham->GiaBan - $sanPham->GiaKhuyenMai) / $sanPham->GiaBan) * 100) }}%</span>
-                        @else
-                            <span class="current-price">{{ number_format($sanPham->GiaBan, 0, ',', '.') }}đ</span>
-                        @endif
-                    </div>
-
                     <form id="formThemGioHang" class="mb-4">
                         @csrf
                         <input type="hidden" name="id_sanpham" value="{{ $sanPham->ID_SanPham }}">
-                        
-                        <div class="d-flex align-items-center mb-4">
-                            <label class="me-4 text-muted fw-medium">Số lượng</label>
-                            <div class="input-group" style="width: 140px;">
-                                <button class="btn btn-outline-secondary px-3" type="button" onclick="updateQty(-1)">-</button>
-                                <input type="number" name="so_luong" id="inputQty" class="form-control text-center fw-bold" value="1" min="1" max="{{ $sanPham->SoLuongTon }}">
-                                <button class="btn btn-outline-secondary px-3" type="button" onclick="updateQty(1)">+</button>
+
+                        <div class="product-price-quantity-row">
+                            <div class="price-box mb-4">
+                                @if($sanPham->GiaKhuyenMai && $sanPham->GiaKhuyenMai < $sanPham->GiaBan)
+                                    <span class="old-price">{{ number_format($sanPham->GiaBan, 0, ',', '.') }}đ</span>
+                                    <span class="current-price">{{ number_format($sanPham->GiaKhuyenMai, 0, ',', '.') }}đ</span>
+                                    <span class="discount-badge">Giảm {{ round((($sanPham->GiaBan - $sanPham->GiaKhuyenMai) / $sanPham->GiaBan) * 100) }}%</span>
+                                @else
+                                    <span class="current-price">{{ number_format($sanPham->GiaBan, 0, ',', '.') }}đ</span>
+                                @endif
+                            </div>
+
+                            <div class="d-flex align-items-center mb-4 product-quantity-row">
+                                <label class="me-4 text-muted fw-medium">Số lượng</label>
+                                <div class="input-group" style="width: 140px;">
+                                    <button class="btn btn-outline-secondary px-3" type="button" onclick="updateQty(-1)">-</button>
+                                    <input type="number" name="so_luong" id="inputQty" class="form-control text-center fw-bold" value="1" min="1" max="{{ $sanPham->SoLuongTon }}">
+                                    <button class="btn btn-outline-secondary px-3" type="button" onclick="updateQty(1)">+</button>
+                                </div>
                             </div>
                         </div>
 
@@ -104,7 +106,12 @@
                 <div class="col-md-12 p-0">
                     <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active fw-bold text-dark" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc" type="button" role="tab">Mô Tả Sản Phẩm</button>
+                            <button class="nav-link active fw-bold text-dark" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc" type="button" role="tab">
+                                Mô Tả Sản Phẩm
+                                @if(!empty($sanPham->SizeCoSan))
+                                <span class="product-size-inline">Size: {{ $sanPham->SizeCoSan }}</span>
+                                @endif
+                            </button>
                         </li>
                         @if($thongSoVot)
                         <li class="nav-item" role="presentation">

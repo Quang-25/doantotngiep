@@ -21,12 +21,12 @@
 }
 .main-image { 
     width: 100%; 
-    height: 400px; 
+    height: 340px;
     object-fit: contain; 
 }
 .gallery-thumb { 
-    width: 75px; 
-    height: 75px; 
+    width: 64px;
+    height: 64px;
     object-fit: cover; 
     cursor: pointer; 
     border: 2px solid transparent; 
@@ -38,6 +38,14 @@
 .gallery-thumb.active { 
     border-color: #0d6efd; 
     opacity: 1; 
+}
+
+.product-info-row .col-md-7 h2 {
+    font-size: 1.6rem;
+}
+
+.product-info-row .price-box {
+    padding: 14px;
 }
 
 .price-box { 
@@ -55,7 +63,7 @@
 }
 .current-price { 
     color: #dc3545; 
-    font-size: 2rem; 
+    font-size: 1.7rem;
     font-weight: 700; 
 }
 .discount-badge {
@@ -79,16 +87,40 @@
     color: #333;
 }
 
+.product-size-inline {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 12px;
+    background-color: #e9f2ff;
+    color: #0056b3;
+    font-size: 0.7rem;
+    font-weight: 600;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
 @media (max-width: 767.98px) {
     .container.py-4 {
         padding: 10px 12px 16px !important;
     }
 
     .breadcrumb {
-        flex-wrap: wrap;
-        row-gap: 2px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
         margin-bottom: 10px;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
+        scrollbar-width: none;
+    }
+
+    .breadcrumb::-webkit-scrollbar {
+        display: none;
+    }
+
+    .breadcrumb-item {
+        flex: 0 0 auto;
     }
 
     .container > .bg-white > .row {
@@ -157,9 +189,37 @@
         margin-bottom: 10px !important;
     }
 
-    #formThemGioHang > .d-flex:first-of-type > label {
-        margin-right: 10px !important;
+    #formThemGioHang .product-price-quantity-row {
+        display: flex;
+        align-items: stretch;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    #formThemGioHang .product-price-quantity-row .price-box,
+    #formThemGioHang .product-price-quantity-row .product-quantity-row {
+        margin-bottom: 0 !important;
+    }
+
+    #formThemGioHang .product-price-quantity-row .price-box {
+        flex: 1 1 auto;
+        min-width: 0;
+        align-content: center;
+    }
+
+    #formThemGioHang .product-quantity-row {
+        flex: 0 0 40%;
+        flex-direction: column;
+        align-items: flex-start !important;
+        justify-content: center;
+        gap: 4px;
+    }
+
+    #formThemGioHang .product-quantity-row > label {
+        margin-right: 0 !important;
+        margin-bottom: 0;
         font-size: 0.8rem;
+        white-space: nowrap;
     }
 
     #formThemGioHang .input-group {
