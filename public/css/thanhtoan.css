@@ -54,3 +54,120 @@ body {
 .cart-summary .btn-secondary:hover {
     background-color: #5c636a;
 }
+
+@media (max-width: 576px) {
+    .checkout-page > .container {
+        padding-right: 12px;
+        padding-left: 12px;
+    }
+
+    .checkout-header {
+        margin-bottom: 18px !important;
+    }
+
+    .checkout-header > i {
+        font-size: 1.7rem !important;
+    }
+
+    .checkout-header h3 {
+        font-size: 1.35rem;
+    }
+
+    .checkout-header p {
+        font-size: 0.8rem;
+        line-height: 1.5;
+    }
+
+    .checkout-page .row.g-4 {
+        --bs-gutter-y: 1rem;
+    }
+
+    .checkout-page h4 {
+        font-size: 1.05rem;
+    }
+
+    .cart-summary {
+        margin-bottom: 16px !important;
+    }
+
+    .cart-summary .list-group-item {
+        gap: 10px;
+        padding: 12px !important;
+        font-size: 0.85rem;
+    }
+
+    .cart-summary .list-group-item > div {
+        min-width: 0;
+    }
+
+    .cart-summary .list-group-item h6 {
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+
+    .cart-summary .list-group-item small {
+        font-size: 0.78rem;
+    }
+
+    .cart-summary .list-group-item > span {
+        flex-shrink: 0;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+
+    #hienThiTongTien {
+        font-size: 1rem !important;
+        white-space: nowrap;
+    }
+
+    .cart-summary > .p-3 {
+        padding: 10px 12px !important;
+    }
+
+    #btnMoPopupVoucher {
+        padding: 5px 9px;
+        font-size: 0.78rem;
+    }
+
+    .cart-summary > .p-4 {
+        padding: 14px !important;
+    }
+
+    .cart-summary > .p-4 h5 {
+        margin-bottom: 10px !important;
+        font-size: 1rem;
+    }
+
+    .payment-methods .form-check {
+        margin-bottom: 6px !important;
+        padding-left: 1.5em;
+    }
+
+    .payment-methods .form-check-input {
+        margin-left: -1.5em;
+    }
+
+    .payment-methods .form-check-label {
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+
+    .btn-dat-hang {
+        padding: 10px 12px !important;
+        font-size: 1rem !important;
+    }
+}
+
+@media (max-width: 380px) {
+    .cart-summary .list-group-item {
+        padding: 10px !important;
+    }
+
+    .cart-summary > .p-4 {
+        padding: 12px !important;
+    }
+
+    .payment-methods .form-check-label {
+        font-size: 0.8rem;
+    }
+}

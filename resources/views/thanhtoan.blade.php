@@ -176,7 +176,6 @@
     </div>
 
     @include('layouts.footer')
-    <script src="{{ asset('js/header.js') }}"></script>
     <script src="{{ asset('js/thanhtoan.js') }}"></script>
 </body>
 </html>

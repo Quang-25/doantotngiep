@@ -143,21 +143,206 @@
 /* ================= RESPONSIVE ================= */
 
 @media (max-width: 991px) {
+    .sanpham-page > .container > .row {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .sanpham-page > .container > .row > .col-lg-3 {
+        flex: 0 0 25%;
+        width: 25%;
+        max-width: 25%;
+    }
+
+    .sanpham-page > .container > .row > .col-lg-9 {
+        flex: 0 0 75%;
+        width: 75%;
+        max-width: 75%;
+    }
+
     .filter-section {
         position: static;
+        padding: 16px 12px;
+    }
+
+    .filter-section h4 {
+        margin-bottom: 12px;
+        font-size: 17px;
+    }
+
+    .filter-section form {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+    }
+
+    .filter-section form .mb-3 {
+        min-width: 0;
+        margin-bottom: 0 !important;
+    }
+
+    .filter-section form .form-select {
+        width: 100%;
+        min-width: 0;
+        padding: 8px 28px 8px 10px;
+        font-size: 13px;
+    }
+
+    .filter-section form .btn {
+        grid-column: 1 / -1;
+        padding: 8px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 767px) {
+    .sanpham-page > .container > .row > .col-lg-3 {
+        flex-basis: 30%;
+        width: 30%;
+        max-width: 30%;
+    }
+
+    .sanpham-page > .container > .row > .col-lg-9 {
+        flex-basis: 70%;
+        width: 70%;
+        max-width: 70%;
+    }
+
+    .filter-section {
+        padding: 12px 9px;
+    }
+
+    .filter-section .form-label {
+        font-size: 12px;
+    }
+
+    .filter-section form .form-select {
+        font-size: 12px;
+    }
+
+    .product-list {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .product-list > div {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+}
+
+@media (max-width: 575px) {
+    .sanpham-page > .container > .row {
+        flex-direction: column;
+    }
+
+    .sanpham-page > .container > .row > .col-lg-3,
+    .sanpham-page > .container > .row > .col-lg-9 {
+        flex: 0 0 100%;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .filter-section {
+        padding: 16px;
+    }
+
+    .filter-section form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .filter-section form .mb-3:nth-child(3) {
+        grid-column: 1 / -1;
     }
 }
 
 @media (max-width: 576px) {
     .sanpham-page {
-        padding: 25px 0 40px;
+        padding: 15px 0 30px;
     }
 
     .product-header h2 {
-        font-size: 22px;
+        font-size: 20px;
     }
 
+    /* KHUNG LƯỚI: Chia 2 cột đều đặn, khoảng cách 10px */
+    .product-list { /* Lưu ý: Đổi .product-list thành thẻ <div class="row"> bọc trực tiếp các sản phẩm */
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Gỡ bỏ các giới hạn chiều ngang cũ của Bootstrap */
+    .product-list > div {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* BẢN THÂN THẺ SẢN PHẨM */
+    .product-card, .card {
+        padding: 10px !important; /* Giảm lề thừa bên trong thẻ */
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* ẢNH SẢN PHẨM: Bung hết viền ngang, chiều cao cân đối 150px */
     .product-image {
-        height: 210px;
+        width: 100% !important;
+        height: 150px !important;
+        object-fit: contain !important; /* Đảm bảo thấy toàn bộ vợt không bị cắt xén */
+        margin-bottom: 12px;
+    }
+
+    /* TÊN SẢN PHẨM: Cố định 2 dòng, tự động có dấu ... nếu quá dài */
+    .product-title, .product-card h3 {
+        font-size: 13px !important;
+        line-height: 1.4 !important;
+        height: 36px !important; /* Chiều cao cố định đúng 2 dòng chữ */
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: normal !important;
+        margin-bottom: 8px !important;
+    }
+
+    /* GIÁ TIỀN */
+    .product-price, .price {
+        font-size: 14px !important;
+        margin-bottom: 2px !important;
+    }
+    .old-price {
+        font-size: 11px !important;
+    }
+
+    /* NÚT BẤM: Ép sát mép dưới cùng, không bị thò thụt */
+    .btn-add-cart, .product-card .btn {
+        font-size: 12px !important;
+        padding: 8px 5px !important;
+        margin-top: auto !important; /* Bắt buộc nút phải đẩy xuống đáy thẻ */
+        width: 100% !important;
+        white-space: nowrap !important; /* Không cho chữ trong nút rớt dòng */
+    }
+}
+
+@media (max-width: 380px) {
+    .filter-section form {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-section form .mb-3:nth-child(3) {
+        grid-column: auto;
     }
 }
