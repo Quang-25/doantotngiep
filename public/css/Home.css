@@ -215,6 +215,8 @@
 }
 
 .product-card {
+    display: flex;
+    flex-direction: column;
     background: #fff;
     overflow: hidden;
     transition: .3s;
@@ -244,22 +246,38 @@
 }
 
 .product-info {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
     padding: 5px 12px 14px;
 }
 
 .product-info h3 {
+    display: -webkit-box;
+    height: 4.8em;
+    overflow: hidden;
     font-size: 16px;
     font-weight: 400;
     color: #444;
     line-height: 1.6;
-    min-height: 52px;
     margin: 0 0 5px;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
 }
 
 .product-price {
+    min-height: 29px;
+    margin-bottom: 8px;
     color: #ef233c;
     font-size: 18px;
     font-weight: 600;
+}
+
+.product-info .btn-them-gio {
+    min-height: 46px;
+    margin-top: auto !important;
 }
 
 .product-arrow {
@@ -310,20 +328,104 @@
 }
 
 @media (max-width: 576px) {
+    .section-title {
+        margin-bottom: 20px;
+    }
+
+    .section-title h2 {
+        margin-bottom: 10px;
+        font-size: clamp(22px, 6vw, 28px);
+        line-height: 1.2;
+    }
+
+    .title-line {
+        width: 150px;
+        height: 5px;
+    }
+
+    .title-line span {
+        width: 48px;
+        height: 5px;
+    }
+
     .product-card {
-        flex: 0 0 calc((100% - 20px) / 2);
+        display: flex;
+        flex: 0 0 calc((100% - 40px) / 3);
+        flex-direction: column;
     }
 
     .product-tabs {
-        grid-template-columns: repeat(2, 1fr);
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        overflow: visible;
     }
 
     .product-tabs a {
-        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+        min-height: 46px;
+        padding: 7px 3px;
+        font-size: clamp(9px, 2.6vw, 13px);
+        line-height: 1.2;
+        white-space: normal;
+        overflow-wrap: anywhere;
     }
 
     .product-image {
-        height: 200px;
+        height: 145px;
+        padding: 8px;
+    }
+
+    .product-image img {
+        object-fit: contain;
+    }
+
+    .product-info {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        min-width: 0;
+        padding: 6px 8px 10px;
+    }
+
+    .product-info h3 {
+        display: -webkit-box;
+        height: 2.7em;
+        min-height: 0;
+        margin-bottom: 5px;
+        overflow: hidden;
+        font-size: 12px;
+        line-height: 1.35;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+    }
+
+    .product-price {
+        display: block;
+        flex: 0 0 auto;
+        width: 100%;
+        min-height: 2.8em;
+        margin-bottom: 8px;
+        font-size: clamp(10px, 2.5vw, 13px);
+        line-height: 1.4;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .product-info .btn-them-gio {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 36px;
+        margin-top: auto !important;
+        padding: 5px 3px;
+        font-size: 10px;
+        line-height: 1.2;
+        white-space: normal;
     }
 
     .product-wrapper {
@@ -335,6 +437,43 @@
         width: 35px;
         height: 50px;
         font-size: 30px;
+    }
+}
+
+@media (max-width: 380px) {
+    .product-card {
+        flex-basis: calc((100% - 20px) / 3);
+    }
+
+    .product-image {
+        height: 115px;
+        padding: 6px;
+    }
+
+    .product-info {
+        padding-right: 5px;
+        padding-left: 5px;
+    }
+
+    .product-info h3 {
+        height: 2.7em;
+        font-size: 10px;
+    }
+
+    .product-price {
+        min-height: 2.8em;
+        margin-bottom: 6px;
+        font-size: 10px;
+        line-height: 1.4;
+    }
+
+    .product-info .btn-them-gio {
+        min-height: 34px;
+        font-size: 9px;
+    }
+
+    .product-info .btn-them-gio i {
+        display: none;
     }
 }
 .sale-section {
@@ -550,7 +689,7 @@
         width: 100%;
         min-width: 0;
         max-width: 100%;
-        padding: 24px 0 30px;
+        padding: 14px 0 16px;
         overflow: hidden;
         box-sizing: border-box;
     }
@@ -586,8 +725,9 @@
     .banner-slider-track > .anhsanpham h1 {
         width: 100%;
         max-width: 100%;
-        font-size: clamp(28px, 7.5vw, 38px);
-        line-height: 1.12;
+        margin-bottom: 10px;
+        font-size: clamp(25px, 6.5vw, 33px);
+        line-height: 1.05;
         overflow-wrap: break-word;
         word-break: normal;
     }
@@ -595,8 +735,9 @@
     .banner-slider-track > .anhsanpham p.lead {
         width: 100%;
         max-width: 100%;
-        font-size: clamp(15px, 4.2vw, 18px);
-        line-height: 1.65;
+        margin-bottom: 8px;
+        font-size: clamp(13px, 3.8vw, 16px);
+        line-height: 1.45;
         white-space: normal;
         overflow-wrap: break-word;
         word-break: normal;
@@ -606,7 +747,9 @@
         max-width: 100%;
         white-space: normal;
         flex-wrap: wrap;
-        font-size: 13px;
+        margin-bottom: 10px;
+        padding: 5px 12px;
+        font-size: 12px;
     }
 
     .banner-slider-track > .anhsanpham .btn-cta {
@@ -615,17 +758,20 @@
         justify-content: center;
         max-width: 100%;
         white-space: normal;
-        padding: 12px 24px;
+        margin-top: 4px !important;
+        padding: 9px 18px;
+        font-size: 14px;
     }
 
     .banner-slider-track > .anhsanpham .row > .col-lg-5 {
-        margin-top: 22px !important;
+        margin-top: 10px !important;
         text-align: center;
     }
 
     .banner-slider-track > .anhsanpham .hero-price-tag {
         max-width: 100%;
-        font-size: clamp(26px, 8vw, 36px);
+        font-size: clamp(22px, 6vw, 29px);
+        line-height: 1.1;
         overflow-wrap: break-word;
     }
 
@@ -633,8 +779,8 @@
         max-width: 100%;
         white-space: normal;
         overflow-wrap: break-word;
-        font-size: 15px;
-        line-height: 1.6;
+        font-size: 13px;
+        line-height: 1.4;
     }
 
     .banner-slider-track > .anhsanpham .text-center {
@@ -651,15 +797,15 @@
     }
 
     .banner-slider-track > .anhsanpham h1 {
-        font-size: 28px;
+        font-size: 25px;
     }
 
     .banner-slider-track > .anhsanpham p.lead {
-        font-size: 15px;
+        font-size: 13px;
     }
 
     .banner-slider-track > .anhsanpham .btn-cta {
-        padding: 11px 20px;
+        padding: 8px 16px;
     }
     
 }
@@ -881,7 +1027,7 @@
 /* Điện thoại thông thường */
 @media (max-width: 480px) {
     .sale-section {
-        padding: 24px 0 30px;
+        padding: 20px 0 24px;
     }
 
     .sale-section > .container {
@@ -895,7 +1041,7 @@
     }
 
     .sale-section .sale-heading {
-        margin-bottom: 20px;
+        margin-bottom: 16px;
     }
 
     .sale-section .sale-heading h2 {
@@ -907,27 +1053,39 @@
     }
 
     .sale-section .sale-thumb {
-        height: 130px;
-        min-height: 130px;
-        padding: 8px 6px;
+        height: 116px;
+        min-height: 116px;
+        padding: 7px 5px;
     }
 
     .sale-section .sale-info {
-        padding: 9px 7px 11px;
+        padding: 7px 6px 8px;
     }
 
     .sale-section .sale-info h3 {
-        min-height: 36px;
-        font-size: 11.5px;
+        min-height: 32px;
+        margin-bottom: 5px;
+        font-size: 11px;
+        line-height: 1.4;
+    }
+
+    .sale-section .price-row {
+        gap: 2px 5px;
+        margin-bottom: 7px;
     }
 
     .sale-section .sale-price {
-        font-size: 13px;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .sale-section .old-price {
+        font-size: 9px;
     }
 
     .sale-section .sale-btn {
-        padding: 8px 3px;
-        font-size: 11px;
+        padding: 7px 3px;
+        font-size: 10px;
     }
 }
 
@@ -943,8 +1101,8 @@
     }
 
     .sale-section .sale-thumb {
-        height: 112px;
-        min-height: 112px;
+        height: 100px;
+        min-height: 100px;
     }
 
     .sale-section .sale-info {
@@ -952,8 +1110,8 @@
     }
 
     .sale-section .sale-info h3 {
-        min-height: 34px;
-        font-size: 11px;
+        min-height: 30px;
+        font-size: 10px;
     }
 
     .sale-section .sale-price {
@@ -965,7 +1123,8 @@
     }
 
     .sale-section .sale-btn {
-        font-size: 10px;
+        padding: 6px 2px;
+        font-size: 9px;
     }
 
     .sale-section .sale-heading h2 span {
@@ -973,8 +1132,48 @@
     }
 }
 
+@media (max-width: 767.98px) {
+    .policy > .container > .row {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+        margin-right: 0;
+        margin-left: 0;
+    }
 
+    .policy > .container > .row > div {
+        width: 100%;
+        max-width: 100%;
+        padding-right: 0;
+        padding-left: 0;
+    }
 
+    .policy-box {
+        min-width: 0;
+        min-height: 100%;
+        padding: 9px 4px;
+        border-radius: 7px;
+    }
 
+    .policy-icon {
+        margin: 0 0 4px;
+        font-size: 1.35rem;
+    }
 
+    .policy-info {
+        min-width: 0;
+    }
 
+    .policy-info h6 {
+        margin-bottom: 3px;
+        font-size: clamp(8px, 2.3vw, 11px);
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+    }
+
+    .policy-info p {
+        font-size: clamp(7px, 2vw, 9px);
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+    }
+}
