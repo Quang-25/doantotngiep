@@ -132,7 +132,6 @@
                             <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=1&thuong_hieu=4') }}">Vợt Mizuno</a></li>
                             <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=1&thuong_hieu=5') }}">Vợt Gosen</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=1&trinh_do=MoiChoi') }}">Vợt cho người mới</a></li>
                         </ul>
                     </li>
 
@@ -148,6 +147,7 @@
                             <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=2&thuong_hieu=1') }}">Giày Yonex</a></li>
                             <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=2&thuong_hieu=2') }}">Giày Lining</a></li>
                             <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=2&thuong_hieu=3') }}">Giày Victor</a></li>
+                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=2&thuong_hieu=4') }}">Giày Mizuno</a></li>
                         </ul>
                     </li>
 

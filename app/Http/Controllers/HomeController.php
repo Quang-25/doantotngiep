@@ -18,7 +18,7 @@ class HomeController extends Controller
 
         $sanPhamSale = SanPham::whereNotNull('GiaKhuyenMai')
             ->where('GiaKhuyenMai', '<', DB::raw('GiaBan'))
-            ->take(5)
+            ->take(6)
             ->get();
 
         return response()->json([
