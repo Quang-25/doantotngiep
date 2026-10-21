@@ -22,7 +22,7 @@
     position: fixed;
     bottom: 140px; /* Đặt cao hơn nút toggle 15px (130px + 55px + 15px) để tạo khe hở đẹp */
     right: 70px;   /* Giữ nguyên 15px để thẳng hàng với cả 2 nút bên dưới */
-    width: 360px;
+    width: 390px !important;
     height: 520px;
     z-index: 1050;
     display: flex;
@@ -123,6 +123,46 @@
     -webkit-overflow-scrolling: touch;
 }
 
+#chatbot-messages .d-flex.align-items-center.mb-3.border {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+#chatbot-messages .d-flex.flex-column.align-items-start.mb-3:has(> .d-flex.align-items-center.mb-3.border) > .d-flex.align-items-center.mb-3.border {
+    width: 100%;
+    max-width: 100% !important;
+}
+
+#chatbot-messages .d-flex.align-items-center.mb-3.border > img {
+    flex: 0 0 70px;
+    max-width: 70px;
+}
+
+#chatbot-messages .d-flex.align-items-center.mb-3.border > div {
+    flex: 1 1 0 !important;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+#chatbot-messages .d-flex.align-items-center.mb-3.border > div > span,
+#chatbot-messages .d-flex.align-items-center.mb-3.border > div > del {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+#chatbot-messages .d-flex.align-items-center.mb-3.border > div > del {
+    display: block;
+    width: fit-content;
+}
+
+#chatbot-messages .d-flex.align-items-center.mb-3.border > div > del + span {
+    display: block;
+    width: fit-content;
+}
+
 /* =========================================
    ĐIỆN THOẠI
 ========================================= */
@@ -157,18 +197,19 @@
     #chatbot-window {
         position: fixed !important;
 
-        width: calc(100vw - 24px) !important;
-        max-width: 360px !important;
+        width: calc(100vw - 72px) !important;
+        max-width: 400px !important;
 
-        height: min(440px, calc(100dvh - 190px)) !important;
-        max-height: calc(100dvh - 150px) !important;
+        height: min(440px, calc(100vh - 32px)) !important;
+        height: min(440px, calc(100svh - 32px)) !important;
+        max-height: min(440px, calc(100svh - 32px)) !important;
         min-height: 280px !important;
 
-        right: 12px !important;
+        right: 20px !important;
         left: auto !important;
 
-        bottom: calc(200px + env(safe-area-inset-bottom)) !important;
-        top: auto !important;
+        top: 16px !important;
+        bottom: auto !important;
 
         border-radius: 14px !important;
         z-index: 1100;
@@ -250,15 +291,17 @@
     }
 
     #chatbot-window {
-        width: calc(100vw - 20px) !important;
+        width: calc(100vw - 48px) !important;
         max-width: none !important;
 
-        height: min(400px, calc(100dvh - 170px)) !important;
-        max-height: calc(100dvh - 130px) !important;
+        height: min(400px, calc(100vh - 24px)) !important;
+        height: min(400px, calc(100svh - 24px)) !important;
+        max-height: min(400px, calc(100svh - 24px)) !important;
         min-height: 260px !important;
 
-        right: 10px !important;
-        bottom: calc(190px + env(safe-area-inset-bottom)) !important;
+        right: 16px !important;
+        top: 12px !important;
+        bottom: auto !important;
     }
 
     #chatbot-messages {

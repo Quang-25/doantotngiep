@@ -4,6 +4,8 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Query\Builder;
 use Exception;
 
 class ChatbotService
@@ -40,8 +42,15 @@ class ChatbotService
             }
         }
 
+        // Tra cứu size giày, quần áo và váy trước khi chạy tư vấn sản phẩm chung.
+        if (preg_match('/(size|kích cỡ|cỡ giày|mặc cỡ|mặc size|mang cỡ|mang size)/iu', $messageLower)
+            && preg_match('/(giày|giay|quần|áo|váy|đầm)/iu', $messageLower)) {
+            return $this->traCuuSizeSanPham($messageLower);
+        }
+
         // 2. KỊCH BẢN TƯ VẤN SẢN PHẨM TRONG KHO
-        if (preg_match('/(vợt|vot|phụ kiện|giày|balo|túi|quần|áo|cước|quấn cán|mua)/i', $messageLower)) {
+        if (preg_match('/(vợt|vot|phụ kiện|giày|balo|túi|quần|áo|váy|đầm|cước|quấn cán|mua)/iu', $messageLower)
+            || preg_match('/(sản phẩm|mặt hàng).*(giá|dưới|trên|tầm|khoảng)/iu', $messageLower)) {
             $isNotOrderOrPolicy = !preg_match('/(đơn|bảo hành|đổi trả|thanh toán)/i', $messageLower);
             if ($isNotOrderOrPolicy) {
                 return $this->tuVanSanPham($messageLower); // Đã xóa biến $version truyền vào
@@ -63,6 +72,111 @@ class ChatbotService
     // CÁC HÀM XỬ LÝ CHI TIẾT
     // ==========================================
 
+    private function traCuuSizeSanPham(string $message)
+    {
+        $loaiSanPham = [];
+        if (preg_match('/(giày|giay)/iu', $message)) $loaiSanPham[] = 'giày';
+        if (preg_match('/(quần|áo)/iu', $message)) $loaiSanPham[] = 'quần áo';
+        if (preg_match('/(váy|đầm)/iu', $message)) $loaiSanPham[] = 'váy';
+
+        $size = null;
+        if (preg_match('/(?:size|cỡ)\s*[:\-]?\s*(\d{2}|xxs|xxxl|xxl|xs|xl|s|m|l)\b/iu', $message, $matches)) {
+            $size = mb_strtoupper($matches[1]);
+        }
+
+        $coCotSize = Schema::hasColumn('sanpham', 'SizeCoSan');
+        $query = DB::table('sanpham')
+            ->leftJoin('hinhanhsanpham', function ($join) {
+                $join->on('sanpham.ID_SanPham', '=', 'hinhanhsanpham.ID_SanPham')
+                    ->where('hinhanhsanpham.ThuTu', '=', 1);
+            })
+            ->where('sanpham.TrangThai', 'DangBan')
+            ->where(function ($q) use ($loaiSanPham) {
+                foreach ($loaiSanPham as $loai) {
+                    if ($loai === 'quần áo') {
+                        $q->orWhere('sanpham.TenSanPham', 'like', '%quần%')
+                            ->orWhere('sanpham.TenSanPham', 'like', '%áo%');
+                    } else {
+                        $q->orWhere('sanpham.TenSanPham', 'like', '%' . $loai . '%');
+                    }
+                }
+            });
+
+        if ($size !== null && $coCotSize) {
+            $query->where('sanpham.SizeCoSan', 'like', '%' . $size . '%');
+        }
+
+        $select = [
+            'sanpham.ID_SanPham',
+            'sanpham.TenSanPham',
+            'sanpham.GiaBan',
+            'sanpham.GiaKhuyenMai',
+            'sanpham.HinhAnh',
+            'hinhanhsanpham.DuongDan as HinhAnhPhu',
+        ];
+        if ($coCotSize) {
+            $select[] = 'sanpham.SizeCoSan';
+        }
+
+        $sanPhams = $query->select($select)
+            ->distinct()
+            ->orderBy('sanpham.TenSanPham')
+            ->limit(5)
+            ->get();
+
+        if ($sanPhams->isNotEmpty()) {
+            $danhSach = '';
+            foreach ($sanPhams as $sanPham) {
+                $giaHienTai = !empty($sanPham->GiaKhuyenMai)
+                    && $sanPham->GiaKhuyenMai > 0
+                    && $sanPham->GiaKhuyenMai < $sanPham->GiaBan
+                    ? $sanPham->GiaKhuyenMai
+                    : $sanPham->GiaBan;
+                $giaHtml = '<span style="color:#dc3545;font-weight:bold;">'
+                    . number_format($giaHienTai, 0, ',', '.') . 'đ</span>';
+
+                if ($giaHienTai < $sanPham->GiaBan) {
+                    $giaHtml = '<del style="color:#999;margin-right:6px;">'
+                        . number_format($sanPham->GiaBan, 0, ',', '.') . 'đ</del>' . $giaHtml;
+                }
+
+                $hinhAnh = $sanPham->HinhAnh ?: $sanPham->HinhAnhPhu;
+                if (empty($hinhAnh)) {
+                    $urlAnh = '/images/no-image.jpg';
+                } elseif (preg_match('/^https?:\/\//i', $hinhAnh)) {
+                    $urlAnh = $hinhAnh;
+                } else {
+                    $urlAnh = '/images/sanpham/' . ltrim($hinhAnh, '/');
+                }
+
+                $sizeHtml = $coCotSize && !empty($sanPham->SizeCoSan)
+                    ? '<br><span>Size có sẵn: ' . e($sanPham->SizeCoSan) . '</span>'
+                    : '<br><span>Vui lòng xem size trên trang chi tiết sản phẩm.</span>';
+                $danhSach .= "<div class='d-flex align-items-center mb-3 p-2 border rounded bg-white shadow-sm'>"
+                    . "<img src='" . e($urlAnh) . "' alt='" . e($sanPham->TenSanPham) . "' style='width:70px;height:70px;object-fit:contain;border-radius:6px;margin-right:12px;border:1px solid #eee;'>"
+                    . "<div style='flex:1;min-width:0;'>"
+                    . "<b style='font-size:14px;'>" . e($sanPham->TenSanPham) . "</b><br>"
+                    . $giaHtml . $sizeHtml
+                    . "<br><a href='/san-pham/" . (int) $sanPham->ID_SanPham . "' class='btn btn-sm btn-outline-primary mt-2' style='font-size:11px;padding:3px 10px;'>Xem chi tiết</a>"
+                    . "</div></div>";
+            }
+
+            $phanHoi = 'Dạ, đây là các sản phẩm' . ($size ? ' có size ' . e($size) : ' với thông tin size') . ':<br><br>'
+                . $danhSach;
+            if (!$coCotSize) {
+                $phanHoi .= '<br>Hiện cửa hàng chưa có dữ liệu size trực tiếp trên hệ thống; bạn vui lòng xem chi tiết sản phẩm để kiểm tra size.';
+            }
+            return $phanHoi;
+        }
+
+        if ($size !== null && $coCotSize) {
+            return 'Dạ, hiện chưa tìm thấy sản phẩm' . ($loaiSanPham ? ' ' . e(implode(', ', $loaiSanPham)) : '')
+                . ' có size ' . e($size) . ' trong kho.';
+        }
+
+        return 'Dạ, hiện chưa tìm thấy sản phẩm phù hợp trong kho. Bạn có thể xem các mẫu đang bán ở trang sản phẩm nhé.';
+    }
+
     private function tuVanSanPham(string $message)
     {
         $query = DB::table('sanpham')->where('sanpham.TrangThai', 'DangBan');
@@ -74,10 +188,25 @@ class ChatbotService
                     ->where('hinhanhsanpham.ThuTu', '=', 1);
             });
 
-        if (preg_match('/(vợt|giày|balo|túi|quần|áo|cước|quấn cán)/i', $message, $m)) {
+        if (preg_match('/quần\s*áo/iu', $message)) {
+            $query->where(function ($q) {
+                $q->where('sanpham.TenSanPham', 'like', '%quần%')
+                    ->orWhere('sanpham.TenSanPham', 'like', '%áo%')
+                    ->orWhere('sanpham.MoTa', 'like', '%quần%')
+                    ->orWhere('sanpham.MoTa', 'like', '%áo%');
+            });
+        } elseif (preg_match('/(vợt|giày|giay|balo|túi|quần|áo|váy|đầm|cước|quấn cán)/iu', $message, $m)) {
             $loai = mb_strtolower($m[1]);
             if ($loai == 'vot') $loai = 'vợt';
-            $query->where('sanpham.TenSanPham', 'like', '%' . $loai . '%');
+            if ($loai === 'giay') $loai = 'giày';
+            if (in_array($loai, ['quần', 'áo', 'váy', 'đầm'], true)) {
+                $query->where(function ($q) use ($loai) {
+                    $q->where('sanpham.TenSanPham', 'like', '%' . $loai . '%')
+                        ->orWhere('sanpham.MoTa', 'like', '%' . $loai . '%');
+                });
+            } else {
+                $query->where('sanpham.TenSanPham', 'like', '%' . $loai . '%');
+            }
             
             if ($loai === 'vợt') {
                 $query->whereNotNull('thongsovot.ID_SanPham');
@@ -88,16 +217,7 @@ class ChatbotService
             $query->where('thuonghieu.TenThuongHieu', 'like', '%' . $mBrand[1] . '%');
         }
 
-        // FIX: Tối ưu bộ lọc giá - Quét theo giá khuyến mãi nếu có, nếu không thì lấy giá bán
-        if (preg_match('/dưới\s*(\d+(?:\.\d+)?)\s*(triệu|tr|k|nghìn)/i', $message, $m)) {
-            $tien = $m[1];
-            if (strtolower($m[2]) === 'k' || strtolower($m[2]) === 'nghìn') {
-                $mucGia = $tien * 1000;
-            } else {
-                $mucGia = $tien * 1000000;
-            }
-            $query->whereRaw('IF(sanpham.GiaKhuyenMai > 0 AND sanpham.GiaKhuyenMai IS NOT NULL, sanpham.GiaKhuyenMai, sanpham.GiaBan) <= ?', [$mucGia]);
-        }
+        $this->apDungBoLocGia($query, $message);
 
         if (preg_match('/(mới chơi|người mới|mới tập|cơ bản|nhập môn)/i', $message)) {
             $query->where('thongsovot.TrinhDoPhuHop', 'MoiChoi');
@@ -204,6 +324,71 @@ class ChatbotService
         }
 
         return $this->goiGemini($message, $dataTho);
+    }
+
+    private function apDungBoLocGia(Builder $query, string $message): void
+    {
+        $amountPattern = '(\d+(?:[.,]\d{3})*(?:[.,]\d+)?)\s*(triệu|tr|nghìn|ngàn|k|đồng|đ)?';
+
+        if (preg_match('/(?:dưới|thấp hơn|nhỏ hơn|ít hơn|không quá|tối đa)\s*' . $amountPattern . '/iu', $message, $matches)) {
+            $mucGia = $this->chuyenGiaSangVnd($matches[1], $matches[2] ?? '');
+            $query->whereRaw(
+                'IF(sanpham.GiaKhuyenMai > 0 AND sanpham.GiaKhuyenMai IS NOT NULL, sanpham.GiaKhuyenMai, sanpham.GiaBan) <= ?',
+                [$mucGia]
+            );
+            return;
+        }
+
+        if (preg_match('/(?:trên|cao hơn|lớn hơn|từ)\s*' . $amountPattern . '(?:\s*trở lên)?/iu', $message, $matches)) {
+            $mucGia = $this->chuyenGiaSangVnd($matches[1], $matches[2] ?? '');
+            $query->whereRaw(
+                'IF(sanpham.GiaKhuyenMai > 0 AND sanpham.GiaKhuyenMai IS NOT NULL, sanpham.GiaKhuyenMai, sanpham.GiaBan) >= ?',
+                [$mucGia]
+            );
+            return;
+        }
+
+        if (preg_match('/(?:khoảng giá|tầm giá|tầm|khoảng)\s*(?:là\s*)?' . $amountPattern . '/iu', $message, $matches)) {
+            $mucGia = $this->chuyenGiaSangVnd($matches[1], $matches[2] ?? '');
+            $query->whereRaw(
+                'IF(sanpham.GiaKhuyenMai > 0 AND sanpham.GiaKhuyenMai IS NOT NULL, sanpham.GiaKhuyenMai, sanpham.GiaBan) BETWEEN ? AND ?',
+                [$mucGia * 0.9, $mucGia * 1.1]
+            );
+            return;
+        }
+
+        if (preg_match('/giá\s*(?:là\s*)?' . $amountPattern . '/iu', $message, $matches)) {
+            $mucGia = $this->chuyenGiaSangVnd($matches[1], $matches[2] ?? '');
+            $query->whereRaw(
+                'IF(sanpham.GiaKhuyenMai > 0 AND sanpham.GiaKhuyenMai IS NOT NULL, sanpham.GiaKhuyenMai, sanpham.GiaBan) = ?',
+                [$mucGia]
+            );
+            return;
+        }
+
+        if (preg_match('/' . $amountPattern . '/iu', $message, $matches) && !empty($matches[2])) {
+            $mucGia = $this->chuyenGiaSangVnd($matches[1], $matches[2]);
+            $query->whereRaw(
+                'IF(sanpham.GiaKhuyenMai > 0 AND sanpham.GiaKhuyenMai IS NOT NULL, sanpham.GiaKhuyenMai, sanpham.GiaBan) = ?',
+                [$mucGia]
+            );
+        }
+    }
+
+    private function chuyenGiaSangVnd(string $amount, string $unit): float
+    {
+        $unit = mb_strtolower($unit);
+        if (preg_match('/^\d{1,3}(?:[.,]\d{3})+$/', $amount)) {
+            $value = (float) preg_replace('/[.,]/', '', $amount);
+        } else {
+            $value = (float) str_replace(',', '.', $amount);
+        }
+
+        if (in_array($unit, ['triệu', 'tr'], true)) return $value * 1000000;
+        if (in_array($unit, ['nghìn', 'ngàn', 'k'], true)) return $value * 1000;
+        if ($unit === '' && $value <= 10000) return $value * 1000;
+
+        return $value;
     }
 
     private function timKiemFAQ(string $message)
