@@ -104,8 +104,10 @@
 /* ================= THÔNG TIN ================= */
 
 .product-info {
-    padding: 18px;
+    display: flex;
+    flex-direction: column;
     min-width: 0;
+    padding: 18px;
 }
 
 .product-info h5 {
@@ -139,8 +141,19 @@
 /* ================= NÚT ================= */
 
 .product-info .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
     font-size: 13px;
     border-radius: 7px;
+    text-align: center;
+    white-space: normal;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
 }
 
 
@@ -297,7 +310,7 @@
 
     /* BẢN THÂN THẺ SẢN PHẨM */
     .product-card, .card {
-        padding: 10px !important; /* Giảm lề thừa bên trong thẻ */
+        padding: 0 !important;
         height: 100%;
         display: flex;
         flex-direction: column;
@@ -309,13 +322,20 @@
     .product-image {
         width: 100% !important;
         height: 150px !important;
-        object-fit: contain !important; /* Đảm bảo thấy toàn bộ vợt không bị cắt xén */
-        margin-bottom: 12px;
+        object-fit: contain !important;
+        margin-bottom: 0;
         min-width: 0;
     }
 
-    /* TÊN SẢN PHẨM: Cố định 2 dòng, tự động có dấu ... nếu quá dài */
-    .product-title, .product-card h3 {
+    .product-info {
+        flex: 1 1 auto;
+        padding: 10px !important;
+    }
+
+    /* TÊN SẢN PHẨM: Giữ tối đa 2 dòng để dành chỗ cho giá và nút */
+    .product-info h5,
+    .product-title,
+    .product-card h3 {
         font-size: 13px !important;
         line-height: 1.4 !important;
         height: 36px !important; /* Chiều cao cố định đúng 2 dòng chữ */
@@ -326,25 +346,47 @@
         overflow: hidden !important;
         text-overflow: ellipsis !important;
         white-space: normal !important;
-        margin-bottom: 8px !important;
+        margin: 0 0 6px !important;
     }
 
-    /* GIÁ TIỀN */
-    .product-price, .price {
+    .product-price,
+    .price {
+        flex: 0 0 auto;
         font-size: 14px !important;
-        margin-bottom: 2px !important;
+        min-height: 0;
+        margin: 0 0 8px !important;
+        line-height: 1.35;
     }
+
+    .product-price del {
+        font-size: 11px;
+        line-height: 1.3;
+    }
+
     .old-price {
         font-size: 11px !important;
     }
 
-    /* NÚT BẤM: Ép sát mép dưới cùng, không bị thò thụt */
+    /* NÚT BẤM: Cho phép chữ xuống dòng, tách biệt rõ với phần giá */
     .btn-add-cart, .product-card .btn {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
         font-size: 12px !important;
-        padding: 8px 5px !important;
-        margin-top: auto !important; /* Bắt buộc nút phải đẩy xuống đáy thẻ */
+        padding: 9px 8px !important;
+        flex: 0 0 auto;
+        margin-top: 0 !important;
         width: 100% !important;
-        white-space: nowrap !important; /* Không cho chữ trong nút rớt dòng */
+        min-height: 46px !important;
+        white-space: normal !important;
+        line-height: 1.3 !important;
+        text-align: center !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    .product-card .btn i {
+        flex: 0 0 auto;
     }
 }
 
