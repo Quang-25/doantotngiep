@@ -24,17 +24,15 @@ class DonHangController extends Controller
     // Trang "Đơn mua"
     public function trang(Request $request)
     {
-        if (!$request->session()->get('ID_KhachHang')) {
-            return redirect('/Dangnhap');
-        }
-
+        // Không chặn ở server: trang tự lấy thông tin khách từ trình duyệt (giống giỏ hàng),
+        // chưa đăng nhập thì donhang.js chuyển sang trang đăng nhập.
         return view('donhang');
     }
 
     // Danh sách đơn của khách, lọc theo trạng thái; kèm số đơn của từng trạng thái để hiện trên tab.
     public function danhSach(Request $request): JsonResponse
     {
-        $idKhachHang = $request->session()->get('ID_KhachHang');
+        $idKhachHang = $this->layIdKhachHang($request);
         if (!$idKhachHang) {
             return response()->json(['success' => false, 'message' => 'Vui lòng đăng nhập để xem đơn hàng.'], 401);
         }
@@ -131,9 +129,33 @@ class DonHangController extends Controller
 
     // ---------- Hàm hỗ trợ ----------
 
+    // Mã xác thực cấp cho khách lúc đăng nhập, ký bằng APP_KEY (không lưu database).
+    // Giúp trang Đơn mua chạy được cả khi phiên trên server đã mất, mà người khác không đoán được.
+    public static function taoMaXacThuc(int $idKhachHang): string
+    {
+        return hash_hmac('sha256', 'don-hang|' . $idKhachHang, (string) config('app.key'));
+    }
+
+    // Lấy khách đang xem: ưu tiên phiên server, nếu mất phiên thì dùng ID + mã xác thực trình duyệt gửi lên.
+    private function layIdKhachHang(Request $request): ?int
+    {
+        $idPhien = $request->session()->get('ID_KhachHang');
+        if ($idPhien) {
+            return (int) $idPhien;
+        }
+
+        $id = (int) $request->header('X-Khach-Hang-Id');
+        $ma = (string) $request->header('X-Khach-Hang-Token');
+        if ($id > 0 && $ma !== '' && hash_equals(self::taoMaXacThuc($id), $ma)) {
+            return $id;
+        }
+
+        return null;
+    }
+
     private function layDonCuaKhach(Request $request, int $id): object
     {
-        $idKhachHang = $request->session()->get('ID_KhachHang');
+        $idKhachHang = $this->layIdKhachHang($request);
         if (!$idKhachHang) {
             return response()->json(['success' => false, 'message' => 'Vui lòng đăng nhập để xem đơn hàng.'], 401);
         }

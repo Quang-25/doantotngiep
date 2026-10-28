@@ -6,7 +6,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const buttonText = document.getElementById('loginButtonText');
     const buttonIcon = document.getElementById('loginButtonIcon');
     if (!form) return;
-    
+
+    // Trang cần đăng nhập gửi sang: ?het_phien=1&redirect=/don-hang
+    const params = new URLSearchParams(window.location.search);
+    const redirectParam = params.get('redirect') || '';
+    // Chỉ cho quay về đường dẫn nội bộ (chặn chuyển hướng sang trang ngoài).
+    const redirectSauDangNhap = /^\/(?!\/)/.test(redirectParam) ? redirectParam : '';
+    if (params.get('het_phien') === '1') {
+        // Phiên trên server đã hết: xóa thông tin cũ trong trình duyệt để giao diện không còn hiện "đã đăng nhập".
+        localStorage.removeItem('user');
+        setTimeout(() => showMessage('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại để tiếp tục.', 'warning'), 0);
+    }
+
     form.addEventListener('submit', async function (e) {
         // Ngăn chặn reload trang mặc định của form
         e.preventDefault();
@@ -63,7 +74,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 // KIỂM TRA QUYỀN VÀ CHUYỂN HƯỚNG
                 setTimeout(() => {
-                    if (result.user && result.user.VaiTro === 'Admin') {
+                    if (redirectSauDangNhap && result.user && result.user.VaiTro !== 'Admin') {
+                        window.location.href = redirectSauDangNhap;
+                    } else if (result.user && result.user.VaiTro === 'Admin') {
                         // Nếu là Admin -> Vào Dashboard
                         window.location.href = '/admin/dashboard';
                     } else {

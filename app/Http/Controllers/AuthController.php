@@ -127,6 +127,8 @@ class AuthController extends Controller
                 'SoDienThoai' => $khachHang ? $khachHang->SoDienThoai : null,
                 'VaiTro' => $taiKhoan->VaiTro,
                 'TrangThai' => $taiKhoan->TrangThai,
+                // Dùng cho trang Đơn mua khi phiên server bị mất.
+                'MaXacThuc' => $khachHang ? DonHangController::taoMaXacThuc((int) $khachHang->ID_KhachHang) : null,
             ]
         ]);
     }
