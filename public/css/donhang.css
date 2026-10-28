@@ -1,0 +1,136 @@
+/* ========================================
+   ĐƠN MUA - theo dõi trạng thái đơn hàng
+======================================== */
+.bg-light-gray { background-color: #f5f5f5; }
+
+/* Tab trạng thái */
+.order-tabs {
+    display: flex;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    overflow-x: auto;
+}
+.order-tab {
+    flex: 1 0 auto;
+    padding: 14px 16px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: #555;
+    font-weight: 500;
+    white-space: nowrap;
+}
+.order-tab:hover { color: #1D4ED8; }
+.order-tab.active { color: #1D4ED8; border-bottom-color: #1D4ED8; }
+.tab-count:not(:empty)::before { content: "("; }
+.tab-count:not(:empty)::after { content: ")"; }
+
+/* Thẻ đơn hàng */
+.order-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    margin-bottom: 14px;
+}
+.order-card-header,
+.order-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 18px;
+}
+.order-card-header { border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+.order-card-footer { border-top: 1px solid #f0f0f0; }
+.order-status { font-weight: 600; text-transform: uppercase; font-size: 13px; }
+.status-ChoXacNhan { color: #d97706; }
+.status-DangGiao { color: #1D4ED8; }
+.status-HoanThanh { color: #16A34A; }
+.status-DaHuy { color: #dc3545; }
+
+.order-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+}
+.order-item img {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+.order-item-name { font-weight: 500; font-size: 14px; }
+.order-item-price { margin-left: auto; color: #dc3545; white-space: nowrap; }
+.order-total { color: #dc3545; font-size: 18px; font-weight: 700; }
+
+/* Tiến trình đơn hàng */
+.order-progress {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin: 10px 0 24px;
+}
+.progress-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    font-size: 13px;
+    padding: 0 4px;
+}
+.progress-step::before {
+    content: "";
+    position: absolute;
+    top: 22px;
+    left: -50%;
+    width: 100%;
+    height: 4px;
+    background: #e5e7eb;
+    z-index: 0;
+}
+.progress-step:first-child::before { display: none; }
+.progress-step.xong::before,
+.progress-step.hienTai::before { background: #16A34A; }
+.progress-step.huy::before { background: #dc3545; }
+.progress-icon {
+    position: relative;
+    z-index: 1;
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 8px;
+    border-radius: 50%;
+    border: 4px solid #e5e7eb;
+    background: #fff;
+    color: #9ca3af;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+.progress-step.xong .progress-icon { border-color: #16A34A; color: #16A34A; }
+.progress-step.hienTai .progress-icon { border-color: #16A34A; background: #16A34A; color: #fff; }
+.progress-step.huy .progress-icon { border-color: #dc3545; background: #dc3545; color: #fff; }
+.progress-step .step-title { font-weight: 600; }
+.progress-step.chuaToi .step-title { color: #9ca3af; font-weight: 500; }
+.progress-step .step-time { color: #6b7280; font-size: 12px; }
+
+.order-current-status {
+    background: #f0fdf4;
+    border-left: 4px solid #16A34A;
+    padding: 10px 14px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+}
+.order-current-status.cancelled { background: #fef2f2; border-left-color: #dc3545; }
+.order-info-box { background: #f9fafb; border-radius: 6px; padding: 12px 14px; height: 100%; }
+
+@media (max-width: 576px) {
+    .progress-step { font-size: 11px; }
+    .progress-icon { width: 38px; height: 38px; font-size: 16px; }
+    .progress-step::before { top: 17px; }
+    .order-item img { width: 56px; height: 56px; }
+}

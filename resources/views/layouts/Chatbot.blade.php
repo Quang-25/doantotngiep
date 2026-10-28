@@ -15,8 +15,16 @@
                 <span style="font-size: 11px; opacity: 0.8;"><i class="bi bi-stars"></i> AI Assistant</span>
             </div>
         </div>
-        <button id="btn-chatbot-close" class="btn-close btn-close-white"></button>
+        <div class="d-flex align-items-center gap-2">
+            <button id="btn-chatbot-history" type="button" class="btn btn-sm btn-light">Lịch sử</button>
+            <button id="btn-chatbot-new" type="button" class="btn btn-sm btn-light" title="Bắt đầu cuộc trò chuyện mới" aria-label="Bắt đầu cuộc trò chuyện mới">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+            <button id="btn-chatbot-close" class="btn-close btn-close-white" aria-label="Đóng"></button>
+        </div>
     </div>
+
+    <div id="chatbot-history-panel" class="d-none p-3" style="flex: 1; overflow-y: auto; background-color: #fcfcfc;"></div>
 
     <!-- KHU VỰC HIỂN THỊ TIN NHẮN -->
     <div id="chatbot-messages" class="p-3" style="flex: 1; overflow-y: auto; background-color: #fcfcfc;">

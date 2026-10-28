@@ -10,9 +10,9 @@ class XacNhanDonHangMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $donHang;
+    public object $donHang;
 
-    public function __construct($donHang)
+    public function __construct(object $donHang)
     {
         $this->donHang = $donHang;
     }

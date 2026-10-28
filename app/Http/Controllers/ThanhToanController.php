@@ -62,7 +62,8 @@ class ThanhToanController extends Controller
         DB::beginTransaction();
         try {
             $phuongThucRequest = trim($request->phuong_thuc);
-            $trangThaiDon = ($phuongThucRequest === 'VNPay') ? 'ChoXacNhan' : 'DangGiao';
+            // Mọi đơn mới đều chờ shop xác nhận; admin duyệt mới chuyển sang Đang giao.
+            $trangThaiDon = 'ChoXacNhan';
             $phuongThucDonHang = ($phuongThucRequest === 'VNPay') ? 'VNPay' : 'COD';
 
             // XỬ LÝ TÍNH TOÁN KHUYẾN MÃI BẢO MẬT TRÊN SERVER
@@ -167,7 +168,7 @@ class ThanhToanController extends Controller
         $vnp_TxnRef = $request->get('vnp_TxnRef');
 
         if ($vnp_ResponseCode == '00') {
-            DB::table('DonHang')->where('ID_DonHang', $vnp_TxnRef)->update(['TrangThaiDon' => 'DangGiao']);   
+            // Đã thanh toán nhưng đơn vẫn Chờ xác nhận cho tới khi admin duyệt.
             DB::table('ThanhToan')->where('ID_DonHang', $vnp_TxnRef)->update(['TrangThaiGiaoDich' => 'ThanhCong']);
             
             $chiTietDonHang = DB::table('ChiTietDonHang')->where('ID_DonHang', $vnp_TxnRef)->get();
@@ -193,7 +194,7 @@ class ThanhToanController extends Controller
             }
 
             $this->sendOrderEmail($vnp_TxnRef);
-            return redirect('/')->with('success', 'Thanh toán đơn hàng qua VNPay thành công! Vui lòng kiểm tra email.');
+            return redirect('/don-hang')->with('success', 'Thanh toán đơn hàng qua VNPay thành công! Vui lòng kiểm tra email.');
         } else {
             DB::table('DonHang')->where('ID_DonHang', $vnp_TxnRef)->update(['TrangThaiDon' => 'DaHuy']);
             DB::table('ThanhToan')->where('ID_DonHang', $vnp_TxnRef)->update(['TrangThaiGiaoDich' => 'ThatBai']);

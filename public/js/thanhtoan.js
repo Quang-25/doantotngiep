@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
                         // Đặt hàng COD thành công
                         alert(data.message);
-                        window.location.href = '/'; // chuyển về trang home
+                        window.location.href = '/don-hang'; // chuyển tới trang Đơn mua để theo dõi đơn
                     }
                 } else {
                     alert(data.message || 'Có lỗi xảy ra, vui lòng kiểm tra lại!');
