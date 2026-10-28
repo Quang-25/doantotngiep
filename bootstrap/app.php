@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin.auth' => \App\Http\Middleware\AdminAuth::class,
         ]);
+        // Hủy đơn xác thực bằng mã ký trong header (không dựa vào cookie phiên),
+        // nên vẫn chạy khi phiên server đã mất.
+        $middleware->validateCsrfTokens(except: ['api/don-hang/*']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

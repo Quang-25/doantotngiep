@@ -42,15 +42,28 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Thông tin khách lưu lúc đăng nhập (giống giỏ hàng).
+    let currentUser = null;
+    try { currentUser = JSON.parse(localStorage.getItem('user') || 'null'); } catch (e) { currentUser = null; }
+    const loginUrl = '/Dangnhap?redirect=' + encodeURIComponent('/don-hang');
+    if (!currentUser || !currentUser.ID_KhachHang) {
+        window.location.href = loginUrl;
+        return;
+    }
+    const authHeaders = currentUser.MaXacThuc
+        ? { 'X-Khach-Hang-Id': String(currentUser.ID_KhachHang), 'X-Khach-Hang-Token': currentUser.MaXacThuc }
+        : {};
+
     async function callApi(url, options = {}) {
         const response = await fetch(url, {
             credentials: 'same-origin',
             ...options,
-            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken, ...(options.headers || {}) },
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken, ...authHeaders, ...(options.headers || {}) },
         });
         if (response.status === 401) {
-            // Phiên đăng nhập đã hết => đăng nhập lại
-            window.location.href = '/Dangnhap';
+            // Không xác thực được (đăng nhập từ bản cũ, chưa có mã) => đăng nhập lại một lần.
+            localStorage.removeItem('user');
+            window.location.href = '/Dangnhap?het_phien=1&redirect=' + encodeURIComponent('/don-hang');
             throw new Error('Chưa đăng nhập');
         }
         const data = await response.json();
