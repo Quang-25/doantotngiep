@@ -6,6 +6,7 @@ use App\Models\DanhMuc;
 use App\Models\ThuongHieu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB; 
+use Illuminate\Support\Facades\Schema;
 
 class SanPhamController extends Controller
 {
@@ -131,13 +132,18 @@ class SanPhamController extends Controller
     // 4. HÀM CHI TIẾT SẢN PHẨM
     public function chiTietSanPham(int $id)
     {
-        $sanPham = DB::table('SanPham')
+        $query = DB::table('SanPham')
             ->join('DanhMuc', 'SanPham.ID_DanhMuc', '=', 'DanhMuc.ID_DanhMuc')
             ->join('ThuongHieu', 'SanPham.ID_ThuongHieu', '=', 'ThuongHieu.ID_ThuongHieu')
             ->select('SanPham.*', 'DanhMuc.TenDanhMuc', 'ThuongHieu.TenThuongHieu')
             ->where('SanPham.ID_SanPham', $id)
-            ->where('SanPham.TrangThai', 'DangBan')
-            ->first();
+            ->where('SanPham.TrangThai', 'DangBan');
+
+        if (Schema::hasColumn('SanPham', 'can nang')) {
+            $query->addSelect('SanPham.can nang as CanNang');
+        }
+
+        $sanPham = $query->first();
 
         if (!$sanPham) {
             return redirect('/')->with('error', 'Sản phẩm không tồn tại hoặc đã ngừng kinh doanh.');

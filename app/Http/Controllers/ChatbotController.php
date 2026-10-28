@@ -19,20 +19,29 @@ class ChatbotController extends Controller
 
     public function tuVan(Request $request)
     {
-        // Nhận dữ liệu từ Fetch API
-        $message = trim($request->input('message', ''));
-        $maPhienChat = $request->input('maPhienChat') ?: Str::uuid()->toString();
-        
-        // FIX: BỘ LỌC ÉP KIỂU DỮ LIỆU TỪ JAVASCRIPT
-        $idKhachHangRaw = $request->input('idKhachHang');
-        
-        // Chuyển các chuỗi ảo của JS thành giá trị null thực sự của PHP
-        if (in_array(strtolower((string)$idKhachHangRaw), ['null', 'undefined', '', '0'])) {
-            $idKhachHang = null;
-        } else {
-            // Nếu có số thật, ép về kiểu Số Nguyên (Integer) để an toàn cho Database
-            $idKhachHang = (int) $idKhachHangRaw; 
-        }
+        $validated = $request->validate([
+            'message' => ['required', 'string', 'max:2000'],
+            'maPhienChat' => ['nullable', 'uuid'],
+            'idKhachHang' => ['nullable', 'integer', 'min:1'],
+        ]);
+        $message = trim($validated['message']);
+        $maPhienChat = $validated['maPhienChat'] ?? Str::uuid()->toString();
+        $idKhachHang = $validated['idKhachHang'] ?? null;
+
+        $conversationHistory = DB::table('lichsuchat')
+            ->where('MaPhienChat', $maPhienChat)
+            ->where('ID_KhachHang', $idKhachHang)
+            // Sắp theo ID (tự tăng) chứ không theo ThoiGian: tin khách và tin chatbot thường cùng một giây.
+            ->orderByDesc('ID_LichSu')
+            ->limit(20)
+            ->get(['NguoiGui', 'NoiDung'])
+            ->reverse()
+            ->map(fn ($chat) => [
+                'sender' => $chat->NguoiGui,
+                'content' => $chat->NoiDung,
+            ])
+            ->values()
+            ->all();
 
         // Ghi Log tin nhắn Khách Hàng (Chat History DB)
         DB::table('lichsuchat')->insert([
@@ -43,8 +52,7 @@ class ChatbotController extends Controller
             'ThoiGian' => now()
         ]);
 
-        // Uỷ quyền xử lý logic cho Service (Đã xóa biến $version, truyền cứng 'pro' để luôn chạy AI)
-        $reply = $this->chatbotService->xuLyTinNhan($message, 'pro', $idKhachHang);
+        $reply = $this->chatbotService->xuLyTinNhan($message, 'pro', $idKhachHang, $conversationHistory);
 
         // Ghi Log tin nhắn Chatbot
         DB::table('lichsuchat')->insert([

@@ -71,6 +71,7 @@
                             <div class="account-dropdown">
                                 <a href="{{ url('/Dangky') }}" id="registerLink">Đăng ký</a>
                                 <a href="{{ url('/Dangnhap') }}" id="loginLink">Đăng nhập</a>
+                                <a href="{{ url('/don-hang') }}" id="ordersLink" style="display:none">Đơn mua</a>
                                 <a href="#" id="logoutButton" style="display:none">Đăng xuất</a>
                             </div>
                         </div>

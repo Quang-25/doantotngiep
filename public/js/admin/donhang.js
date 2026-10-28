@@ -25,6 +25,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     document.getElementById('md_GhiChu').textContent = dh.GhiChu || 'Không có ghi chú';
                     document.getElementById('TrangThaiDon').value = dh.TrangThaiDon;
 
+                    // Chỉ cho chọn bước hợp lệ: Chờ xác nhận -> Đang giao -> Hoàn thành (hủy khi chưa hoàn thành)
+                    const allowedNext = {
+                        ChoXacNhan: ['DangGiao', 'DaHuy'],
+                        DangGiao: ['HoanThanh', 'DaHuy'],
+                        HoanThanh: [],
+                        DaHuy: [],
+                    };
+                    document.querySelectorAll('#TrangThaiDon option').forEach(option => {
+                        option.disabled = option.value !== dh.TrangThaiDon
+                            && !(allowedNext[dh.TrangThaiDon] || []).includes(option.value);
+                    });
+
                     // Khóa Select nếu đơn đã Hoàn thành hoặc Hủy
                     const isLocked = (dh.TrangThaiDon === 'HoanThanh' || dh.TrangThaiDon === 'DaHuy');
                     document.getElementById('TrangThaiDon').disabled = isLocked;
@@ -78,7 +90,9 @@ document.addEventListener('DOMContentLoaded', function () {
             
             // Tùy chỉnh câu hỏi xác nhận theo trạng thái
             let confirmMsg = '';
-            if (newStatus === 'DangGiao') {
+            if (newStatus === 'DaHuy') {
+                confirmMsg = `Xác nhận HỦY đơn hàng #${dhId}? Số lượng sản phẩm sẽ được hoàn lại kho.`;
+            } else if (newStatus === 'DangGiao') {
                 confirmMsg = `Xác nhận DUYỆT đơn hàng #${dhId} và chuyển cho bên giao hàng?`;
             } else if (newStatus === 'HoanThanh') {
                 confirmMsg = `Xác nhận đơn hàng #${dhId} đã GIAO THÀNH CÔNG cho khách?`;
@@ -105,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const result = await response.json();
                 
                 if (response.ok && result.success) {
-                    alert('Cập nhật trạng thái thành công!');
+                    alert(result.message || 'Cập nhật trạng thái thành công!');
                     window.location.reload(); 
                 } else {
                     alert('Lỗi: ' + result.message);
@@ -129,6 +143,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const dh_id = document.getElementById('dh_id').value;
         const trangThai = document.getElementById('TrangThaiDon').value;
+        if (trangThai === 'DaHuy' && !confirm(`Xác nhận HỦY đơn hàng #${dh_id}? Số lượng sản phẩm sẽ được hoàn lại kho.`)) {
+            btnSave.disabled = false;
+            btnSave.innerHTML = 'Lưu Trạng Thái';
+            return;
+        }
 
         try {
             const response = await fetch(`/admin/api/don-hang/${dh_id}`, {

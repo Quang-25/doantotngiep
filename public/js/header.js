@@ -120,6 +120,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (logoutButton) {
                     logoutButton.style.display = 'block';
                 }
+
+                // Khách đã đăng nhập mới có mục "Đơn mua"
+                const ordersLink = document.getElementById('ordersLink');
+                if (ordersLink && user.ID_KhachHang) {
+                    ordersLink.style.display = 'block';
+                }
             }
         } catch (error) {
             console.error('Dữ liệu tài khoản không hợp lệ:', error);

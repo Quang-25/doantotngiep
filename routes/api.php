@@ -5,6 +5,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\SanPhamController;
 use App\Http\Controllers\GioHangController;
 use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\DonHangController;
 Route::get('/sanpham', [SanPhamController::class, 'api']);
 Route::get('/home', [HomeController::class, 'api']);
 Route::post('/register', [AuthController::class, 'register']);
@@ -19,4 +20,9 @@ Route::middleware('web')->group(function () {
     Route::post('/gio-hang/cap-nhat', [GioHangController::class, 'capNhat']);
     Route::post('/gio-hang/xoa', [GioHangController::class, 'xoa']);
     Route::post('/gio-hang/xoa-tat-ca', [GioHangController::class, 'xoaTatCa']);
+
+    // Đơn mua của khách đang đăng nhập (xác định qua session)
+    Route::get('/don-hang', [DonHangController::class, 'danhSach']);
+    Route::get('/don-hang/{id}', [DonHangController::class, 'chiTiet'])->whereNumber('id');
+    Route::post('/don-hang/{id}/huy', [DonHangController::class, 'huy'])->whereNumber('id');
 });
