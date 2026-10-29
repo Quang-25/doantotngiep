@@ -121,6 +121,9 @@
             <tr><td>Tổng tiền hàng</td><td class="num">{{ number_format($tongTienHang, 0, ',', '.') }} đ</td></tr>
             <tr><td>Giảm giá từ mã khuyến mãi</td><td class="num">- {{ number_format($tongGiamGia, 0, ',', '.') }} đ</td></tr>
             <tr><td><b>Doanh thu thực nhận</b></td><td class="num"><b>{{ number_format($tongDoanhThu, 0, ',', '.') }} đ</b></td></tr>
+            <tr><td>Số đơn khách trả hàng</td><td class="num">{{ number_format($soDonHoanTra, 0, ',', '.') }} đơn</td></tr>
+            <tr><td>Giá trị hàng bị trả</td><td class="num">{{ number_format($giaTriHoanTra, 0, ',', '.') }} đ</td></tr>
+            <tr><td>Tỷ lệ trả hàng (trên số đơn đã giao thành công)</td><td class="num">{{ number_format($tyLeHoanTra, 1, ',', '.') }}%</td></tr>
         </table>
 
         <h2>II. Chi tiết sản phẩm bán ra</h2>

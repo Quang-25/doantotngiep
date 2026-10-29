@@ -61,6 +61,30 @@
                 </div>
             </div>
         </div>
+        <div class="col-md-6">
+            <div class="card bg-danger text-white shadow-sm border-0 h-100">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-2">Đơn Khách Trả Hàng</h6>
+                        <h2 class="fw-bold m-0">{{ $soDonHoanTra }} đơn</h2>
+                        <small>Giá trị: {{ number_format($giaTriHoanTra, 0, ',', '.') }} đ</small>
+                    </div>
+                    <i class="fas fa-undo fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-warning text-dark shadow-sm border-0 h-100">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-2">Tỷ Lệ Trả Hàng</h6>
+                        <h2 class="fw-bold m-0">{{ number_format($tyLeHoanTra, 1, ',', '.') }}%</h2>
+                        <small>Trên tổng số đơn đã giao thành công</small>
+                    </div>
+                    <a href="{{ url('/admin/don-hang?trang_thai=DaTraHang') }}" class="text-dark" title="Xem các đơn khách đã trả hàng"><i class="fas fa-percentage fa-3x opacity-50"></i></a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- BẢNG SẢN PHẨM BÁN CHẠY -->

@@ -11,10 +11,23 @@
 
     <!-- Thanh tìm kiếm (Đồng bộ 100% với Sản phẩm / Khách hàng) -->
     <div class="d-flex justify-content-between mb-3">
-        <form action="/admin/don-hang" method="GET" class="d-flex search-form" style="width: 400px;">
-            <input type="text" name="search" class="form-control me-2" placeholder="Tìm mã đơn, Tên hoặc SĐT..." value="{{ request('search') }}">
+        <form action="/admin/don-hang" method="GET" class="d-flex search-form gap-2" style="max-width: 640px; width: 100%;">
+            <input type="text" name="search" class="form-control" placeholder="Tìm mã đơn, Tên hoặc SĐT..." value="{{ request('search') }}">
+            <select name="trang_thai" class="form-select" style="max-width: 210px;" onchange="this.form.submit()">
+                <option value="">Tất cả trạng thái</option>
+                <option value="ChoXacNhan" @selected($trangThai === 'ChoXacNhan')>Chờ xác nhận</option>
+                <option value="DangGiao" @selected($trangThai === 'DangGiao')>Đang giao</option>
+                <option value="HoanThanh" @selected($trangThai === 'HoanThanh')>Hoàn thành</option>
+                <option value="DaHuy" @selected($trangThai === 'DaHuy')>Đã hủy (tất cả)</option>
+                <optgroup label="Trả hàng">
+                    <option value="TraHangChoDuyet" @selected($trangThai === 'TraHangChoDuyet')>Yêu cầu trả hàng chờ duyệt</option>
+                    <option value="TraHangChoNhan" @selected($trangThai === 'TraHangChoNhan')>Đã chấp nhận - chờ nhận hàng</option>
+                    <option value="TraHangChoHoanTien" @selected($trangThai === 'TraHangChoHoanTien')>Đã nhận hàng - chờ hoàn tiền</option>
+                    <option value="DaTraHang" @selected($trangThai === 'DaTraHang')>Đã trả hàng (tất cả)</option>
+                </optgroup>
+            </select>
             <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
-            @if(request('search'))
+            @if(request('search') || $trangThai)
                 <a href="/admin/don-hang" class="btn btn-outline-secondary ms-2" title="Hủy tìm kiếm"><i class="fas fa-times"></i></a>
             @endif
         </form>
@@ -53,8 +66,22 @@
                                 <span class="badge bg-primary badge-status">Đang Giao</span>
                             @elseif($don->TrangThaiDon == 'HoanThanh') 
                                 <span class="badge bg-success badge-status">Hoàn Thành</span>
-                            @else 
+                            @elseif(isset($traHang[$don->ID_DonHang]))
+                                <span class="badge bg-danger badge-status">Đã Trả Hàng</span>
+                            @else
                                 <span class="badge bg-secondary badge-status">Đã Hủy</span>
+                            @endif
+                            @if(isset($traHang[$don->ID_DonHang]))
+                                @php $th = $traHang[$don->ID_DonHang]; @endphp
+                                <br><span class="badge mt-1 {{ match ($th['buoc']) { 'cho_duyet' => 'bg-warning text-dark', 'tu_choi' => 'bg-secondary', 'da_hoan_tien' => 'bg-success', default => 'bg-info text-dark' } }}">
+                                    <i class="fas fa-undo"></i> {{ $th['ten'] }}
+                                </span>
+                                @if($th['lyDo'])
+                                    <br><small class="text-muted">Lý do: {{ $th['lyDo'] }}</small>
+                                @endif
+                                @if($th['buoc'] === 'tu_choi' && $th['lyDoTuChoi'])
+                                    <br><small class="text-muted">Từ chối: {{ $th['lyDoTuChoi'] }}</small>
+                                @endif
                             @endif
                         </td>
                         <td>
@@ -73,6 +100,25 @@
                                 <!-- Nếu đang Giao hàng -> Hiện nút Hoàn thành -->
                                 <button class="btn btn-sm btn-success text-white btn-update-status" data-id="{{ $don->ID_DonHang }}" data-status="HoanThanh" title="Xác nhận giao thành công">
                                     <i class="fas fa-check-circle"></i> Hoàn thành
+                                </button>
+                            @endif
+
+                            <!-- Xử lý yêu cầu trả hàng của khách theo từng bước -->
+                            @php $buocTraHang = $traHang[$don->ID_DonHang]['buoc'] ?? null; @endphp
+                            @if($buocTraHang === 'cho_duyet')
+                                <button class="btn btn-sm btn-success btn-return-action mt-1" data-id="{{ $don->ID_DonHang }}" data-action="chap_nhan" title="Chấp nhận cho khách trả hàng">
+                                    <i class="fas fa-check"></i> Chấp nhận trả
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger btn-return-action mt-1" data-id="{{ $don->ID_DonHang }}" data-action="tu_choi" title="Từ chối yêu cầu trả hàng">
+                                    <i class="fas fa-times"></i> Từ chối
+                                </button>
+                            @elseif($buocTraHang === 'cho_nhan_hang')
+                                <button class="btn btn-sm btn-info text-white btn-return-action mt-1" data-id="{{ $don->ID_DonHang }}" data-action="da_nhan" title="Shop đã nhận lại hàng khách trả (hoàn về kho)">
+                                    <i class="fas fa-box-open"></i> Đã nhận hàng trả
+                                </button>
+                            @elseif($buocTraHang === 'cho_hoan_tien')
+                                <button class="btn btn-sm btn-warning btn-return-action mt-1" data-id="{{ $don->ID_DonHang }}" data-action="da_hoan_tien" data-amount="{{ number_format($don->ThanhTien, 0, ',', '.') }}" title="Ghi nhận đã hoàn tiền cho khách">
+                                    <i class="fas fa-money-bill-wave"></i> Đã hoàn tiền
                                 </button>
                             @endif
                         </td>
@@ -146,6 +192,7 @@
         </form>
     </div>
 </div>
+
 @endsection
 
 @section('scripts')

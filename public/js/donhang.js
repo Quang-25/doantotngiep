@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
         DangGiao: 'bi-truck',
         HoanThanh: 'bi-box-seam',
         DaHuy: 'bi-x-lg',
+        TraHang: 'bi-arrow-return-left',
     };
 
     function escapeHtml(value) {
@@ -93,6 +94,9 @@ document.addEventListener('DOMContentLoaded', function () {
         ];
         if (order.CoTheHuy) {
             buttons.push(`<button type="button" class="btn btn-outline-danger btn-sm" data-action="cancel" data-id="${order.ID_DonHang}">Hủy đơn</button>`);
+        }
+        if (order.CoTheTraHang) {
+            buttons.push(`<button type="button" class="btn btn-outline-warning btn-sm" data-action="return" data-id="${order.ID_DonHang}" data-deadline="${escapeHtml(order.HanTraHang || '')}">Trả hàng</button>`);
         }
         if (order.TrangThai === 'HoanThanh' || order.TrangThai === 'DaHuy') {
             buttons.push(`<button type="button" class="btn btn-primary btn-sm" data-action="rebuy" data-id="${order.ID_DonHang}">Mua lại</button>`);
@@ -191,7 +195,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="d-flex justify-content-between"><span>Tổng tiền hàng</span><span>${formatMoney(order.TongTien)}</span></div>
                 ${order.TienGiam > 0 ? `<div class="d-flex justify-content-between text-success"><span>Giảm giá${order.MaGiamGia ? ' (' + escapeHtml(order.MaGiamGia) + ')' : ''}</span><span>-${formatMoney(order.TienGiam)}</span></div>` : ''}
                 <div class="d-flex justify-content-between fw-bold fs-5 mt-1"><span>Thành tiền</span><span class="order-total">${formatMoney(order.ThanhTien)}</span></div>
-                ${order.CoTheHuy ? `<div class="text-end mt-3"><button type="button" class="btn btn-outline-danger" data-action="cancel" data-id="${order.ID_DonHang}">Hủy đơn hàng</button></div>` : ''}`;
+                ${order.CoTheHuy ? `<div class="text-end mt-3"><button type="button" class="btn btn-outline-danger" data-action="cancel" data-id="${order.ID_DonHang}">Hủy đơn hàng</button></div>` : ''}
+                ${order.CoTheTraHang ? `<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
+                    <span class="small text-muted">Bạn có thể yêu cầu trả hàng đến ${escapeHtml(order.HanTraHang)}.</span>
+                    <button type="button" class="btn btn-outline-warning" data-action="return" data-id="${order.ID_DonHang}" data-deadline="${escapeHtml(order.HanTraHang || '')}">Yêu cầu trả hàng</button>
+                </div>` : ''}`;
         } catch (error) {
             detailBody.innerHTML = `<div class="alert alert-danger">${escapeHtml(error.message)}</div>`;
         }
@@ -242,6 +250,56 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // ---------- Trả hàng (đơn đã nhận, trong thời hạn) ----------
+
+    const returnModal = new bootstrap.Modal(document.getElementById('returnOrderModal'));
+    const returnDetail = document.getElementById('returnDetail');
+    const returnError = document.getElementById('returnError');
+    const confirmReturnBtn = document.getElementById('confirmReturnBtn');
+    let returningOrderId = null;
+
+    function openReturn(id, deadline) {
+        returningOrderId = id;
+        document.getElementById('returnOrderId').textContent = '#' + id;
+        document.getElementById('returnDeadline').textContent = deadline ? 'Hạn gửi yêu cầu trả hàng: ' + deadline : '';
+        document.getElementById('traLyDo1').checked = true;
+        document.getElementById('returnDetailRequired').classList.add('d-none');
+        returnDetail.value = '';
+        returnError.classList.add('d-none');
+        detailModal.hide();
+        returnModal.show();
+    }
+
+    document.getElementById('returnReasons').addEventListener('change', () => {
+        document.getElementById('returnDetailRequired').classList.toggle('d-none', !document.getElementById('traLyDo5').checked);
+    });
+
+    confirmReturnBtn.addEventListener('click', async () => {
+        const reason = document.querySelector('input[name="lyDoTra"]:checked').value;
+        const detail = returnDetail.value.trim();
+        if (reason === 'Lý do khác' && !detail) {
+            returnError.textContent = 'Vui lòng mô tả lý do trả hàng.';
+            returnError.classList.remove('d-none');
+            return;
+        }
+        confirmReturnBtn.disabled = true;
+        try {
+            const data = await callApi('/api/don-hang/' + returningOrderId + '/tra-hang', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ly_do: reason, chi_tiet: detail }),
+            });
+            returnModal.hide();
+            alert(data.message);
+            loadOrders();
+        } catch (error) {
+            returnError.textContent = error.message;
+            returnError.classList.remove('d-none');
+        } finally {
+            confirmReturnBtn.disabled = false;
+        }
+    });
+
     // ---------- Mua lại: thêm lại các sản phẩm của đơn vào giỏ ----------
 
     async function rebuy(card) {
@@ -288,6 +346,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (button.dataset.action === 'detail') openDetail(id);
         if (button.dataset.action === 'cancel') openCancel(id);
         if (button.dataset.action === 'rebuy') rebuy(button.closest('.order-card'));
+        if (button.dataset.action === 'return') openReturn(id, button.dataset.deadline);
     });
 
     // Mở thẳng tab theo đường dẫn, ví dụ /don-hang?trang_thai=DangGiao

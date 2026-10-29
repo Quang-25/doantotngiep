@@ -175,4 +175,49 @@ document.addEventListener('DOMContentLoaded', function () {
             btnSave.innerHTML = 'Lưu Trạng Thái';
         }
     });
+
+    // 4. TRẢ HÀNG: xử lý yêu cầu trả hàng của khách theo từng bước
+    const xacNhanTraHang = {
+        chap_nhan: id => `Chấp nhận cho khách trả hàng đơn #${id}? Khách sẽ nhận email hướng dẫn gửi hàng về shop.`,
+        da_nhan: id => `Xác nhận shop ĐÃ NHẬN LẠI HÀNG của đơn #${id}? Sản phẩm sẽ được cộng lại vào kho và đơn không còn tính doanh thu.`,
+        da_hoan_tien: (id, btn) => `Xác nhận shop ĐÃ HOÀN ${btn.dataset.amount}đ cho khách của đơn #${id}?`,
+    };
+
+    document.querySelectorAll('.btn-return-action').forEach(btn => {
+        btn.addEventListener('click', async function () {
+            const id = this.dataset.id;
+            const action = this.dataset.action;
+            const body = { hanh_dong: action };
+            if (action === 'tu_choi') {
+                const lyDo = prompt(`Lý do từ chối trả hàng đơn #${id} (khách sẽ nhận được lý do này):`);
+                if (lyDo === null) return;
+                if (!lyDo.trim()) { alert('Vui lòng nhập lý do từ chối.'); return; }
+                body.ly_do = lyDo.trim();
+            } else if (!confirm(xacNhanTraHang[action](id, this))) {
+                return;
+            }
+
+            const originalHtml = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            try {
+                const response = await fetch(`/admin/api/don-hang/${id}/tra-hang`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const result = await response.json();
+                alert(result.message || (response.ok ? 'Đã cập nhật.' : 'Có lỗi xảy ra.'));
+                if (response.ok && result.success) {
+                    window.location.reload();
+                    return;
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Lỗi kết nối tới Server!');
+            }
+            this.disabled = false;
+            this.innerHTML = originalHtml;
+        });
+    });
 });

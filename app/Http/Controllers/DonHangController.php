@@ -6,6 +6,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\OrderService;
+use App\Mail\TraHangMail;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 
 class DonHangController extends Controller
@@ -127,6 +130,54 @@ class DonHangController extends Controller
         return response()->json(['success' => true, 'message' => 'Đã hủy đơn hàng #' . $id . ' thành công.']);
     }
 
+    // Khách đã nhận hàng (đơn Hoàn thành) và muốn trả lại, trong thời hạn cho phép.
+    public function yeuCauTraHang(Request $request, int $id): JsonResponse
+    {
+        $donHang = $this->layDonCuaKhach($request, $id);
+        if ($donHang instanceof JsonResponse) {
+            return $donHang;
+        }
+        if ($donHang->TrangThaiDon !== 'HoanThanh') {
+            return response()->json(['success' => false, 'message' => 'Chỉ đơn đã giao thành công mới yêu cầu trả hàng được.'], 422);
+        }
+        if ($this->orderService->trangThaiTraHang($donHang) !== null) {
+            return response()->json(['success' => false, 'message' => 'Đơn này đã có yêu cầu trả hàng, bạn theo dõi kết quả trong chi tiết đơn nhé.'], 422);
+        }
+        if (!$this->orderService->coTheYeuCauTraHang($donHang)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Đơn đã quá hạn trả hàng (' . OrderService::SO_NGAY_DUOC_TRA_HANG . ' ngày sau khi nhận, hạn chót '
+                    . $this->orderService->hanTraHang($donHang)->format('H:i d/m/Y') . '). Vui lòng liên hệ shop nếu cần hỗ trợ.',
+            ], 422);
+        }
+
+        $lyDo = trim((string) $request->input('ly_do'));
+        $chiTiet = trim((string) $request->input('chi_tiet', ''));
+        if ($lyDo === '' || mb_strlen($lyDo) > 200 || mb_strlen($chiTiet) > 500) {
+            return response()->json(['success' => false, 'message' => 'Vui lòng chọn lý do trả hàng (mô tả thêm tối đa 500 ký tự).'], 422);
+        }
+        $noiDung = $lyDo . ($chiTiet !== '' ? ' - ' . str_replace(["\r", "\n"], ' ', $chiTiet) : '');
+        $this->orderService->ghiThemGhiChu($id, OrderService::TRA_HANG_YEU_CAU . ' (' . now()->format('d/m/Y H:i') . '). Lý do: ' . $noiDung);
+
+        // Báo khách đã nhận yêu cầu + báo shop có yêu cầu mới (lỗi mail không ảnh hưởng yêu cầu).
+        $donMoi = DB::table('donhang')->where('ID_DonHang', $id)->first();
+        try {
+            $email = DB::table('khachhang')->join('taikhoan', 'khachhang.ID_TaiKhoan', '=', 'taikhoan.ID_TaiKhoan')
+                ->where('khachhang.ID_KhachHang', $donMoi->ID_KhachHang)->value('taikhoan.Email');
+            if ($email) {
+                Mail::to($email)->send(new TraHangMail($donMoi, 'yeu_cau', $noiDung));
+            }
+            $emailShop = env('CONTACT_EMAIL') ?: config('mail.from.address');
+            if ($emailShop) {
+                Mail::to($emailShop)->send(new TraHangMail($donMoi, 'shop', $noiDung));
+            }
+        } catch (\Throwable $e) {
+            Log::error('Lỗi gửi email yêu cầu trả hàng đơn #' . $id . ': ' . $e->getMessage());
+        }
+
+        return response()->json(['success' => true, 'message' => 'Đã gửi yêu cầu trả hàng cho đơn #' . $id . '. Shop sẽ xem xét và phản hồi bạn qua email.']);
+    }
+
     // ---------- Hàm hỗ trợ ----------
 
     // Mã xác thực cấp cho khách lúc đăng nhập, ký bằng APP_KEY (không lưu database).
@@ -208,7 +259,12 @@ class DonHangController extends Controller
             'ID_DonHang' => (int) $donHang->ID_DonHang,
             'NgayDat' => $donHang->NgayDat,
             'TrangThai' => $donHang->TrangThaiDon,
-            'TenTrangThai' => self::TRANG_THAI[$donHang->TrangThaiDon] ?? $donHang->TrangThaiDon,
+            'TenTrangThai' => ($buocTraHang = $this->orderService->trangThaiTraHang($donHang)) !== null
+                ? OrderService::TEN_TRANG_THAI_TRA_HANG[$buocTraHang]
+                : (self::TRANG_THAI[$donHang->TrangThaiDon] ?? $donHang->TrangThaiDon),
+            // Trả hàng: trong vài ngày sau khi giao thành công, mỗi đơn một lần.
+            'CoTheTraHang' => $this->orderService->coTheYeuCauTraHang($donHang),
+            'HanTraHang' => $donHang->TrangThaiDon === 'HoanThanh' ? $this->orderService->hanTraHang($donHang)->format('H:i d/m/Y') : null,
             'ThanhTien' => (int) $donHang->ThanhTien,
             'PhuongThucThanhToan' => $donHang->PhuongThucThanhToan,
             // Khách tự hủy khi shop chưa duyệt; đơn đã thanh toán VNPay cần shop hoàn tiền nên không tự hủy.
@@ -255,6 +311,28 @@ class DonHangController extends Controller
             ['ma' => 'DangGiao', 'ten' => 'Đang giao hàng', 'moTa' => 'Đơn hàng đã được bàn giao cho đơn vị vận chuyển.'],
             ['ma' => 'HoanThanh', 'ten' => 'Giao hàng thành công', 'moTa' => 'Bạn đã nhận được hàng. Cảm ơn bạn đã mua sắm!'],
         ];
+
+        // Trả hàng sau khi đã nhận: các bước giao hàng đã xong + bước trả hàng hiện tại.
+        $buocTraHang = $this->orderService->trangThaiTraHang($donHang);
+        if ($buocTraHang !== null) {
+            $tien = number_format($donHang->ThanhTien, 0, ',', '.') . 'đ';
+            $lyDo = $this->orderService->ghiChuBuocTraHang($donHang, OrderService::TRA_HANG_YEU_CAU);
+            $buocCuoi = match ($buocTraHang) {
+                'cho_duyet' => ['ten' => 'Đã gửi yêu cầu trả hàng', 'moTa' => 'Shop đang xem xét yêu cầu của bạn' . ($lyDo ? '. Lý do: ' . $lyDo : '') . '.', 'trangThai' => 'hienTai'],
+                'tu_choi' => ['ten' => 'Shop từ chối trả hàng', 'moTa' => 'Lý do: ' . ($this->orderService->ghiChuBuocTraHang($donHang, OrderService::TRA_HANG_TU_CHOI) ?? 'không ghi rõ') . '. Liên hệ hotline 035 214 3569 nếu cần hỗ trợ.', 'trangThai' => 'huy'],
+                'cho_nhan_hang' => ['ten' => 'Shop đã chấp nhận trả hàng', 'moTa' => 'Bạn vui lòng đóng gói và gửi hàng về: Tổ 4, Đền Rồng, Phường Từ Sơn, Bắc Ninh (ĐT 035 214 3569). Shop hoàn tiền sau khi nhận hàng.', 'trangThai' => 'hienTai'],
+                'cho_hoan_tien' => ['ten' => 'Shop đã nhận lại hàng', 'moTa' => 'Shop sẽ hoàn ' . $tien . ' cho bạn trong thời gian sớm nhất.', 'trangThai' => 'hienTai'],
+                default => ['ten' => 'Đã hoàn tiền', 'moTa' => 'Shop đã hoàn ' . $tien . ' cho bạn. Cảm ơn bạn đã mua sắm!', 'trangThai' => 'xong'],
+            };
+
+            return [
+                $buoc[0] + ['trangThai' => 'xong'],
+                ['ma' => 'ChoXacNhan', 'ten' => 'Đã xác nhận', 'moTa' => 'Shop đã xác nhận đơn hàng.', 'trangThai' => 'xong'],
+                $buoc[2] + ['trangThai' => 'xong'],
+                $buoc[3] + ['trangThai' => 'xong'],
+                ['ma' => 'TraHang'] + $buocCuoi,
+            ];
+        }
 
         if ($donHang->TrangThaiDon === 'DaHuy') {
             return [
