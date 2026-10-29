@@ -83,6 +83,37 @@
         </div>
     </div>
 
+    <!-- Yêu cầu trả hàng (đơn đã nhận) -->
+    <div class="modal fade" id="returnOrderModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Yêu cầu trả hàng <span id="returnOrderId"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted mb-2" id="returnDeadline"></p>
+                    <p class="mb-2">Bạn vui lòng chọn lý do trả hàng:</p>
+                    <div id="returnReasons">
+                        <div class="form-check"><input class="form-check-input" type="radio" name="lyDoTra" id="traLyDo1" value="Sản phẩm bị lỗi / hư hỏng" checked><label class="form-check-label" for="traLyDo1">Sản phẩm bị lỗi / hư hỏng</label></div>
+                        <div class="form-check"><input class="form-check-input" type="radio" name="lyDoTra" id="traLyDo2" value="Giao sai mẫu, sai size hoặc sai màu"><label class="form-check-label" for="traLyDo2">Giao sai mẫu, sai size hoặc sai màu</label></div>
+                        <div class="form-check"><input class="form-check-input" type="radio" name="lyDoTra" id="traLyDo3" value="Sản phẩm không giống mô tả"><label class="form-check-label" for="traLyDo3">Sản phẩm không giống mô tả</label></div>
+                        <div class="form-check"><input class="form-check-input" type="radio" name="lyDoTra" id="traLyDo4" value="Thiếu sản phẩm / phụ kiện đi kèm"><label class="form-check-label" for="traLyDo4">Thiếu sản phẩm / phụ kiện đi kèm</label></div>
+                        <div class="form-check"><input class="form-check-input" type="radio" name="lyDoTra" id="traLyDo5" value="Lý do khác"><label class="form-check-label" for="traLyDo5">Lý do khác</label></div>
+                    </div>
+                    <label for="returnDetail" class="form-label mt-2 mb-1 small">Mô tả thêm <span id="returnDetailRequired" class="text-danger d-none">*</span></label>
+                    <textarea class="form-control" id="returnDetail" rows="3" maxlength="500" placeholder="Ví dụ: vợt bị nứt khung ở đầu vợt, giày bị bong keo..."></textarea>
+                    <div class="small text-muted mt-2">Sản phẩm trả cần còn nguyên tem, hộp và phụ kiện đi kèm. Shop sẽ hoàn tiền sau khi nhận và kiểm tra hàng.</div>
+                    <div class="text-danger small mt-2 d-none" id="returnError"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-warning" id="confirmReturnBtn">Gửi yêu cầu trả hàng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @include('layouts.footer')
     <script src="{{ asset('js/donhang.js') }}"></script>
 </body>

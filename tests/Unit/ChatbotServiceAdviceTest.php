@@ -287,6 +287,26 @@ class ChatbotServiceAdviceTest extends TestCase
         $this->assertStringContainsString('bảo hộ', $session['request']);
     }
 
+    public function test_greetings_policies_and_basic_knowledge_have_built_in_answers(): void
+    {
+        $answer = fn (string $message) => (string) $this->call('traLoiCauHoiCoSan', mb_strtolower($message));
+
+        $this->assertStringContainsString('chào bạn', $answer('Xin chào'));
+        $this->assertStringContainsString('không có gì', $answer('ok cảm ơn bạn nhiều'));
+        $this->assertStringContainsString('3 ngày', $answer('chính sách đổi trả thế nào'));
+        $this->assertStringContainsString('3 ngày', $answer('mua rồi có trả lại được không shop'));
+        $this->assertStringContainsString('bảo hành', $answer('vợt gãy có được bảo hành không'));
+        $this->assertStringContainsString('chưa gồm phí vận chuyển', $answer('phí ship bao nhiêu'));
+        $this->assertStringContainsString('ngày', $answer('đặt hôm nay bao lâu thì nhận được hàng'));
+        $this->assertStringContainsString('VNPay', $answer('shop có những hình thức thanh toán nào'));
+        $this->assertStringContainsString('035 214 3569', $answer('shop ở đâu'));
+        $this->assertStringContainsString('lbs', $answer('nên căng vợt bao nhiêu kg'));
+        $this->assertStringContainsString('Đầu nặng', $answer('điểm cân bằng là gì'));
+        // Câu tư vấn mua hàng không bị câu trả lời có sẵn chặn mất
+        $this->assertSame('', $answer('xin chào, tư vấn vợt cho tôi'));
+        $this->assertSame('', $answer('Tôi muốn mua vợt tầm 3 triệu'));
+    }
+
     public function test_clothing_questions_start_needs_based_advice(): void
     {
         $this->assertSame('quan_ao', $this->call('layLoaiTuVanBatDau', 'tôi đang 40kg nên mặc áo size gì'));

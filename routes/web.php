@@ -82,6 +82,7 @@ Route::prefix('admin')->middleware(['admin.auth'])->group(function () {
     Route::get ('/don-hang', [AdminDonHangController::class, 'quanLyDonHang']);
     Route::get ('/api/don-hang/{id}', [AdminDonHangController::class, 'chiTietDonHang']);
     Route::post('/api/don-hang/{id}', [AdminDonHangController::class, 'capNhatTrangThai']);
+    Route::post('/api/don-hang/{id}/tra-hang', [AdminDonHangController::class, 'xuLyTraHang'])->whereNumber('id');
 
     // QUẢN LÝ TÀI KHOẢN
     // Nhớ thêm dòng này ở trên cùng file: 

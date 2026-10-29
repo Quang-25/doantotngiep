@@ -31,6 +31,19 @@ class ChatbotService
             }
         }
 
+        // 0''. CHÀO HỎI / CHÍNH SÁCH CỬA HÀNG / KIẾN THỨC CẦU LÔNG: trả lời có sẵn, không cần Gemini
+        $cannedReply = $this->traLoiCauHoiCoSan($messageLower);
+        if ($cannedReply !== null) {
+            return $cannedReply;
+        }
+
+        // 0'a. HỎI MỘT LOẠI VỢT / GIÀY CÒN HÀNG KHÔNG ("vợt yonex còn hàng không")
+        // => hiện các mẫu còn hàng + số lượng, rồi hỏi tiếp để tư vấn chọn mẫu.
+        $stockReply = $this->lietKeConHangTheoLoai($message, $messageLower);
+        if ($stockReply !== null) {
+            return $stockReply;
+        }
+
         // 0'. HỎI DANH SÁCH VỢT THEO TRÌNH ĐỘ ("cho tôi các loại vợt phù hợp người chơi chuyên nghiệp")
         // => chỉ liệt kê vợt đúng trình độ, rồi hỏi tiếp lối chơi / ngân sách để tư vấn chọn một cây.
         $levelListReply = $this->lietKeVotTheoTrinhDo($message, $messageLower);
@@ -1734,6 +1747,82 @@ class ChatbotService
         ]);
     }
 
+    // ---------- Hỏi còn hàng theo loại (vợt / giày, có thể kèm hãng, trình độ, size) ----------
+
+    private function lietKeConHangTheoLoai(string $message, string $lower): ?string
+    {
+        $asksStock = preg_match('/(còn hàng|còn không|còn ko|còn k(?!\p{L})|có hàng|có sẵn|hết hàng|còn bán|đang bán|có bán|còn mẫu|còn cây|còn đôi)/u', $lower) === 1;
+        $loai = $this->layLoaiSanPhamNhacToi($lower);
+        // Hỏi đúng một mẫu cụ thể (tên dòng vợt) => để kịch bản thông tin sản phẩm trả lời.
+        $namesModel = preg_match('/(astrox|nanoflare|arcsaber|duora|voltric|thruster|ryuga|axforce|power cushion|jetspeed|auraspeed|halbertec|tectonic|bg65|\b\d{2,3}z+\d*\b)/iu', $lower) === 1;
+        if (!$asksStock || !in_array($loai, ['vot', 'giay'], true) || $namesModel || $this->laYeuCauSoSanh($lower)) {
+            return null;
+        }
+
+        $request = $this->chuanHoaTraLoiTuVan($message, null);
+        $query = $this->truyVanSanPhamDangBan(false);
+        if ($loai === 'vot') {
+            $query->whereNotNull('thongsovot.ID_SanPham');
+            $level = $this->layMaTrinhDo($lower);
+            if (in_array($level, ['MoiChoi', 'NangCao', 'ChuyenNghiep'], true)) {
+                $query->where('thongsovot.TrinhDoPhuHop', $level);
+            }
+        } else {
+            $query->where('danhmuc.TenDanhMuc', 'like', '%Giày%');
+        }
+        $brand = preg_match(self::THUONG_HIEU_PATTERN, $lower, $brandMatch) ? str_replace('-', '', $brandMatch[1]) : null;
+        if ($brand !== null) {
+            $query->where('thuonghieu.TenThuongHieu', 'like', '%' . $brand . '%');
+        }
+        $products = $query->get()->unique('ID_SanPham');
+        $size = $loai === 'giay' ? $this->laySizeGiay($lower) : null;
+        $conHang = $products->filter(fn ($p) => (int) $p->SoLuongTon > 0
+            && ($size === null || $this->coSizeSanPham((string) ($p->SizeCoSan ?? ''), $size)))
+            ->sortBy(fn ($p) => $this->giaHienTai($p))->values();
+
+        $tenLoai = ($loai === 'vot' ? 'vợt' : 'giày') . ($brand !== null ? ' ' . ucfirst($brand) : '')
+            . (isset($level) && $level && $level !== 'ChuaRo' ? ' cho ' . $this->tenTrinhDo($level) : '')
+            . ($size !== null ? ' size ' . $size : '');
+
+        if ($conHang->isEmpty()) {
+            $hetHang = $products->count();
+            $reply = 'Dạ, hiện ' . e($tenLoai) . ($hetHang > 0 ? ' đã <b>tạm hết hàng</b> (' . $hetHang . ' mẫu đang chờ nhập thêm).' : ' chưa có trong kho.')
+                . '<br>Mình có thể tư vấn cho bạn mẫu ' . ($loai === 'vot' ? 'vợt' : 'giày') . ' khác đang còn hàng.';
+            // Hãng đã hết => tư vấn tiếp không giới hạn hãng nữa (nếu không sẽ không còn mẫu nào để gợi ý).
+            $request = trim(preg_replace(self::THUONG_HIEU_PATTERN, '', $request));
+        } else {
+            $reply = 'Dạ, <b>' . e($tenLoai) . '</b> hiện <b>còn hàng ' . $conHang->count() . ' mẫu</b>:<br><br>';
+            foreach ($conHang->take(6) as $product) {
+                $reply .= $this->taoTheSanPham($product)
+                    . "<div style='font-size:12px;color:#16a34a;margin:-8px 0 10px 4px;'>✔ Còn " . (int) $product->SoLuongTon . ' sản phẩm</div>';
+            }
+            if ($conHang->count() > 6) {
+                $reply .= 'Và ' . ($conHang->count() - 6) . ' mẫu khác, bạn xem thêm ở trang sản phẩm nhé.<br>';
+            }
+        }
+
+        // Hỏi tiếp để tư vấn chọn mẫu (ý nào khách đã nói thì không hỏi lại).
+        $state = $this->layTrangThaiTuVan($loai, $request);
+        $slots = $loai === 'vot' ? ['trinh_do', 'loi_choi', 'ngan_sach'] : ['giay_size', 'giay_nhu_cau', 'ngan_sach'];
+        $missing = array_values(array_filter($slots, fn ($slot) => !$state[$slot]));
+        if (!$missing) {
+            return $reply . '<br>Bạn muốn mình phân tích để chọn ra mẫu hợp nhất với bạn không? Chỉ cần nhắn "tư vấn giúp mình" nhé.'
+                . sprintf('<!--tuvan:%s:chi_tiet--><!--tuvan-yeucau:%s-->', $loai, base64_encode($request));
+        }
+        $hoi = [
+            'trinh_do' => 'trình độ (mới chơi, nâng cao hay chuyên nghiệp)',
+            'loi_choi' => 'lối chơi (tấn công, phòng thủ hay toàn diện)',
+            'ngan_sach' => 'ngân sách dự kiến',
+            'giay_size' => 'size giày bạn mang',
+            'giay_nhu_cau' => 'bạn chơi sân nào và ưu tiên êm, nhẹ hay bền',
+        ];
+        $reply .= '<br>Để mình tư vấn mẫu hợp với bạn nhất' . ($conHang->isEmpty() ? '' : ' trong số này') . ', bạn cho mình biết '
+            . implode(', ', array_map(fn ($slot) => $hoi[$slot], $missing)) . ' nhé.';
+
+        // Ghi nhớ nhu cầu (hãng, trình độ...) để câu trả lời sau được ghép đúng.
+        return $reply . sprintf('<!--tuvan:%s:%s--><!--tuvan-yeucau:%s-->', $loai, $missing[0], base64_encode($request));
+    }
+
     // ---------- Liệt kê vợt theo trình độ ----------
 
     private function lietKeVotTheoTrinhDo(string $message, string $lower): ?string
@@ -3155,17 +3244,181 @@ class ChatbotService
         return $value;
     }
 
+    // Tìm câu trả lời trong bảng câu hỏi thường gặp. Từ khóa ngăn bằng ";" hoặc ",".
+    // Chọn câu khớp nhiều từ khóa nhất (tính theo tổng độ dài từ khóa khớp) thay vì câu đầu tiên.
     private function timKiemFAQ(string $message)
     {
-        $faqs = DB::table('cauhoichatbot')->where('TrangThai', 'HoatDong')->get();
-        foreach ($faqs as $faq) {
-            $keywords = explode(',', mb_strtolower($faq->TuKhoa));
-            foreach ($keywords as $kw) {
-                if (!empty(trim($kw)) && strpos($message, trim($kw)) !== false) {
-                    return $faq->CauTraLoi;
+        $message = mb_strtolower($message);
+        $best = null;
+        $bestScore = 0;
+        foreach (DB::table('cauhoichatbot')->where('TrangThai', 'HoatDong')->get() as $faq) {
+            $score = 0;
+            foreach (preg_split('/[;,]/u', mb_strtolower((string) $faq->TuKhoa)) as $keyword) {
+                $keyword = trim($keyword);
+                // Từ khóa quá chung (vd "hỗ trợ") dễ khớp nhầm => bỏ qua từ khóa dưới 3 ký tự hoặc chỉ 1 từ phổ biến.
+                if (mb_strlen($keyword) < 2 || in_array($keyword, [
+                    'hỗ trợ', 'chatbot', 'mua hàng', 'đơn hàng', 'trạng thái đơn', 'thanh toán', 'giỏ hàng', 'người mới',
+                    'phụ kiện', 'giày', 'size', 'danh mục', 'chọn vợt', 'giao dịch', 'số điện thoại', 'địa chỉ',
+                ], true)) {
+                    continue;
+                }
+                if (preg_match('/(?<!\p{L})' . preg_quote($keyword, '/') . '(?!\p{L})/u', $message)) {
+                    $score += mb_strlen($keyword);
                 }
             }
+            if ($score > $bestScore) {
+                $best = $faq;
+                $bestScore = $score;
+            }
         }
+
+        return $best?->CauTraLoi;
+    }
+
+    // ==========================================
+    // CÂU TRẢ LỜI CÓ SẴN: chào hỏi, chính sách cửa hàng, kiến thức cầu lông (không phụ thuộc Gemini)
+    // Thông tin cửa hàng / chính sách sửa trực tiếp trong các hằng số bên dưới.
+    // ==========================================
+    private const HOTLINE = '035 214 3569';
+    private const DIA_CHI = 'Tổ 4, Đền Rồng, Phường Từ Sơn, Thành Phố Bắc Ninh';
+    private const EMAIL = 'Cohoi2512@gmail.com';
+    private const GIO_HO_TRO = '08:00 - 22:00 hằng ngày';
+    private const THOI_GIAN_GIAO = 'Nội thành Bắc Ninh, Hà Nội khoảng 1–2 ngày; các tỉnh khác khoảng 3–5 ngày làm việc';
+
+    private function goiYKhaNang(): string
+    {
+        return 'Mình có thể giúp bạn:<br>'
+            . '• <b>Tư vấn chọn vợt</b> theo trình độ, lối chơi, ngân sách<br>'
+            . '• Tư vấn <b>giày, quần áo, váy</b> (kể cả chọn size) và <b>phụ kiện</b> (cước, quấn cán, túi, ống cầu)<br>'
+            . '• <b>So sánh</b> hai sản phẩm, tìm hàng <b>đang giảm giá</b>, <b>mã giảm giá</b><br>'
+            . '• Giải đáp <b>chính sách</b> đổi trả, bảo hành, giao hàng, thanh toán và <b>tra cứu đơn hàng</b>';
+    }
+
+    // Khi không hiểu câu hỏi (và AI không trả lời được): hướng dẫn khách những gì chatbot làm được.
+    private function traLoiKhiKhongHieu(): string
+    {
+        return 'Dạ, câu này mình chưa trả lời chính xác được ạ. ' . $this->goiYKhaNang()
+            . '<br>Bạn thử hỏi lại theo một trong các nội dung trên, hoặc gọi hotline <b>' . self::HOTLINE . '</b> để được hỗ trợ trực tiếp nhé.';
+    }
+
+    private function traLoiCauHoiCoSan(string $lower): ?string
+    {
+        $text = trim(preg_replace('/\s+/u', ' ', $lower));
+
+        // --- Chào hỏi, cảm ơn, tạm biệt (chỉ khi tin nhắn ngắn, chủ yếu là lời chào) ---
+        if (mb_strlen($text) <= 40) {
+            if (preg_match('/^(xin chào|chào|hello|helo|hi|hey|alo|shop ơi|ad ơi|bạn ơi|có ai không)(?!\p{L})[\s\p{L}!.,?]{0,20}$/u', $text)
+                && !preg_match('/(vợt|giày|áo|quần|váy|cước|phụ kiện|đơn|giá|mua)/u', $text)) {
+                return 'Dạ, chào bạn! Mình là trợ lý tư vấn của <b>Badminton ProShop</b> 🏸<br>' . $this->goiYKhaNang()
+                    . '<br>Bạn đang cần tìm sản phẩm gì ạ?';
+            }
+            if (preg_match('/(cảm ơn|cám ơn|thank|thanks|tks|cảm ơn shop|ok shop)/u', $text)) {
+                return 'Dạ, không có gì ạ! Cảm ơn bạn đã ghé Badminton ProShop. Khi cần tư vấn thêm, bạn cứ nhắn mình nhé 😊';
+            }
+            if (preg_match('/(tạm biệt|bye|bai bai|hẹn gặp lại)/u', $text)) {
+                return 'Dạ, chào bạn, hẹn gặp lại! Chúc bạn có những trận cầu thật vui 🏸';
+            }
+            if (preg_match('/^(bạn là ai|bạn làm được gì|bạn giúp được gì|bot là gì|bạn có thể làm gì)/u', $text)) {
+                return 'Dạ, mình là trợ lý tư vấn tự động của Badminton ProShop. ' . $this->goiYKhaNang();
+            }
+        }
+
+        // --- Chính sách cửa hàng ---
+        if (preg_match('/(đổi trả|đổi hàng|trả hàng|trả lại|đổi lại|hoàn trả|hoàn hàng|đổi size|đổi sang size|đổi sản phẩm|hoàn tiền)/u', $text)
+            && !preg_match('/(hủy|huỷ)/u', $text)) {
+            return '<b>Chính sách trả hàng của Badminton ProShop:</b><br>'
+                . '• Bạn được yêu cầu trả hàng trong <b>' . OrderService::SO_NGAY_DUOC_TRA_HANG . ' ngày</b> kể từ khi nhận hàng thành công.<br>'
+                . '• Áp dụng khi sản phẩm bị lỗi/hư hỏng, giao sai mẫu – size – màu, không giống mô tả hoặc thiếu phụ kiện. Sản phẩm cần còn nguyên tem, hộp và phụ kiện đi kèm.<br>'
+                . '• Cách gửi yêu cầu: vào <b>Đơn mua</b> → chọn đơn đã giao → bấm <b>"Trả hàng"</b>, chọn lý do. Shop sẽ duyệt và gửi email hướng dẫn gửi hàng về.<br>'
+                . '• Shop <b>hoàn tiền</b> sau khi nhận và kiểm tra hàng trả.<br>'
+                . 'Đơn chưa được duyệt thì bạn có thể tự <b>hủy đơn</b> ngay trong mục Đơn mua. Cần hỗ trợ thêm, bạn gọi hotline ' . self::HOTLINE . ' nhé.';
+        }
+        if (preg_match('/(bảo hành)/u', $text)) {
+            return '<b>Chính sách bảo hành:</b><br>'
+                . '• Sản phẩm tại shop là <b>hàng chính hãng</b>, được bảo hành theo chính sách của từng hãng (Yonex, Victor, Lining, Mizuno). Thời gian cụ thể tùy mẫu, ghi trên tem/phiếu bảo hành đi kèm.<br>'
+                . '• Bảo hành các lỗi do nhà sản xuất. Không bảo hành khi vợt gãy, nứt do va đập, đánh vào cột/lưới, căng cước quá mức căng tối đa khuyến nghị, hoặc hư hỏng do sử dụng sai cách.<br>'
+                . '• Khi cần bảo hành, bạn mang sản phẩm kèm phiếu bảo hành tới cửa hàng hoặc liên hệ hotline ' . self::HOTLINE . ' để được hướng dẫn.';
+        }
+        if (preg_match('/(phí ship|phí vận chuyển|phí giao|tiền ship|ship bao nhiêu|freeship|free ship|miễn phí vận chuyển|miễn phí ship|miễn phí giao)/u', $text)) {
+            return '<b>Phí vận chuyển:</b><br>'
+                . '• Giá sản phẩm trên web <b>chưa gồm phí vận chuyển</b>. Phí ship tùy khu vực và được shop báo khi xác nhận đơn.<br>'
+                . '• Bạn có thể dùng mã <b>FREESHIPEXTRA</b> (giảm 30k cho đơn từ 150k) khi thanh toán. Hỏi mình "có mã giảm giá nào không" để xem các mã đang áp dụng nhé.';
+        }
+        // --- Đơn hàng: hủy, sửa thông tin, cách đặt, theo dõi (không có mã đơn => không phải tra cứu) ---
+        $hasNumber = preg_match('/\d{2,}/', $text) === 1;
+        if (preg_match('/(hủy đơn|huỷ đơn|hủy đặt|huỷ đặt|hủy mua|huỷ mua|không muốn mua nữa|không mua nữa|hủy hàng|huỷ hàng|bị hủy|bị huỷ|đã hủy|đã huỷ|hủy rồi|huỷ rồi)/u', $text) && !$hasNumber) {
+            return '<b>Cách hủy đơn hàng:</b><br>'
+                . '• Đơn đang <b>Chờ xác nhận</b>: bạn tự hủy được. Vào mục <b>Đơn mua</b> (góc trên, cạnh tên tài khoản) → chọn đơn → bấm <b>"Hủy đơn"</b> → chọn lý do và xác nhận. Lượt mã giảm giá đã dùng sẽ được trả lại.<br>'
+                . '• Đơn đã thanh toán <b>VNPay</b>: shop cần hoàn tiền nên bạn liên hệ hotline <b>' . self::HOTLINE . '</b> để được hủy giúp.<br>'
+                . '• Đơn đã <b>Đang giao</b>: không tự hủy được nữa, bạn gọi hotline để shop hỗ trợ. Nếu đã nhận hàng, bạn có thể yêu cầu <b>trả hàng</b> trong ' . OrderService::SO_NGAY_DUOC_TRA_HANG . ' ngày.';
+        }
+        if (preg_match('/(đổi địa chỉ|sửa địa chỉ|thay đổi địa chỉ|đổi số điện thoại|sửa số điện thoại|thay đổi thông tin|sửa thông tin (?:đơn|nhận hàng|giao hàng)|sửa đơn|đổi người nhận|đặt nhầm|đặt sai)/u', $text)) {
+            return '<b>Muốn sửa thông tin đơn (địa chỉ, số điện thoại, sản phẩm):</b><br>'
+                . '• Nếu đơn còn <b>Chờ xác nhận</b>: cách nhanh nhất là <b>hủy đơn</b> trong mục Đơn mua (chọn lý do "Muốn thay đổi địa chỉ / số điện thoại") rồi đặt lại đơn mới.<br>'
+                . '• Nếu đơn đã được duyệt hoặc đã thanh toán VNPay: bạn gọi hotline <b>' . self::HOTLINE . '</b> để shop cập nhật giúp trước khi giao.';
+        }
+        if (preg_match('/(cách đặt hàng|đặt hàng (?:như thế nào|thế nào|ra sao|kiểu gì|ở đâu)|làm sao (?:để )?(?:đặt|mua) hàng|mua hàng (?:như thế nào|thế nào|ra sao)|hướng dẫn (?:đặt|mua) hàng|đặt mua (?:như thế nào|thế nào)|có cần đăng nhập)/u', $text)) {
+            return '<b>Cách đặt hàng:</b><br>'
+                . '1. <b>Đăng nhập</b> tài khoản (chưa có thì bấm Đăng ký).<br>'
+                . '2. Chọn sản phẩm → bấm <b>"Thêm vào giỏ hàng"</b>.<br>'
+                . '3. Mở <b>Giỏ hàng</b>, kiểm tra số lượng → bấm <b>Thanh toán</b>.<br>'
+                . '4. Nhập thông tin nhận hàng, mã giảm giá (nếu có), chọn <b>COD</b> hoặc <b>VNPay</b> → <b>Đặt hàng</b>.<br>'
+                . 'Đơn sẽ ở trạng thái <b>Chờ xác nhận</b>, shop duyệt xong sẽ chuyển sang <b>Đang giao</b> và gửi email báo bạn.';
+        }
+        if (!$hasNumber && preg_match('/(theo dõi đơn|xem đơn (?:hàng )?(?:ở đâu|thế nào|như thế nào)|kiểm tra (?:tình trạng |trạng thái )?đơn (?:hàng )?(?:ở đâu|thế nào|như thế nào)|đơn (?:hàng )?(?:của tôi )?(?:đang ở đâu|tới đâu rồi|đến đâu rồi)|xem trạng thái đơn)/u', $text)) {
+            return '<b>Theo dõi đơn hàng:</b> sau khi đăng nhập, bạn bấm mục <b>Đơn mua</b> để xem tất cả đơn theo từng trạng thái: Chờ xác nhận → Đang giao → Hoàn thành (hoặc Đã hủy), kèm tiến trình chi tiết của từng đơn.<br>'
+                . 'Bạn cũng có thể nhắn mình <b>mã đơn</b> (ví dụ "tra cứu đơn 53") để mình kiểm tra nhanh.';
+        }
+
+        $askWhen = preg_match('/(bao giờ|khi nào|bao lâu|mấy ngày|mấy hôm|lúc nào|thời gian|trong khoảng)/u', $text) === 1;
+        $aboutDelivery = preg_match('/(giao|nhận được|nhận hàng|có hàng|hàng (?:tới|đến|về)|ship tới|ship đến|vận chuyển)/u', $text) === 1;
+        if (($askWhen && $aboutDelivery && !$hasNumber && !preg_match('/(bảo hành|trả hàng|đổi trả|hoàn tiền)/u', $text))
+            || preg_match('/(giao (?:hàng )?(?:mất|trong|bao lâu|mấy ngày|khi nào|có nhanh)|bao lâu (?:thì )?(?:nhận|có hàng|giao|tới|đến)|mấy ngày (?:thì )?(?:nhận|có hàng|giao|tới|đến)|khi nào (?:thì )?nhận được|thời gian giao|toàn quốc|giao (?:hàng )?(?:tỉnh|ra tỉnh|đi tỉnh|tận nơi|tận nhà|xa)|(?:có )?ship (?:không|tỉnh|tận nơi|tận nhà|đi tỉnh|toàn quốc)|có giao (?:hàng )?(?:không|tận nơi|tận nhà))/u', $text)) {
+            return '<b>Giao hàng:</b> shop giao hàng <b>toàn quốc, tận nơi</b>. Thời gian: ' . self::THOI_GIAN_GIAO . ', tính từ khi shop xác nhận đơn.<br>'
+                . 'Bạn theo dõi trạng thái đơn (Chờ xác nhận → Đang giao → Hoàn thành) trong mục <b>Đơn mua</b>; khi shop duyệt đơn bạn sẽ nhận được email thông báo.';
+        }
+        if (preg_match('/(phương thức thanh toán|hình thức thanh toán|cách thanh toán|thanh toán (?:bằng|qua|như thế nào|thế nào|kiểu gì|ra sao|được không)|trả tiền (?:bằng|thế nào|như thế nào|khi nào)|có (?:nhận )?(?:cod|vnpay|chuyển khoản)|thanh toán khi nhận)/u', $text)) {
+            return '<b>Shop hỗ trợ 2 hình thức thanh toán:</b><br>'
+                . '• <b>COD</b> – thanh toán bằng tiền mặt khi nhận hàng.<br>'
+                . '• <b>VNPay</b> – thanh toán online qua thẻ ATM/ngân hàng, ví điện tử, QR.<br>'
+                . 'Bạn chọn hình thức thanh toán ở bước đặt hàng. Đơn VNPay được xử lý sau khi thanh toán thành công.';
+        }
+        if (preg_match('/(shop ở đâu|cửa hàng ở đâu|địa chỉ (?:shop|cửa hàng|của shop)|shop nằm ở|mua trực tiếp|đến cửa hàng|chỉ đường|hotline|số điện thoại (?:shop|cửa hàng|của shop)|sđt shop|liên hệ (?:shop|cửa hàng|với shop)|email (?:shop|cửa hàng)|giờ mở cửa|mở cửa (?:lúc|mấy giờ|đến)|làm việc mấy giờ)/u', $text)) {
+            return '<b>Thông tin cửa hàng Badminton ProShop:</b><br>'
+                . '• Địa chỉ: ' . self::DIA_CHI . '<br>'
+                . '• Hotline: <b>' . self::HOTLINE . '</b><br>'
+                . '• Email: ' . self::EMAIL . '<br>'
+                . '• Thời gian hỗ trợ: ' . self::GIO_HO_TRO . '<br>'
+                . 'Xem bản đồ chỉ đường tại trang <a href="/lien-he">Liên hệ</a> nhé.';
+        }
+        if (preg_match('/(chính hãng|hàng thật|hàng giả|hàng fake|hàng auth|hàng nhái)/u', $text) && !preg_match('/(tư vấn|nên mua|chọn)/u', $text)) {
+            return 'Dạ, toàn bộ sản phẩm tại Badminton ProShop là <b>hàng chính hãng</b> từ Yonex, Victor, Lining, Mizuno, có tem và được bảo hành theo chính sách của hãng. Bạn yên tâm mua sắm nhé!';
+        }
+
+        // --- Kiến thức cầu lông ---
+        if (preg_match('/(căng (?:vợt|cước|dây|lưới)|bao nhiêu (?:kg|lbs|pound|cân)|mức căng|độ căng|nên căng)/u', $text)
+            && !preg_match('/(mức căng tối đa)/u', $text)) {
+            return '<b>Mức căng cước nên dùng</b> (1 kg ≈ 2,2 lbs):<br>'
+                . '• Người mới chơi / lực tay yếu: <b>20–24 lbs</b> (khoảng 9–11 kg) – cầu đi nhẹ, đỡ đau tay.<br>'
+                . '• Trình độ nâng cao: <b>22–26 lbs</b> (khoảng 10–12 kg).<br>'
+                . '• Chuyên nghiệp, lực tay khỏe: <b>24–28 lbs</b> (khoảng 11–13 kg) – cầu chính xác, cảm giác đanh.<br>'
+                . 'Căng càng cao thì cầu càng chính xác nhưng càng cần lực tay tốt. Luôn căng <b>không vượt quá mức căng tối đa</b> ghi trên thân vợt để tránh gãy khung.';
+        }
+        $isKnowledge = preg_match('/(là gì|là sao|là như nào|khác nhau|khác gì|khác biệt|nghĩa là|thế nào là|ý nghĩa|hiểu thế nào|có tác dụng gì|dùng để làm gì|nên chọn loại nào giữa)/u', $text) === 1;
+        if ($isKnowledge && preg_match('/(điểm cân bằng|balance)/u', $text) && !preg_match('/(đầu nặng|đầu nhẹ)/u', $text)) {
+            return '<b>Điểm cân bằng</b> là vị trí trọng tâm của cây vợt, cho biết trọng lượng dồn về đầu vợt hay về cán:<br>'
+                . '• <b>Đầu nặng</b> (head heavy): trọng lượng dồn lên đầu, đập cầu uy lực – hợp lối chơi tấn công.<br>'
+                . '• <b>Cân bằng</b> (even balance): cân đối giữa công và thủ – hợp lối chơi toàn diện, dễ làm quen.<br>'
+                . '• <b>Đầu nhẹ</b> (head light): vợt xoay trở nhanh, phản tạt, đỡ cầu tốt – hợp lối chơi phòng thủ, đánh đôi.<br>'
+                . 'Bạn cho mình biết trình độ và lối chơi, mình sẽ tư vấn cây vợt có điểm cân bằng phù hợp nhé.';
+        }
+        if ($isKnowledge) {
+            $faq = $this->timKiemFAQ($text);
+            if ($faq !== null) {
+                return $faq;
+            }
+        }
+
         return null;
     }
 
@@ -3236,9 +3489,9 @@ class ChatbotService
                 }
             }
 
-            return "Dạ, hiện tại AI đang xử lý hơi nhiều yêu cầu. Bạn cần hỗ trợ gấp có thể liên hệ Hotline cửa hàng nhé!";
+            return $this->traLoiKhiKhongHieu();
         } catch (Exception $e) {
-            return "Xin lỗi bạn, máy chủ tư vấn đang tạm gián đoạn kết nối. Bạn thử lại sau ít phút nhé!";
+            return $this->traLoiKhiKhongHieu();
         }
     }
 

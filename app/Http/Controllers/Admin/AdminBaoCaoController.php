@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\OrderService;
 use App\Services\XlsxWriter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -44,6 +45,9 @@ class AdminBaoCaoController extends Controller
             ['Tổng tiền hàng (VNĐ)', $data['tongTienHang'], 'total_money'],
             ['Giảm giá từ mã khuyến mãi (VNĐ)', $data['tongGiamGia'], 'total_money'],
             ['Doanh thu thực nhận (VNĐ)', $data['tongDoanhThu'], 'total_money'],
+            ['Số đơn khách trả hàng', $data['soDonHoanTra'], 'total_int'],
+            ['Giá trị hàng bị trả (VNĐ)', $data['giaTriHoanTra'], 'total_money'],
+            ['Tỷ lệ trả hàng', $data['tyLeHoanTra'], 'total_percent'],
         ];
         foreach ($tongQuan as [$label, $value, $style]) {
             $row = $xlsx->addRow([['v' => $label, 's' => 'label'], null, null, null, ['v' => (float) $value, 's' => $style]]);
@@ -127,6 +131,17 @@ class AdminBaoCaoController extends Controller
             ->selectRaw('COUNT(*) as SoDon, COALESCE(SUM(ThanhTien), 0) as DoanhThu, COALESCE(SUM(TongTien), 0) as TienHang, COALESCE(SUM(TienGiam), 0) as GiamGia')
             ->first();
 
+        // Đơn khách đã trả hàng (shop đã nhận lại hàng) trong cùng khoảng ngày đặt
+        $hoanTra = DB::table('donhang')
+            ->where('TrangThaiDon', 'DaHuy')
+            ->where('GhiChu', 'like', '%' . OrderService::TRA_HANG_DA_NHAN . '%')
+            ->whereBetween('NgayDat', $khoang)
+            ->selectRaw('COUNT(*) as SoDon, COALESCE(SUM(ThanhTien), 0) as GiaTri')
+            ->first();
+        $soDonHoanTra = (int) $hoanTra->SoDon;
+        // Tỷ lệ trả hàng = đơn bị trả / (đơn đang hoàn thành + đơn bị trả) = trên tổng đơn đã giao thành công
+        $daGiao = (int) $tongQuan->SoDon + $soDonHoanTra;
+
         $sanPhams = DB::table('chitietdonhang')
             ->join('donhang', 'chitietdonhang.ID_DonHang', '=', 'donhang.ID_DonHang')
             ->join('sanpham', 'chitietdonhang.ID_SanPham', '=', 'sanpham.ID_SanPham')
@@ -153,6 +168,9 @@ class AdminBaoCaoController extends Controller
             'tongTienHang' => (float) $tongQuan->TienHang,
             'tongGiamGia' => (float) $tongQuan->GiamGia,
             'tongSoLuong' => (int) $sanPhams->sum('TongSoLuongBan'),
+            'soDonHoanTra' => $soDonHoanTra,
+            'giaTriHoanTra' => (float) $hoanTra->GiaTri,
+            'tyLeHoanTra' => $daGiao > 0 ? round($soDonHoanTra / $daGiao * 100, 1) : 0.0,
             'sanPhams' => $sanPhams,
             'nguoiLap' => (string) (session('HoTen') ?: 'Quản trị viên'),
         ];

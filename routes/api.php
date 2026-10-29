@@ -25,4 +25,5 @@ Route::middleware('web')->group(function () {
     Route::get('/don-hang', [DonHangController::class, 'danhSach']);
     Route::get('/don-hang/{id}', [DonHangController::class, 'chiTiet'])->whereNumber('id');
     Route::post('/don-hang/{id}/huy', [DonHangController::class, 'huy'])->whereNumber('id');
+    Route::post('/don-hang/{id}/tra-hang', [DonHangController::class, 'yeuCauTraHang'])->whereNumber('id');
 });
