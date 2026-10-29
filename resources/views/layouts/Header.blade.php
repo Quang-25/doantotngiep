@@ -198,15 +198,11 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link sale" href="#">Flash Sale</a>
-                    </li>
-
-                    <li class="nav-item">
                         <a class="nav-link" href="{{ route('tintuc.index') }}">Tin tức</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Liên hệ</a>
+                        <a class="nav-link" href="{{ route('lienhe') }}">Liên hệ</a>
                     </li>
 
                 </ul>

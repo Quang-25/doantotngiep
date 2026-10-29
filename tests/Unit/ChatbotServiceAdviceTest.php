@@ -238,4 +238,74 @@ class ChatbotServiceAdviceTest extends TestCase
         $g4 = (object) ['TrinhDoPhuHop' => 'MoiChoi', 'TrongLuong' => '5U', 'DiemCanBang' => 'Cân bằng', 'DoCung' => 'Dẻo', 'ChuViTayCam' => 'G4', 'MucCangToiDa' => '20-26 lbs'];
         $this->assertGreaterThan($this->call('diemTheoHoSoVot', $g4, $profile), $this->call('diemTheoHoSoVot', $g5, $profile));
     }
+
+    public function test_picking_from_the_listed_products_is_detected(): void
+    {
+        $this->assertTrue($this->call('laChonTrongMauDaGoiY', 'tôi chơi ở trình độ chuyên nghiệp chọn cho tôi trong các mẫu bên trên'));
+        $this->assertTrue($this->call('laChonTrongMauDaGoiY', 'trong mấy cây vừa gợi ý thì nên lấy cây nào'));
+        $this->assertFalse($this->call('laChonTrongMauDaGoiY', 'so sánh các mẫu bên trên'));
+        $this->assertFalse($this->call('laChonTrongMauDaGoiY', 'tư vấn vợt cho người mới chơi'));
+    }
+
+    public function test_asking_for_rackets_by_level_lists_them_then_keeps_the_level(): void
+    {
+        // Lịch sử: khách hỏi danh sách vợt chuyên nghiệp, chatbot liệt kê rồi hỏi lối chơi; khách trả lời tiêu chí.
+        $session = $this->call('layPhienTuVan', [
+            ['sender' => 'KhachHang', 'content' => 'cho tôi các loại vợt phù hợp với người chơi chuyên nghiệp'],
+            ['sender' => 'Chatbot', 'content' => 'Dạ, đây là các mẫu vợt...<!--tuvan:vot:loi_choi-->'],
+            ['sender' => 'KhachHang', 'content' => 'tôi đánh tấn công, ngân sách 5 triệu'],
+        ]);
+
+        // Câu trả lời chỉ có tiêu chí phải được ghi vào phiên cũ, không làm mất trình độ đã nói.
+        $this->assertSame('vot', $session['loai']);
+        $this->assertStringContainsString('chuyên nghiệp', $session['request']);
+        $this->assertStringContainsString('tấn công', $session['request']);
+        $kept = $this->call('layPhienTuVan', [
+            ['sender' => 'KhachHang', 'content' => 'cho tôi các loại vợt phù hợp với người chơi chuyên nghiệp'],
+            ['sender' => 'Chatbot', 'content' => 'Dạ, đây là các mẫu vợt...<!--tuvan:vot:loi_choi-->'],
+        ]);
+        $this->assertSame('vot', $kept['loai']);
+        $this->assertSame('loi_choi', $kept['slot']);
+        $updated = $this->call('ghiNhanTraLoiTuVan', $kept, 'tôi đánh tấn công, ngân sách 5 triệu');
+        $this->assertStringContainsString('chuyên nghiệp', $updated['request']);
+        $this->assertStringContainsString('tấn công', $updated['request']);
+    }
+
+    public function test_switching_item_restarts_advice_with_only_personal_info_kept(): void
+    {
+        // Câu hỏi lại nhu cầu khi đổi món có kèm nhu cầu đã gom (giữ số đo) => câu trả lời sau ghép vào đó.
+        $carried = 'nặng 50kg nữ tôi muốn tìm thêm một cái váy';
+        $session = $this->call('layPhienTuVan', [
+            ['sender' => 'KhachHang', 'content' => 'còn váy thì sao'],
+            ['sender' => 'Chatbot', 'content' => 'Dạ, mình chuyển sang tư vấn váy...<!--tuvan:quan_ao:qa_nhu_cau--><!--tuvan-yeucau:' . base64_encode($carried) . '-->'],
+            ['sender' => 'KhachHang', 'content' => 'cần có quần bảo hộ'],
+        ]);
+
+        $this->assertSame('quan_ao', $session['loai']);
+        $this->assertSame('qa_nhu_cau', $session['slot']);
+        $this->assertStringContainsString('nặng 50kg', $session['request']);
+        $this->assertStringContainsString('bảo hộ', $session['request']);
+    }
+
+    public function test_clothing_questions_start_needs_based_advice(): void
+    {
+        $this->assertSame('quan_ao', $this->call('layLoaiTuVanBatDau', 'tôi đang 40kg nên mặc áo size gì'));
+        $this->assertSame('quan_ao', $this->call('layLoaiTuVanBatDau', 'tư vấn váy cầu lông cho tôi'));
+        $this->assertSame('bo', $this->call('layLoaiQuanAo', 'tư vấn quần áo cầu lông'));
+        $this->assertSame('ao_khoac', $this->call('layLoaiQuanAo', 'cần áo hoodie giữ ấm'));
+        $this->assertSame('vay', $this->call('layLoaiQuanAo', 'váy có quần trong không'));
+    }
+
+    public function test_clothing_size_is_read_and_estimated_from_body_measurements(): void
+    {
+        $this->assertSame(40, $this->call('layCanNang', 'tôi đang 40kg'));
+        $this->assertSame(158, $this->call('layChieuCao', 'cao 1m58'));
+        $this->assertSame(160, $this->call('layChieuCao', 'tôi 1m6'));
+        $this->assertSame('M', $this->call('laySizeQuanAo', 'tôi hay mặc size m'));
+        $this->assertNull($this->call('laySizeQuanAo', 'nên mặc size gì'));
+        $this->assertSame('L', $this->call('tinhSizeTheoBang', 'nam', 68, 172));
+        $this->assertSame('M', $this->call('tinhSizeTheoBang', 'nu', 50, 158));
+        $this->assertSame('XS', $this->call('tinhSizeTheoBang', 'nu', 40, null));
+        $this->assertSame('nu', $this->call('layGioiTinh', 'nữ, mặc đi tập'));
+    }
 }

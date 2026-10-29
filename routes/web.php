@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ThanhToanController;
 use App\Http\Controllers\TinTucController;
 use App\Http\Controllers\DonHangController;
+use App\Http\Controllers\LienHeController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminSanPhamController;
 use App\Http\Controllers\Admin\AdminKhachHangController;
@@ -51,6 +52,10 @@ Route::get('/san-pham/{id}', [SanPhamController::class, 'chiTietSanPham'])->name
 // Đơn mua của khách hàng (theo dõi trạng thái đơn)
 Route::get('/don-hang', [DonHangController::class, 'trang'])->name('donhang');
 
+// Liên hệ: phản hồi gửi thẳng về Gmail của shop (không lưu database)
+Route::get('/lien-he', [LienHeController::class, 'trang'])->name('lienhe');
+Route::post('/lien-he', [LienHeController::class, 'gui'])->name('lienhe.gui');
+
 Route::get('/tin-tuc-khuyen-mai', [TinTucController::class, 'index'])->name('tintuc.index');
 Route::get('/tin-tuc/{id}', [TinTucController::class, 'show'])->name('tintuc.show');
 
@@ -92,7 +97,7 @@ Route::prefix('admin')->middleware(['admin.auth'])->group(function () {
     Route::post('/api/khuyen-mai/{id}', [AdminKhuyenMaiController::class, 'suaKhuyenMai']);
     Route::post('/api/khuyen-mai/trang-thai/{id}', [AdminKhuyenMaiController::class, 'doiTrangThai']);
 
-    Route::get('/bao-cao', [AdminBaoCaoController::class, 'baoCao']);
-   Route::get('/bao-cao', [AdminBaoCaoController::class, 'thongKeBaoCao']);
+    Route::get('/bao-cao', [AdminBaoCaoController::class, 'thongKeBaoCao']);
     Route::get('/bao-cao/xuat-excel', [AdminBaoCaoController::class, 'xuatExcel']);
+    Route::get('/bao-cao/in-phieu', [AdminBaoCaoController::class, 'inPhieu']);
 });
