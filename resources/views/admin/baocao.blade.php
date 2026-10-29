@@ -5,10 +5,16 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="fw-bold m-0">Báo Cáo & Thống Kê</h3>
         
-        <!-- NÚT XUẤT EXCEL -->
-        <a href="/admin/bao-cao/xuat-excel?tu_ngay={{ $tuNgay }}&den_ngay={{ $denNgay }}" class="btn btn-success fw-bold">
-            <i class="fas fa-file-excel"></i> Xuất Báo Cáo Excel
-        </a>
+        <div class="d-flex gap-2">
+            <!-- NÚT XUẤT EXCEL -->
+            <a href="{{ url('/admin/bao-cao/xuat-excel') }}?tu_ngay={{ $tuNgay }}&den_ngay={{ $denNgay }}" class="btn btn-success fw-bold">
+                <i class="fas fa-file-excel"></i> Xuất Báo Cáo Excel
+            </a>
+            <!-- NÚT IN PHIẾU THỐNG KÊ -->
+            <a href="{{ url('/admin/bao-cao/in-phieu') }}?tu_ngay={{ $tuNgay }}&den_ngay={{ $denNgay }}" target="_blank" rel="noopener" class="btn btn-outline-dark fw-bold">
+                <i class="fas fa-print"></i> In Phiếu Thống Kê
+            </a>
+        </div>
     </div>
 
     <!-- BỘ LỌC NGÀY THÁNG -->

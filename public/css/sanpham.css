@@ -38,6 +38,48 @@
     border-radius: 7px;
 }
 
+/* Bộ lọc dài: cuộn trong khung khi dính trên màn hình lớn */
+@media (min-width: 992px) {
+    .filter-section {
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
+    }
+}
+
+.filter-section .form-check-label {
+    font-size: 14px;
+}
+
+.filter-price-range {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.filter-price-range .form-control {
+    min-width: 0;
+    padding: 6px 8px;
+}
+
+.filter-group {
+    border-top: 1px dashed #e5e5e5;
+    padding-top: 12px;
+}
+.filter-group-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1D4ED8;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 8px;
+}
+.filter-actions .btn-primary {
+    flex: 1;
+}
+
 
 /* ================= TIÊU ĐỀ SẢN PHẨM ================= */
 
@@ -206,9 +248,13 @@
     }
 
     .filter-section form .btn {
-        grid-column: 1 / -1;
         padding: 8px;
         font-size: 13px;
+    }
+
+    .filter-section form .filter-actions,
+    .filter-section form .filter-group {
+        grid-column: 1 / -1;
     }
 }
 

@@ -4,33 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadSanPham() { 
         if (!list) return; 
         
-        // 1. ĐỌC THAM SỐ TỪ URL (Menu truyền xuống)
-        const urlParams = new URLSearchParams(window.location.search); 
-        const search = urlParams.get('search'); 
-        const danhMucUrl = urlParams.get('danh_muc'); 
-        const thuongHieuUrl = urlParams.get('thuong_hieu');
-        const trinhDoUrl = urlParams.get('trinh_do');
-
-        // ĐỌC THAM SỐ TỪ BỘ LỌC (Form bên trái)
-        const danhMucForm = document.querySelector('[name="danhmuc"]'); 
-        const thuongHieuForm = document.querySelector('[name="thuonghieu"]'); 
-        const gia = document.querySelector('[name="gia"]'); 
-
-        // 2. GỘP CHUNG VÀO 1 PARAMS ĐỂ GỬI API
-        const params = new URLSearchParams(); 
-        
-        if (search) params.append('search', search); 
-        
-        // Ưu tiên lấy từ Form lọc trước, nếu không có mới lấy từ URL Menu
-        const finalDanhMuc = (danhMucForm && danhMucForm.value) ? danhMucForm.value : danhMucUrl;
-        if (finalDanhMuc) params.append('danh_muc', finalDanhMuc); 
-        
-        const finalThuongHieu = (thuongHieuForm && thuongHieuForm.value) ? thuongHieuForm.value : thuongHieuUrl;
-        if (finalThuongHieu) params.append('thuong_hieu', finalThuongHieu); 
-
-        if (trinhDoUrl) params.append('trinh_do', trinhDoUrl);
-
-        if (gia && gia.value) params.append('gia', gia.value); 
+        // Tham số lọc lấy từ URL (form lọc đã đồng bộ vào URL khi bấm "Áp dụng lọc")
+        const params = buildApiParams();
 
         try { 
             const res = await fetch(`/api/sanpham?${params.toString()}`, { 
@@ -178,28 +153,94 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Intl.NumberFormat('vi-VN').format(price); 
     } 
 
-    const form = document.querySelector('.filter-section form'); 
-    if (form) { 
-        form.addEventListener('submit', event => { 
-            event.preventDefault(); 
-            const params = new URLSearchParams(window.location.search); 
-            const danhMuc = document.querySelector('[name="danhmuc"]'); 
-            const thuongHieu = document.querySelector('[name="thuonghieu"]'); 
-            const gia = document.querySelector('[name="gia"]'); 
+    // ================= BỘ LỌC =================
+    const form = document.querySelector('.filter-section form');
+    // Tên ô trong form => tên tham số trên URL / API
+    const FILTER_FIELDS = {
+        sap_xep: 'sap_xep', danhmuc: 'danh_muc', thuonghieu: 'thuong_hieu', gia: 'gia',
+        gia_tu: 'gia_tu', gia_den: 'gia_den', giam_gia: 'giam_gia', con_hang: 'con_hang',
+        trinh_do: 'trinh_do', trong_luong: 'trong_luong', can_bang: 'can_bang', do_cung: 'do_cung',
+        co_can: 'co_can', size: 'size',
+    };
+    const API_KEYS = ['search', ...Object.values(FILTER_FIELDS)];
 
-            if (danhMuc && danhMuc.value) params.set('danh_muc', danhMuc.value); 
-            else params.delete('danh_muc'); 
+    function buildApiParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const params = new URLSearchParams();
+        API_KEYS.forEach(key => {
+            const value = urlParams.get(key);
+            if (value) params.set(key, value);
+        });
+        return params;
+    }
 
-            if (thuongHieu && thuongHieu.value) params.set('thuong_hieu', thuongHieu.value); 
-            else params.delete('thuong_hieu'); 
+    // Hiện nhóm "Thông số vợt" / "Size" theo danh mục đang chọn; nhóm bị ẩn thì xóa giá trị.
+    function capNhatNhomLoc() {
+        if (!form) return;
+        const danhMuc = form.elements.danhmuc.value;
+        form.querySelectorAll('.filter-group').forEach(group => {
+            const show = danhMuc !== '' && group.dataset.showFor.split(',').includes(danhMuc);
+            group.hidden = !show;
+            if (!show) group.querySelectorAll('select, input').forEach(el => { el.value = ''; });
+        });
+        form.querySelectorAll('#loc-size optgroup').forEach(group => {
+            group.hidden = danhMuc !== '' && !group.dataset.for.split(',').includes(danhMuc);
+        });
+    }
 
-            if (gia && gia.value) params.set('gia', gia.value); 
-            else params.delete('gia'); 
+    // Điền lại form từ URL (menu "Vợt", "Yonex", "trình độ"... hoặc khi tải lại trang)
+    function dongBoFormTuUrl() {
+        if (!form) return;
+        const urlParams = new URLSearchParams(window.location.search);
+        Object.entries(FILTER_FIELDS).forEach(([field, key]) => {
+            const input = form.elements[field];
+            if (!input) return;
+            const value = urlParams.get(key) || '';
+            if (input.type === 'checkbox') input.checked = value === '1';
+            else input.value = value;
+        });
+        // Danh mục từ menu dạng "3,5" (quần áo + váy) không có trong ô chọn => ô để trống, vẫn lọc theo URL
+        capNhatNhomLoc();
+    }
 
-            window.history.pushState({}, '', `/sanpham?${params.toString()}`); 
-            loadSanPham(); 
-        }); 
-    } 
+    if (form) {
+        form.elements.danhmuc.addEventListener('change', capNhatNhomLoc);
+        // Chọn mức giá sẵn thì xóa ô tự nhập để không bị lẫn
+        form.elements.gia.addEventListener('change', () => { form.elements.gia_tu.value = ''; form.elements.gia_den.value = ''; });
+
+        form.addEventListener('submit', event => {
+            event.preventDefault();
+            const current = new URLSearchParams(window.location.search);
+            const params = new URLSearchParams();
+            if (current.get('search')) params.set('search', current.get('search'));
+            // Danh mục nhiều giá trị từ menu (vd 3,5) được giữ nếu khách không chọn danh mục khác
+            if (!form.elements.danhmuc.value && (current.get('danh_muc') || '').includes(',')) {
+                params.set('danh_muc', current.get('danh_muc'));
+            }
+
+            Object.entries(FILTER_FIELDS).forEach(([field, key]) => {
+                const input = form.elements[field];
+                if (!input || input.closest('.filter-group')?.hidden) return;
+                const value = input.type === 'checkbox' ? (input.checked ? '1' : '') : input.value.trim();
+                if (value) params.set(key, value);
+            });
+            // Ô tự nhập giá ưu tiên hơn mức chọn sẵn
+            if (params.get('gia_tu') || params.get('gia_den')) params.delete('gia');
+
+            window.history.pushState({}, '', `/sanpham?${params.toString()}`);
+            loadSanPham();
+        });
+
+        document.getElementById('btn-xoa-loc')?.addEventListener('click', () => {
+            const search = new URLSearchParams(window.location.search).get('search');
+            window.history.pushState({}, '', '/sanpham' + (search ? `?search=${encodeURIComponent(search)}` : ''));
+            dongBoFormTuUrl();
+            loadSanPham();
+        });
+    }
+
+    // Nút Back/Forward của trình duyệt
+    window.addEventListener('popstate', () => { dongBoFormTuUrl(); loadSanPham(); });
 
     const searchBox = document.querySelector('.search-box'); 
     if (searchBox) { 
@@ -235,5 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } 
     } 
 
+    dongBoFormTuUrl();
     loadSanPham(); 
 });

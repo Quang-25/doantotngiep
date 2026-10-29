@@ -1,0 +1,141 @@
+/* ===== Trang Liên hệ ===== */
+.contact-body {
+    background: var(--bg-soft, #F5F8FF);
+    font-family: 'Poppins', sans-serif;
+    color: var(--ink, #101828);
+}
+
+.contact-hero {
+    background: linear-gradient(120deg, var(--primary-dark, #1E3A8A), var(--bs-primary, #1D4ED8));
+    color: #fff;
+    border-radius: 16px;
+    padding: 28px 32px;
+}
+.contact-hero h1 {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+.contact-hero p {
+    margin: 0;
+    opacity: .9;
+    max-width: 720px;
+}
+
+.contact-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 18px rgba(16, 24, 40, .06);
+}
+.contact-card-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 18px;
+}
+
+.contact-info {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.contact-info li {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px dashed #e4e7ec;
+}
+.contact-info li:last-child {
+    border-bottom: 0;
+}
+.contact-info strong {
+    display: block;
+    font-size: 13px;
+    color: #667085;
+    font-weight: 500;
+}
+.contact-info span,
+.contact-info a {
+    font-weight: 500;
+    color: var(--ink, #101828);
+    text-decoration: none;
+    word-break: break-word;
+}
+.contact-info a:hover {
+    color: var(--bs-primary, #1D4ED8);
+}
+.contact-icon {
+    flex: 0 0 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(29, 78, 216, .1);
+    color: var(--bs-primary, #1D4ED8);
+    font-size: 18px;
+}
+
+/* Ô bẫy bot: ẩn khỏi người dùng nhưng bot vẫn thấy trong HTML */
+.contact-hp {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.contact-submit {
+    background: var(--bs-primary, #1D4ED8);
+    color: #fff;
+    border-radius: 10px;
+    padding: 10px 24px;
+    font-weight: 500;
+}
+.contact-submit:hover,
+.contact-submit:focus {
+    background: var(--primary-dark, #1E3A8A);
+    color: #fff;
+}
+.contact-submit:disabled {
+    opacity: .7;
+}
+
+.contact-map {
+    position: relative;
+    width: 100%;
+    padding-top: 42%;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #eef2f7;
+}
+.contact-map iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+.contact-map-link {
+    display: inline-block;
+    margin-top: 12px;
+    color: var(--bs-primary, #1D4ED8);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+@media (max-width: 767.98px) {
+    .contact-hero {
+        padding: 20px;
+    }
+    .contact-hero h1 {
+        font-size: 21px;
+    }
+    .contact-card {
+        padding: 18px;
+    }
+    .contact-map {
+        padding-top: 75%;
+    }
+}

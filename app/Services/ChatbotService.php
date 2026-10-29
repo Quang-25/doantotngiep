@@ -23,6 +23,21 @@ class ChatbotService
     {
         $messageLower = mb_strtolower(trim($message));
 
+        // 0. CHỌN TRONG CÁC MẪU VỪA GỢI Ý ("tôi chơi chuyên nghiệp, chọn cho tôi trong các mẫu bên trên")
+        if ($this->laChonTrongMauDaGoiY($messageLower)) {
+            $pickReply = $this->chonTrongMauDaGoiY($message, $history);
+            if ($pickReply !== null) {
+                return $pickReply;
+            }
+        }
+
+        // 0'. HỎI DANH SÁCH VỢT THEO TRÌNH ĐỘ ("cho tôi các loại vợt phù hợp người chơi chuyên nghiệp")
+        // => chỉ liệt kê vợt đúng trình độ, rồi hỏi tiếp lối chơi / ngân sách để tư vấn chọn một cây.
+        $levelListReply = $this->lietKeVotTheoTrinhDo($message, $messageLower);
+        if ($levelListReply !== null) {
+            return $levelListReply;
+        }
+
         // 0a. KỊCH BẢN SO SÁNH SẢN PHẨM (hai mẫu khách nêu tên, các mẫu vừa tư vấn, hoặc ngẫu nhiên)
         if ($this->laYeuCauSoSanh($messageLower)) {
             $comparison = $this->soSanhSanPham($message, $messageLower, $history);
@@ -128,6 +143,7 @@ class ChatbotService
         'vot' => ['trinh_do', 'loi_choi', 'ngan_sach', 'chi_tiet'],
         'giay' => ['giay_size', 'giay_nhu_cau', 'ngan_sach'],
         'phu_kien' => ['pk_loai', 'pk_nhu_cau'],
+        'quan_ao' => ['qa_loai', 'qa_size', 'qa_nhu_cau'],
     ];
 
     // Ý hỏi thêm cho sâu: nếu khách nói đủ ý chính ngay câu đầu thì tư vấn luôn và chỉ mời bổ sung.
@@ -143,6 +159,9 @@ class ChatbotService
         'giay_nhu_cau' => 'nhu cầu chung',
         'pk_loai' => 'bộ phụ kiện cơ bản',
         'pk_nhu_cau' => 'nhu cầu chung',
+        'qa_loai' => 'bộ quần áo',
+        'qa_size' => 'size chưa rõ',
+        'qa_nhu_cau' => 'nhu cầu chung',
     ];
 
     private const THUONG_HIEU_PATTERN = '/(yonex|victor|lining|li-ning|mizuno|kumpoo|kawasaki|apacs|vnb)/iu';
@@ -166,6 +185,18 @@ class ChatbotService
         ['for' => ['bao_vot'], 'label' => 'đựng vợt và phụ kiện', 'need' => '/(nhiều đồ|nhiều vợt|\d+\s*(?:cây\s*)?vợt|giày|quần áo|ngăn|đựng)/iu', 'desc' => ['đựng', 'ngăn', 'phụ kiện']],
         ['for' => ['qua_cau'], 'label' => 'cầu bền, đánh ngoài trời', 'need' => '/(ngoài trời|cầu nhựa|nhựa|tập)/iu', 'desc' => ['nhựa', 'ngoài trời', 'độ bền']],
         ['for' => ['qua_cau'], 'label' => 'đường cầu chuẩn', 'need' => '/(trong nhà|lông vũ|thi đấu|chuẩn)/iu', 'desc' => ['tốc độ bay', 'cao cấp']],
+        ['for' => ['quan_ao'], 'label' => 'thấm hút mồ hôi, thoáng mát', 'need' => '/(thấm hút|mồ hôi|(?<!\p{L})mát(?!\p{L})|thoáng|nóng|tập luyện|đi tập)/iu', 'desc' => ['thấm hút', 'mát', 'thoáng']],
+        ['for' => ['quan_ao'], 'label' => 'co giãn, thoải mái vận động', 'need' => '/(co giãn|thoải mái|vận động|dễ chịu|mềm|bật nhảy)/iu', 'desc' => ['co giãn', 'thoải mái', 'mềm mại', 'êm ái']],
+        ['for' => ['quan_ao'], 'label' => 'giữ ấm, chống lạnh', 'need' => '/(giữ ấm|(?<!\p{L})ấm(?!\p{L})|lạnh|mùa đông|chống gió|khởi động)/iu', 'desc' => ['chống lạnh', 'lót bông', 'giữ ấm', '2 lớp']],
+        ['for' => ['quan_ao'], 'label' => 'lớp bảo hộ bên trong', 'need' => '/(bảo hộ|kín đáo|tự tin|(?<!\p{L})lộ(?!\p{L})|quần trong)/iu', 'desc' => ['bảo hộ', 'tự tin']],
+        ['for' => ['quan_ao'], 'label' => 'hợp thi đấu', 'need' => '/(thi đấu|đấu giải|(?<!\p{L})giải(?!\p{L})|lên sân)/iu', 'desc' => ['thi đấu', 'lên sân']],
+        ['for' => ['quan_ao'], 'label' => 'giá phải chăng', 'need' => '/((?<!\p{L})rẻ|giá mềm|phải chăng|tiết kiệm|sinh viên)/iu', 'desc' => ['phải chăng', 'giá rẻ', 'giá tốt']],
+    ];
+
+    // Bảng size đồ thể thao (đến cân nặng kg / chiều cao cm thì mặc size đó).
+    private const BANG_SIZE_QUAN_AO = [
+        'nam' => ['S' => [55, 165], 'M' => [62, 170], 'L' => [70, 175], 'XL' => [78, 180], 'XXL' => [999, 999]],
+        'nu' => ['XS' => [42, 150], 'S' => [48, 155], 'M' => [54, 160], 'L' => [60, 165], 'XL' => [66, 170], 'XXL' => [999, 999]],
     ];
 
     // ---------- Đọc nhu cầu từ câu chữ của khách (câu nói sau ghi đè câu nói trước) ----------
@@ -426,6 +457,11 @@ class ChatbotService
 
             return $criteriaCount >= 2 || ($asksAdvice && ($hasLevel || $hasStyle)) ? 'vot' : null;
         }
+        // Quần áo / váy: hỏi tư vấn hoặc hỏi size ("40kg nên mặc áo size gì") => tư vấn theo nhu cầu.
+        if ($this->layLoaiSanPhamNhacToi($message) === 'quan_ao'
+            && ($asksAdvice || preg_match('/(size|kích cỡ|(?<!\p{L})cỡ|\d\s*(?:kg|ký|kí|cân)|cân nặng|chiều cao|nên mặc|mặc gì|mặc vừa)/iu', $message) === 1)) {
+            return 'quan_ao';
+        }
         if (!$asksAdvice) {
             return null;
         }
@@ -469,6 +505,11 @@ class ChatbotService
             'pk_loai' => fn () => $this->layLoaiPhuKien($lower) !== 'tat_ca'
                 || preg_match('/(bộ phụ kiện cơ bản|bộ cơ bản|đủ bộ|tất cả|mấy món|những gì|phụ kiện gì|cần gì|cần thêm|đi kèm)/iu', $lower) === 1,
             'pk_nhu_cau' => fn () => preg_match('/(bền|đứt|nảy|tiếng nổ|âm thanh|cảm giác|trợ lực|lực tay|lực yếu|(?<!\p{L})êm(?!\p{L})|đau|mồ hôi|trơn|bám|dày|mỏng|đựng|ngăn|\d+\s*(?:cây\s*)?vợt|ngoài trời|trong nhà|tập|thi đấu|nhựa|lông vũ|lbs|căng|mới chơi|người mới|chơi lâu|nhu cầu chung|chưa có gì|đã có)/iu', $lower) === 1,
+            'qa_loai' => fn () => $this->layLoaiQuanAo($lower) !== null,
+            'qa_size' => fn () => $this->laySizeQuanAo($lower) !== null || $this->layCanNang($lower) !== null
+                || $this->layChieuCao($lower) !== null || str_contains($lower, 'size chưa rõ'),
+            'qa_nhu_cau' => fn () => $this->layNhuCauTheoMoTa('quan_ao', $lower) !== []
+                || preg_match('/(tập|thi đấu|hằng ngày|hàng ngày|đi chơi|mặc thường|mặc nhà|nhu cầu chung|chơi phong trào|giao lưu)/iu', $lower) === 1,
         ];
 
         $state = [];
@@ -486,7 +527,8 @@ class ChatbotService
 
         return in_array(true, $this->layTrangThaiTuVan($loai, $lower), true)
             || preg_match(self::THUONG_HIEU_PATTERN, $lower) === 1
-            || ($loai === 'vot' && ($this->layTheLuc($lower) !== null || $this->muonVotNhe($lower) || $this->layCoCan($lower) !== null));
+            || ($loai === 'vot' && ($this->layTheLuc($lower) !== null || $this->muonVotNhe($lower) || $this->layCoCan($lower) !== null))
+            || ($loai === 'quan_ao' && $this->layGioiTinh($lower) !== null);
     }
 
     // Đổi câu trả lời ngắn ("3 triệu", "42", "cả hai", "không biết"...) thành tiêu chí đọc được.
@@ -514,6 +556,15 @@ class ChatbotService
         if ($slot === 'giay_size' && preg_match('/^\D*?(3[4-9]|4[0-7])\D*$/u', $lower, $matches)) {
             $text .= ' size ' . $matches[1];
         }
+        // Đang hỏi size quần áo: "M" => size M, "45" => nặng 45kg, "160" => cao 160cm.
+        if ($slot === 'qa_size' && $this->laySizeQuanAo($lower) === null && $this->layCanNang($lower) === null && $this->layChieuCao($lower) === null) {
+            if (preg_match('/^\W*(xxl|xl|xs|s|m|l)\W*$/iu', $lower, $matches)) {
+                $text .= ' size ' . mb_strtoupper($matches[1]);
+            } elseif (preg_match('/^\D*?(\d{2,3})\D*$/u', $lower, $matches)) {
+                $number = (int) $matches[1];
+                $text .= $number >= 130 && $number <= 200 ? ' cao ' . $number . 'cm' : ($number >= 25 && $number <= 120 ? ' nặng ' . $number . 'kg' : '');
+            }
+        }
         if ($slot === 'chi_tiet' && $this->layTheLuc($lower) === null) {
             if (preg_match('/(khỏe|khoẻ|mạnh)/iu', $lower)) {
                 $text .= ' lực tay tốt';
@@ -537,15 +588,25 @@ class ChatbotService
             $sender = $entry['sender'] ?? null;
             if ($sender === 'KhachHang') {
                 $newType = $this->layLoaiTuVanBatDau(mb_strtolower($content));
-                if (($session['slot'] ?? null) !== null && $newType === null) {
+                // Đang tư vấn quần áo mà khách trả lời có nhắc "áo/quần" => vẫn là câu trả lời, không mở phiên mới.
+                $isClothesAnswer = $newType === 'quan_ao' && ($session['loai'] ?? null) === 'quan_ao';
+                // Đang tư vấn vợt, khách chỉ kể tiêu chí (không nhắc loại sản phẩm) => là câu trả lời, giữ thông tin cũ.
+                $isRacketCriteriaAnswer = $newType === 'vot' && ($session['loai'] ?? null) === 'vot'
+                    && $this->layLoaiSanPhamNhacToi(mb_strtolower($content)) === null;
+                if (($session['slot'] ?? null) !== null && ($newType === null || $isClothesAnswer || $isRacketCriteriaAnswer)) {
                     $session = $this->ghiNhanTraLoiTuVan($session, $content);
                 } else {
                     $session = ['loai' => $newType, 'request' => $this->chuanHoaTraLoiTuVan($content, null), 'skipped' => [], 'slot' => null];
                 }
                 continue;
             }
+            // Câu hỏi có kèm nhu cầu đã gom sẵn => phiên bắt đầu từ nhu cầu đó.
+            if ($sender === 'Chatbot' && preg_match('/<!--tuvan:(vot|giay|phu_kien|quan_ao):(\w+)--><!--tuvan-yeucau:([A-Za-z0-9+\/=]+)-->/', $content, $matches)) {
+                $session = ['loai' => $matches[1], 'request' => (string) base64_decode($matches[3], true), 'skipped' => [], 'slot' => $matches[2]];
+                continue;
+            }
             if ($sender === 'Chatbot' && $session !== null) {
-                if (preg_match('/<!--tuvan:(vot|giay|phu_kien):(\w+)-->/', $content, $matches)) {
+                if (preg_match('/<!--tuvan:(vot|giay|phu_kien|quan_ao):(\w+)-->/', $content, $matches)) {
                     $session['loai'] = $matches[1];
                     $session['slot'] = $matches[2];
                 } else {
@@ -598,7 +659,8 @@ class ChatbotService
         }
         // Khách nêu một nhu cầu mới => bắt đầu lại từ nhu cầu đó.
         $newType = $this->layLoaiTuVanBatDau($lower);
-        if ($newType !== null) {
+        $isRacketCriteriaAnswer = $newType === 'vot' && $loai === 'vot' && $this->layLoaiSanPhamNhacToi($lower) === null;
+        if ($newType !== null && !($newType === 'quan_ao' && $loai === 'quan_ao') && !$isRacketCriteriaAnswer) {
             return $this->tiepTucTuVan($newType, $this->chuanHoaTraLoiTuVan($message, null), false, false, true);
         }
         // Khách chuyển sang hỏi loại sản phẩm khác => thoát phiên (riêng phụ kiện thì được nhắc tới vợt).
@@ -636,7 +698,9 @@ class ChatbotService
         string $request,
         bool $afterSideQuestion = false,
         bool $notUnderstood = false,
-        bool $isFirstTurn = false
+        bool $isFirstTurn = false,
+        ?string $lead = null,
+        bool $ghiNhoYeuCau = false
     ): string {
         $state = $this->layTrangThaiTuVan($loai, $request);
         $missing = array_values(array_filter(self::KICH_BAN_TU_VAN[$loai], fn ($slot) => !$state[$slot]));
@@ -649,7 +713,7 @@ class ChatbotService
         }
 
         $known = $this->tomTatNhuCau($loai, $request);
-        $prefix = $notUnderstood ? 'Dạ, mình chưa rõ ý bạn lắm. Bạn kể thêm giúp mình nhé: ' : 'Dạ, ';
+        $prefix = $notUnderstood ? 'Dạ, mình chưa rõ ý bạn lắm. Bạn kể thêm giúp mình nhé: ' : ($lead ?? 'Dạ, ');
 
         // Vợt, khách chưa nói gì về nhu cầu: hỏi gộp 3 ý chính.
         if ($loai === 'vot' && $known === '' && !$afterSideQuestion) {
@@ -667,8 +731,14 @@ class ChatbotService
             $intro = $prefix . 'mình đã ghi nhận: <b>' . e($known) . '</b>.'
                 . (count($missing) > 1 ? ' Mình hỏi thêm một chút để tư vấn sát hơn nhé.' : ' Còn một câu nữa thôi ạ.');
         }
+        // Quần áo: đã có cân nặng/chiều cao thì trả lời size sơ bộ ngay, rồi hỏi tiếp để chọn mẫu.
+        if ($loai === 'quan_ao' && ($sizeNote = $this->moTaSizeQuanAo(mb_strtolower($request))) !== null) {
+            $intro .= '<br>' . $sizeNote;
+        }
 
-        return $intro . '<br>' . $this->cauHoiTuVan($slot, $loai, $request) . sprintf('<!--tuvan:%s:%s-->', $loai, $slot);
+        return $intro . '<br>' . $this->cauHoiTuVan($slot, $loai, $request) . sprintf('<!--tuvan:%s:%s-->', $loai, $slot)
+            // Nhu cầu đã gom sẵn (vd: giữ số đo khi đổi món) để câu trả lời sau được ghép đúng.
+            . ($ghiNhoYeuCau ? sprintf('<!--tuvan-yeucau:%s-->', base64_encode($request)) : '');
     }
 
     private function cauHoiTuVan(string $slot, string $loai, string $request): string
@@ -683,6 +753,12 @@ class ChatbotService
             'giay_size' => 'Bạn thường mang giày size bao nhiêu, và bàn chân của bạn bè (rộng) hay thon ạ?',
             'giay_nhu_cau' => 'Bạn hay chơi trên sân nào (thảm, sàn gỗ hay xi măng/ngoài trời), chơi phong trào hay thi đấu, và ưu tiên điều gì nhất ở đôi giày: êm – giảm chấn, nhẹ – linh hoạt, ôm chân – ổn định hay bền? Nếu hay đau gối hoặc cổ chân, bạn nói mình biết nhé.',
             'pk_loai' => 'Bạn đang cần món nào: cước đan vợt, quấn cán, túi đựng vợt, ống cầu, hay muốn mình tư vấn một bộ phụ kiện cơ bản ạ?',
+            'qa_loai' => 'Bạn đang cần áo cầu lông, quần, váy, áo khoác/hoodie giữ ấm, hay cả bộ quần áo ạ?',
+            'qa_size' => 'Bạn cho mình xin cân nặng và chiều cao (ví dụ: 52kg, 1m60) hoặc size bạn hay mặc'
+                . ($this->layGioiTinh(mb_strtolower($request)) === null ? ', và bạn là nam hay nữ' : '') . ' để mình chọn size vừa nhé.',
+            'qa_nhu_cau' => 'Bạn mặc chủ yếu để tập luyện hằng ngày hay đi thi đấu, và ưu tiên điều gì: vải thấm hút – mát, co giãn thoải mái, giữ ấm hay giá mềm?'
+                . ($this->layGioiTinh(mb_strtolower($request)) === null ? ' Bạn là nam hay nữ để mình chọn đúng form ạ?' : '')
+                . ' Nếu có ngân sách dự kiến, bạn nhắn kèm luôn nhé.',
             default => match ($this->layLoaiPhuKien($request)) {
                 'cuoc' => 'Bạn muốn cước bền, ít đứt hay cảm giác nảy, tiếng nổ đanh? Lực tay của bạn thế nào và bạn thường căng khoảng bao nhiêu lbs ạ?',
                 'quan_can' => 'Tay bạn có hay ra mồ hôi, bị trơn khi cầm vợt không? Bạn thích cán cầm dày, chắc tay hay mỏng để cảm giác rõ hơn?',
@@ -737,6 +813,20 @@ class ChatbotService
             foreach ($this->layNhuCauTheoMoTa('giay', $lower) as $need) {
                 $summary[] = 'ưu tiên ' . $need['label'];
             }
+        } elseif ($loai === 'quan_ao') {
+            $type = $this->layLoaiQuanAo($lower);
+            $summary[] = $type !== null ? $this->tenLoaiQuanAo($type) : '';
+            $gender = $this->layGioiTinh($lower);
+            $summary[] = $gender === 'nu' ? 'nữ' : ($gender === 'nam' ? 'nam' : '');
+            $weight = $this->layCanNang($lower);
+            $summary[] = $weight !== null ? 'nặng ' . $weight . 'kg' : '';
+            $height = $this->layChieuCao($lower);
+            $summary[] = $height !== null ? 'cao ' . $height . 'cm' : '';
+            $size = $this->laySizeQuanAo($lower);
+            $summary[] = $size !== null ? 'mặc size ' . $size : '';
+            foreach ($this->layNhuCauTheoMoTa('quan_ao', $lower) as $need) {
+                $summary[] = 'cần ' . $need['label'];
+            }
         } else {
             $type = $this->layLoaiPhuKien($lower);
             $summary[] = $this->tenLoaiPhuKien($type);
@@ -766,7 +856,7 @@ class ChatbotService
                 continue;
             }
             $content = (string) ($entry['content'] ?? '');
-            if (preg_match('/<!--tuvan-loai:(vot|giay|phu_kien)-->/', $content, $typeMatch)
+            if (preg_match('/<!--tuvan-loai:(vot|giay|phu_kien|quan_ao)-->/', $content, $typeMatch)
                 && preg_match('/<!--tuvan-ketqua:([A-Za-z0-9+\/=]+)-->/', $content, $requestMatch)) {
                 preg_match('/<!--tuvan-da-xem:([\d,]*)-->/', $content, $seenMatch);
                 preg_match_all('/\/san-pham\/(\d+)/', $content, $shownMatches);
@@ -797,6 +887,13 @@ class ChatbotService
         $mentioned = $this->layLoaiSanPhamNhacToi($lower);
         if ($mentioned !== null && $mentioned !== $loai) {
             return null;
+        }
+
+        // Khách đổi sang món khác (áo -> váy, cước -> quấn cán) hoặc nhờ tư vấn lại một món
+        // => tư vấn lại: chỉ giữ thông tin cá nhân còn đúng, hỏi lại nhu cầu cho món mới rồi mới gợi ý sản phẩm.
+        $restart = $this->tuVanLaiKhiDoiMon($message, $lower, $context);
+        if ($restart !== null) {
+            return $restart;
         }
 
         // "Cây nào tốt hơn?" khi đang có từ 2 mẫu => chọn giữa các mẫu vừa tư vấn.
@@ -833,6 +930,48 @@ class ChatbotService
         return null;
     }
 
+    private function tuVanLaiKhiDoiMon(string $message, string $lower, array $context): ?string
+    {
+        $old = mb_strtolower($context['request']);
+        $freshAsk = preg_match('/(tư vấn|(?<!\p{L})tìm|muốn mua|cần mua|chọn giúp|gợi ý)/iu', $lower) === 1
+            && !preg_match('/(khác|rẻ hơn|đắt hơn|tốt hơn)/iu', $lower);
+
+        if ($context['loai'] === 'quan_ao') {
+            $newType = $this->layLoaiQuanAo($lower);
+            $oldType = $this->layLoaiQuanAo($old);
+            if ($newType === null || ($newType === $oldType && !$freshAsk)) {
+                return null;
+            }
+            // Giữ số đo và giới tính (câu mới nói sau sẽ ghi đè), bỏ nhu cầu / size / ngân sách của món cũ.
+            $kept = [];
+            if (($weight = $this->layCanNang($old)) !== null) {
+                $kept[] = 'nặng ' . $weight . 'kg';
+            }
+            if (($height = $this->layChieuCao($old)) !== null) {
+                $kept[] = 'cao ' . $height . 'cm';
+            }
+            if (($gender = $this->layGioiTinh($old)) !== null) {
+                $kept[] = $gender === 'nu' ? 'nữ' : 'nam';
+            }
+            $request = trim(implode(' ', $kept) . ' ' . $this->chuanHoaTraLoiTuVan($message, null));
+            $lead = 'Dạ, mình ' . ($newType !== $oldType ? 'chuyển sang tư vấn ' : 'tư vấn lại ') . $this->tenLoaiQuanAo($newType) . ' cho bạn, ';
+
+            return $this->tiepTucTuVan('quan_ao', $request, false, false, false, $lead, true);
+        }
+
+        if ($context['loai'] === 'phu_kien') {
+            $newType = $this->layLoaiPhuKien($lower);
+            if ($newType === 'tat_ca' || $newType === $this->layLoaiPhuKien($old)) {
+                return null;
+            }
+            $lead = 'Dạ, mình chuyển sang tư vấn ' . $this->tenLoaiPhuKien($newType) . ' cho bạn, ';
+
+            return $this->tiepTucTuVan('phu_kien', $this->chuanHoaTraLoiTuVan($message, null), false, false, false, $lead, true);
+        }
+
+        return null;
+    }
+
     // ---------- Phân tích nhu cầu & tư vấn (khuyên trước, sản phẩm sau) ----------
 
     private function ketLuanTuVan(string $loai, string $request, array $options = []): string
@@ -840,6 +979,7 @@ class ChatbotService
         return match ($loai) {
             'giay' => $this->ketLuanTuVanGiay($request, $options),
             'phu_kien' => $this->ketLuanTuVanPhuKien($request, $options),
+            'quan_ao' => $this->ketLuanTuVanQuanAo($request, $options),
             default => $this->ketLuanTuVanVot($request, $options),
         };
     }
@@ -868,6 +1008,10 @@ class ChatbotService
     // Lọc theo ngân sách, thương hiệu và các lựa chọn: chỉ trong / loại trừ mẫu, rẻ hơn / nhẹ hơn mẫu đã xem.
     private function layUngVienTuVan(Builder $query, string $lower, array $options, bool $applyBudget = true): \Illuminate\Support\Collection
     {
+        // Khách bảo chọn trong các mẫu vừa gợi ý => chỉ xét đúng các mẫu đó, không lọc thêm.
+        if (!empty($options['chi_trong'])) {
+            return $query->whereIn('sanpham.ID_SanPham', $options['chi_trong'])->get()->unique('ID_SanPham')->values();
+        }
         if ($applyBudget) {
             $this->apDungNganSach($query, $this->layNganSach($lower));
         }
@@ -979,11 +1123,13 @@ class ChatbotService
         $reasons = [];
         $warningsById = [];
         if ($picks->isNotEmpty()) {
-            $reply .= '<br><br><b>' . (!empty($options['alternative_poor_fit'])
+            $reply .= '<br><br><b>' . (!empty($options['chi_trong'])
+                ? 'Xếp hạng trong các mẫu bạn đưa (hợp nhất ở trên cùng)'
+                : (!empty($options['alternative_poor_fit'])
                 ? 'Mẫu khác còn trong kho'
                 : (!empty($options['poor_fit'])
                 ? 'Mẫu gần nhất trong tầm giá của bạn'
-                : ($picks->count() > 1 ? 'Các mẫu hợp với bạn nhất trong kho' : 'Mẫu hợp với bạn nhất trong kho'))) . '</b><br>';
+                : ($picks->count() > 1 ? 'Các mẫu hợp với bạn nhất trong kho' : 'Mẫu hợp với bạn nhất trong kho')))) . '</b><br>';
             foreach ($picks as $product) {
                 [$html, $fits, $warnings] = $renderPick($product);
                 $reasons[(int) $product->ID_SanPham] = $fits;
@@ -1013,8 +1159,16 @@ class ChatbotService
         } else {
             $best = $picks->first();
             $bestReasons = array_slice($reasons[(int) $best->ID_SanPham] ?? [], 0, 3);
-            $reply .= '<b>Kết luận: Nên mua ' . e($best->TenSanPham) . '.</b> '
-                . ($bestReasons ? 'Đây là mẫu khớp nhu cầu của bạn nhất: ' . implode(', ', $bestReasons) . '.' : 'Đây là mẫu khớp nhu cầu của bạn nhất trong kho hiện tại.');
+            $reply .= '<b>Kết luận: ' . ($options['ket_luan'] ?? 'Nên mua ' . e($best->TenSanPham) . '.') . '</b> '
+                . (!empty($options['ket_luan'])
+                    ? 'Hai món này đều khớp nhu cầu của bạn' . ($bestReasons ? ': ' . implode(', ', $bestReasons) : '') . ', mặc cùng nhau thành một bộ ra sân.'
+                    : ($bestReasons ? 'Đây là mẫu khớp nhu cầu của bạn nhất: ' . implode(', ', $bestReasons) . '.' : 'Đây là mẫu khớp nhu cầu của bạn nhất trong kho hiện tại.'));
+            // Chọn trong danh sách khách đưa mà mẫu tốt nhất vẫn còn điểm chưa hợp => nói rõ.
+            $bestWarnings = $warningsById[(int) $best->ID_SanPham] ?? [];
+            if (!empty($options['chi_trong']) && $bestWarnings) {
+                $reply .= ' Lưu ý: mẫu này vẫn còn điểm chưa thật khớp (' . implode(', ', array_slice($bestWarnings, 0, 2))
+                    . '). Nếu muốn, mình có thể tìm thêm trong cả kho mẫu đúng nhu cầu hơn.';
+            }
         }
 
         return $reply . $closing . $this->danhDauKetQuaTuVan($loai, $request, $picks, $options);
@@ -1334,7 +1488,7 @@ class ChatbotService
         // Khách hỏi "mẫu khác" mà mẫu còn lại không hợp => nói thật, khuyên giữ mẫu đã tư vấn.
         if (!empty($options['exclude']) && $picks->isNotEmpty() && $isPoorFit($picks->first())) {
             $options['alternative_poor_fit'] = true;
-        } elseif ($this->coGioiHanNganSach($this->layNganSach($lower)) && ($picks->isEmpty() || $isPoorFit($picks->first()))) {
+        } elseif (empty($options['chi_trong']) && $this->coGioiHanNganSach($this->layNganSach($lower)) && ($picks->isEmpty() || $isPoorFit($picks->first()))) {
             $upsell = $rank($this->layUngVienTuVan($baseQuery(), $lower, $options, false))
                 ->first(fn ($product) => !$isPoorFit($product) && !$picks->contains('ID_SanPham', $product->ID_SanPham));
             if ($upsell !== null) {
@@ -1515,6 +1669,401 @@ class ChatbotService
             $picks,
             $explain,
             'Hiện trong kho chưa có đôi giày nào khớp các tiêu chí này. Bạn có thể nới ngân sách hoặc đổi size để mình tìm lại nhé.',
+            $options
+        );
+    }
+
+    // ---------- Chọn trong các mẫu vừa gợi ý ----------
+
+    // "chọn cho tôi trong các mẫu bên trên", "trong mấy cây vừa gợi ý nên mua cây nào"...
+    private function laChonTrongMauDaGoiY(string $lower): bool
+    {
+        if (preg_match('/(so sánh|đối chiếu|khác nhau)/iu', $lower)) {
+            return false;
+        }
+        $refersToList = preg_match('/((?:các|mấy|những|hai|ba|\d)\s*(?:mẫu|cây|đôi|cái|chiếc|sản phẩm|loại|vợt|giày|áo|quần|váy)(?:\s+(?:vợt|giày|áo|quần|váy))?\s*(?:ở|bên|phía)?\s*trên|(?:ở|bên|phía) trên|danh sách (?:trên|vừa rồi|đó)|vừa (?:gợi ý|tư vấn|đưa|giới thiệu|liệt kê|gửi)|trong (?:số )?đó)/iu', $lower) === 1;
+        $asksPick = preg_match('/(chọn|lấy|mua|nên|(?:cái|mẫu|cây|đôi|chiếc) nào|tư vấn|phù hợp|hợp (?:với|nhất)|tốt nhất)/iu', $lower) === 1;
+
+        return $refersToList && $asksPick;
+    }
+
+    private function chonTrongMauDaGoiY(string $message, array $history): ?string
+    {
+        // Các mẫu trong câu trả lời gần nhất của chatbot có hiện sản phẩm.
+        $ids = [];
+        foreach (array_reverse($history) as $entry) {
+            if (($entry['sender'] ?? null) === 'Chatbot'
+                && preg_match_all('/\/san-pham\/(\d+)/', (string) ($entry['content'] ?? ''), $matches)) {
+                $ids = array_values(array_unique(array_map('intval', $matches[1])));
+                break;
+            }
+        }
+        if (count($ids) < 2) {
+            return null;
+        }
+
+        // Danh sách có thể lẫn nhiều loại: ưu tiên loại khách nhắc tới, không thì loại chiếm nhiều nhất.
+        $typeById = DB::table('sanpham')
+            ->leftJoin('danhmuc', 'sanpham.ID_DanhMuc', '=', 'danhmuc.ID_DanhMuc')
+            ->whereIn('sanpham.ID_SanPham', $ids)
+            ->pluck('danhmuc.TenDanhMuc', 'sanpham.ID_SanPham')
+            ->map(fn ($category) => match (true) {
+                preg_match('/vợt/iu', (string) $category) === 1 => 'vot',
+                preg_match('/giày/iu', (string) $category) === 1 => 'giay',
+                preg_match('/(quần áo|váy)/iu', (string) $category) === 1 => 'quan_ao',
+                default => 'phu_kien',
+            });
+        $counts = array_count_values($typeById->all());
+        arsort($counts);
+        $mentioned = $this->layLoaiSanPhamNhacToi(mb_strtolower($message));
+        $loai = $mentioned !== null && isset($counts[$mentioned]) ? $mentioned : array_key_first($counts);
+        $ids = array_values(array_filter($ids, fn ($id) => ($typeById[$id] ?? null) === $loai));
+        if (count($ids) < 2) {
+            return null;
+        }
+
+        // Giữ nhu cầu đã tư vấn trước đó (nếu cùng loại), thông tin mới nói sau sẽ ghi đè.
+        $context = $this->layNguCanhTuVan($history);
+        $base = $context !== null && $context['loai'] === $loai ? $context['request'] : '';
+        $request = trim($base . ' ' . $this->chuanHoaTraLoiTuVan($message, null));
+
+        return $this->ketLuanTuVan($loai, $request, [
+            'intro' => 'Dạ, mình chỉ xét trong ' . count($ids) . ' mẫu vừa gợi ý ở trên, phân tích theo thông tin của bạn rồi chọn ra mẫu nên mua.',
+            'chi_trong' => $ids,
+            'seen' => $context['seen'] ?? [],
+        ]);
+    }
+
+    // ---------- Liệt kê vợt theo trình độ ----------
+
+    private function lietKeVotTheoTrinhDo(string $message, string $lower): ?string
+    {
+        $level = $this->layMaTrinhDo($lower);
+        $asksList = preg_match('/((?:các|những|mấy)\s*(?:loại|mẫu|cây|dòng|kiểu)?\s*vợt|liệt kê|danh sách|có những|gồm những|vợt nào (?:dành cho|cho|phù hợp))/iu', $lower) === 1;
+        if (!$asksList || !$this->laYeuCauVot($lower) || !in_array($level, ['MoiChoi', 'NangCao', 'ChuyenNghiep'], true)
+            || $this->laYeuCauSoSanh($lower)) {
+            return null;
+        }
+        // Khách đã nói đủ trình độ + lối chơi + ngân sách => tư vấn chọn mẫu luôn như kịch bản cũ.
+        $request = $this->chuanHoaTraLoiTuVan($message, null);
+        $state = $this->layTrangThaiTuVan('vot', $request);
+        $missing = array_values(array_filter(['loi_choi', 'ngan_sach'], fn ($slot) => !$state[$slot]));
+        if (!$missing) {
+            return null;
+        }
+
+        // Chỉ vợt đúng trình độ (lọc thêm thương hiệu / ngân sách nếu khách có nói), rẻ trước.
+        $rackets = $this->layUngVienTuVan(
+            $this->truyVanSanPhamDangBan()->where('thongsovot.TrinhDoPhuHop', $level),
+            mb_strtolower($request),
+            []
+        )->sortBy(fn ($product) => $this->giaHienTai($product))->values();
+
+        $levelName = $this->tenTrinhDo($level);
+        if ($rackets->isEmpty()) {
+            $reply = 'Dạ, hiện trong kho chưa còn mẫu vợt nào dành cho ' . $levelName . ' khớp yêu cầu của bạn.';
+        } else {
+            $reply = 'Dạ, đây là ' . ($rackets->count() > 1 ? 'các mẫu' : 'mẫu') . ' vợt dành cho <b>' . $levelName . '</b> đang có trong kho ('
+                . $rackets->count() . ' mẫu):<br><br>';
+            foreach ($rackets as $product) {
+                $reply .= $this->taoTheSanPham($product);
+            }
+        }
+        $asks = array_map(fn ($slot) => $slot === 'loi_choi'
+            ? 'lối chơi (thích tấn công đập cầu, thiên phòng thủ – phản tạt hay công thủ toàn diện)'
+            : 'ngân sách dự kiến', $missing);
+        $reply .= '<br>Để mình chọn ra cây hợp nhất với bạn, bạn cho mình biết thêm ' . implode(' và ', $asks)
+            . ' nhé. Nếu bạn hay đánh đơn hay đôi, lực tay thế nào, bạn kể kèm luôn để mình tư vấn sát hơn ạ.';
+
+        // Marker câu hỏi để câu trả lời tiếp theo đi vào phiên tư vấn vợt.
+        return $reply . sprintf('<!--tuvan:vot:%s-->', $missing[0]);
+    }
+
+    // ---------- Quần áo, váy ----------
+
+    // ao / quan / vay / ao_khoac / bo (cả bộ quần áo), hoặc null.
+    private function layLoaiQuanAo(string $lower): ?string
+    {
+        $text = preg_replace('/(?:bộ\s*)?quần\s*áo/u', ' bộđồ ', $lower);
+
+        return $this->layGiaTriSauCung($text, [
+            'bo' => '/(bộđồ|bộ đồ|cả bộ)/iu',
+            'ao_khoac' => '/(áo khoác|hoodie|khoác)/iu',
+            'vay' => '/((?<!\p{L})váy|(?<!\p{L})đầm(?!\p{L}))/iu',
+            'quan' => '/(?<!\p{L})quần(?!\p{L})(?!\s*(?:trong|bảo hộ))/iu',
+            'ao' => '/(?<!\p{L})áo(?!\p{L})(?!\s*khoác)/iu',
+        ]);
+    }
+
+    private function tenLoaiQuanAo(string $type): string
+    {
+        return match ($type) {
+            'ao' => 'áo cầu lông',
+            'quan' => 'quần cầu lông',
+            'vay' => 'váy cầu lông',
+            'ao_khoac' => 'áo khoác/hoodie',
+            default => 'bộ quần áo cầu lông',
+        };
+    }
+
+    private function laySizeQuanAo(string $lower): ?string
+    {
+        return preg_match_all('/(?:size|cỡ|mặc|số)\s*(xxl|xl|xs|s|m|l)(?!\p{L})/iu', $lower, $matches)
+            ? mb_strtoupper(end($matches[1]))
+            : null;
+    }
+
+    private function layCanNang(string $lower): ?int
+    {
+        $weight = null;
+        if (preg_match_all('/(\d{2,3})(?:[.,]\d)?\s*(?:kg|kí|ký|ki lô|cân)(?!\p{L})/iu', $lower, $matches)) {
+            $weight = (int) end($matches[1]);
+        } elseif (preg_match_all('/(?:nặng|cân nặng)\s*(?:khoảng|tầm|là)?\s*(\d{2,3})(?!\d)/iu', $lower, $matches)) {
+            $weight = (int) end($matches[1]);
+        }
+
+        return $weight !== null && $weight >= 25 && $weight <= 150 ? $weight : null;
+    }
+
+    private function layChieuCao(string $lower): ?int
+    {
+        $height = null;
+        if (preg_match_all('/(?<!\d)1\s*m\s*(\d{1,2})(?!\d)/iu', $lower, $matches)) {
+            $digits = end($matches[1]);
+            $height = 100 + (strlen($digits) === 1 ? (int) $digits * 10 : (int) $digits);
+        } elseif (preg_match_all('/(?<!\d)(1[.,]\d{1,2})\s*m(?!\p{L})/iu', $lower, $matches)) {
+            $height = (int) round((float) str_replace(',', '.', end($matches[1])) * 100);
+        } elseif (preg_match_all('/(?:(\d{3})\s*cm|cao\s*(?:khoảng|tầm|là)?\s*(\d{3})(?!\d))/iu', $lower, $matches, PREG_SET_ORDER)) {
+            $last = end($matches);
+            $height = (int) ($last[2] ?? '' ?: $last[1]);
+        }
+
+        return $height !== null && $height >= 120 && $height <= 210 ? $height : null;
+    }
+
+    private function layGioiTinh(string $lower): ?string
+    {
+        return $this->layGiaTriSauCung($lower, [
+            'nu' => '/((?<!\p{L})nữ(?!\p{L})|con gái|bạn gái|vợ (?:tôi|mình|em)|(?<!\p{L})váy|(?<!\p{L})đầm(?!\p{L}))/iu',
+            'nam' => '/((?<!\p{L})nam(?!\p{L})|con trai|bạn trai|chồng (?:tôi|mình|em))/iu',
+        ]);
+    }
+
+    // Size theo bảng (cân nặng, chiều cao: lấy size lớn hơn để không bị chật/ngắn).
+    private function tinhSizeTheoBang(string $gender, ?int $weight, ?int $height): string
+    {
+        $chart = self::BANG_SIZE_QUAN_AO[$gender];
+        $sizes = array_keys($chart);
+        $indexOf = function (?int $value, int $column) use ($chart, $sizes): int {
+            if ($value === null) {
+                return 0;
+            }
+            foreach ($sizes as $index => $size) {
+                if ($value <= $chart[$size][$column]) {
+                    return $index;
+                }
+            }
+
+            return count($sizes) - 1;
+        };
+
+        return $sizes[max($indexOf($weight, 0), $indexOf($height, 1))];
+    }
+
+    // ['size' => 'M', 'from_chart' => bool, 'gender' => nam/nu/null, 'alt' => size nếu là nữ khi chưa rõ giới tính]
+    private function goiYSizeQuanAo(string $lower): ?array
+    {
+        $gender = $this->layGioiTinh($lower) ?? ($this->layLoaiQuanAo($lower) === 'vay' ? 'nu' : null);
+        $explicit = $this->laySizeQuanAo($lower);
+        if ($explicit !== null) {
+            return ['size' => $explicit, 'from_chart' => false, 'gender' => $gender, 'alt' => null];
+        }
+        $weight = $this->layCanNang($lower);
+        $height = $this->layChieuCao($lower);
+        if ($weight === null && $height === null) {
+            return null;
+        }
+
+        return [
+            'size' => $this->tinhSizeTheoBang($gender ?? 'nam', $weight, $height),
+            'from_chart' => true,
+            'gender' => $gender,
+            'alt' => $gender === null ? $this->tinhSizeTheoBang('nu', $weight, $height) : null,
+            'weight' => $weight,
+            'height' => $height,
+        ];
+    }
+
+    // Câu giải thích size gợi ý theo cân nặng/chiều cao (null nếu khách tự nói size hoặc chưa có số đo).
+    private function moTaSizeQuanAo(string $lower): ?string
+    {
+        $suggestion = $this->goiYSizeQuanAo($lower);
+        if ($suggestion === null || !$suggestion['from_chart']) {
+            return null;
+        }
+        $measures = array_filter([
+            $suggestion['weight'] !== null ? 'cân nặng ' . $suggestion['weight'] . 'kg' : null,
+            $suggestion['height'] !== null ? 'chiều cao ' . $suggestion['height'] . 'cm' : null,
+        ]);
+        $text = 'Với ' . implode(' và ', $measures) . ', theo bảng size đồ thể thao ' . ($suggestion['gender'] === 'nu' ? 'nữ' : 'nam')
+            . ' bạn hợp <b>size ' . $suggestion['size'] . '</b>';
+        if ($suggestion['alt'] !== null && $suggestion['alt'] !== $suggestion['size']) {
+            $text .= ' (nếu bạn là nữ thì khoảng size ' . $suggestion['alt'] . ')';
+        }
+        $text .= '.';
+        $smallest = $suggestion['gender'] === 'nu' ? 36 : 45;
+        if ($suggestion['weight'] !== null && $suggestion['weight'] < $smallest) {
+            $text .= ' Đây đã là size nhỏ nhất thường có nên mặc có thể hơi rộng; nếu thích mặc ôm, bạn chọn mẫu có size nhỏ hơn hoặc form nữ/trẻ em.';
+        }
+        if ($suggestion['height'] === null || $suggestion['weight'] === null) {
+            $text .= ' Bạn cho mình thêm ' . ($suggestion['height'] === null ? 'chiều cao' : 'cân nặng') . ' thì size sẽ chuẩn hơn.';
+        }
+
+        return $text;
+    }
+
+    private function laQuanAoLoai(object $product, string $type): bool
+    {
+        $name = mb_strtolower((string) ($product->TenSanPham ?? ''));
+        $isSkirt = str_contains(mb_strtolower((string) ($product->TenDanhMuc ?? '')), 'váy') || str_starts_with($name, 'váy');
+        $isJacket = str_contains($name, 'khoác') || str_contains($name, 'hoodie');
+
+        return match ($type) {
+            'vay' => $isSkirt,
+            'ao_khoac' => $isJacket,
+            'quan' => str_starts_with($name, 'quần'),
+            'ao' => str_starts_with($name, 'áo') && !$isJacket,
+            default => !$isJacket,
+        };
+    }
+
+    private function ketLuanTuVanQuanAo(string $request, array $options = []): string
+    {
+        $lower = mb_strtolower($request);
+        $type = $this->layLoaiQuanAo($lower) ?? 'bo';
+        $suggestion = $this->goiYSizeQuanAo($lower);
+        $size = $suggestion['size'] ?? null;
+        $gender = $this->layGioiTinh($lower) ?? ($type === 'vay' ? 'nu' : null);
+        $needs = $this->layNhuCauTheoMoTa('quan_ao', $lower);
+
+        $analysis = [];
+        if ($size !== null && !$suggestion['from_chart']) {
+            $analysis[] = 'Bạn mặc size ' . $size . ' nên mình ưu tiên các mẫu còn size này.';
+        } elseif ($size !== null) {
+            $analysis[] = $this->moTaSizeQuanAo($lower);
+        } else {
+            $analysis[] = 'Bạn chưa cho mình cân nặng, chiều cao nên mình chưa chốt được size; trước khi đặt bạn nhắn cân nặng/chiều cao để mình chọn size giúp nhé.';
+        }
+        $analysis[] = match ($type) {
+            'ao' => 'Áo cầu lông nên chọn vải thấm hút, thoáng để không bết người khi ra nhiều mồ hôi, form vừa người để vung tay thoải mái.',
+            'quan' => 'Quần cầu lông nên có cạp chun co giãn, ống rộng vừa phải để bước chân và bật nhảy thoải mái.',
+            'vay' => 'Váy cầu lông nên có quần bảo hộ bên trong và chất vải co giãn để tự tin di chuyển, bật nhảy.',
+            'ao_khoac' => 'Áo khoác/hoodie dùng để giữ ấm khi khởi động hoặc nghỉ giữa trận, không mặc khi thi đấu.',
+            default => 'Một bộ ra sân gồm áo + quần (hoặc váy) cùng chất vải thấm hút, co giãn là đủ dùng.',
+        };
+        $needAdvice = [
+            'thấm hút mồ hôi, thoáng mát' => 'Bạn cần vải thấm hút, thoáng mát vì cầu lông ra rất nhiều mồ hôi.',
+            'co giãn, thoải mái vận động' => 'Bạn ưu tiên co giãn, thoải mái để không bị vướng khi đổi hướng, bật nhảy.',
+            'giữ ấm, chống lạnh' => 'Bạn cần giữ ấm nên chọn loại có lót bông hoặc 2 lớp.',
+            'lớp bảo hộ bên trong' => 'Bạn muốn kín đáo, tự tin nên cần lớp bảo hộ bên trong.',
+            'hợp thi đấu' => 'Đi thi đấu thì nên chọn mẫu chính hãng, form gọn, chất vải nhẹ.',
+            'giá phải chăng' => 'Bạn ưu tiên giá mềm nên mình xếp mẫu rẻ hơn lên trước khi chất lượng tương đương.',
+        ];
+        foreach ($needs as $need) {
+            $analysis[] = $needAdvice[$need['label']];
+        }
+        if ($gender === 'nu' && $type !== 'vay') {
+            $analysis[] = 'Mẫu ghi rõ "nam" là form nam, nữ mặc thường rộng hơn khoảng một size.';
+        }
+        $wantsCheap = in_array('giá phải chăng', array_column($needs, 'label'), true);
+        if (!$wantsCheap || $this->layNganSach($lower) !== null) {
+            $analysis[] = $this->moTaNganSach($lower);
+        }
+        $recommendation = $this->tenLoaiQuanAo($type)
+            . ($size !== null ? ', size ' . $size : '')
+            . ($needs ? ', ' . implode(', ', array_column($needs, 'label')) : '') . '.';
+
+        $candidates = $this->layUngVienTuVan(
+            $this->truyVanSanPhamDangBan()->where(fn ($query) => $query
+                ->where('danhmuc.TenDanhMuc', 'like', '%Quần Áo%')
+                ->orWhere('danhmuc.TenDanhMuc', 'like', '%Váy%')),
+            $lower,
+            $options
+        );
+        $hasSize = fn ($product) => $size !== null && $this->coSizeSanPham((string) ($product->SizeCoSan ?? ''), $size);
+        $isMenOnly = fn ($product) => preg_match('/(?<!\p{L})nam(?!\p{L})/iu', (string) $product->TenSanPham) === 1;
+        if (empty($options['chi_trong'])) {
+            $candidates = $candidates->filter(fn ($product) => $this->laQuanAoLoai($product, $type)
+                && !($gender === 'nam' && $this->laQuanAoLoai($product, 'vay')));
+            // Cả bộ: lọc size theo từng món khi xếp hạng, không lọc chung (tránh mất cả nhóm áo hoặc quần).
+            if ($type !== 'bo' && $size !== null && $candidates->contains($hasSize)) {
+                $candidates = $candidates->filter($hasSize);
+            }
+        }
+        // "Giá phải chăng" là cách xếp hạng (rẻ trước), không phải điều tìm trong mô tả.
+        $descNeeds = array_values(array_filter($needs, fn ($need) => $need['label'] !== 'giá phải chăng'));
+        $rank = fn ($products) => $products->sort(function ($left, $right) use ($hasSize, $descNeeds, $isMenOnly, $gender, $wantsCheap) {
+            $score = fn ($product) => ($hasSize($product) ? 100 : 0)
+                + ($wantsCheap ? 0 : 10 * count($this->nhuCauCoTrongMoTa($product, $descNeeds)))
+                - ($gender === 'nu' && $isMenOnly($product) ? 5 : 0);
+            $comparison = $score($right) <=> $score($left);
+
+            return $comparison !== 0 ? $comparison : $this->giaHienTai($left) <=> $this->giaHienTai($right);
+        })->values();
+
+        // Cả bộ: chọn 1 áo + 1 quần/váy hợp nhất. Còn lại: 2 mẫu hợp nhất.
+        if ($type === 'bo' && empty($options['chi_trong'])) {
+            $top = $rank($candidates->filter(fn ($product) => $this->laQuanAoLoai($product, 'ao')))->first();
+            $bottomType = $gender === 'nu' ? 'vay' : 'quan';
+            $bottom = $rank($candidates->filter(fn ($product) => $this->laQuanAoLoai($product, $bottomType)
+                || ($gender === null && $this->laQuanAoLoai($product, 'quan'))))->first();
+            $picks = collect([$top, $bottom])->filter()->values();
+            if ($picks->count() === 2) {
+                $options['ket_luan'] = 'Nên mua bộ ' . e($top->TenSanPham) . ' + ' . e($bottom->TenSanPham) . '.';
+            }
+        } else {
+            $picks = $rank($candidates)->take(2)->values();
+        }
+
+        $explain = function ($product) use ($descNeeds, $size, $hasSize, $lower, $gender, $isMenOnly) {
+            $needs = $descNeeds;
+            $matched = $this->nhuCauCoTrongMoTa($product, $needs);
+            $fits = $matched ? ['theo mô tả của cửa hàng có ' . implode(', ', $matched)] : [];
+            $warnings = [];
+            if ($size !== null) {
+                if ($hasSize($product)) {
+                    $fits[] = 'còn size ' . $size;
+                } else {
+                    $warnings[] = empty($product->SizeCoSan)
+                        ? 'shop chưa cập nhật size, bạn nhắn shop kiểm tra size ' . $size . ' trước khi đặt'
+                        : 'chưa có size ' . $size . ' (đang có: ' . e($product->SizeCoSan) . ')';
+                }
+            }
+            $missing = array_diff(array_column($needs, 'label'), $matched);
+            if ($missing) {
+                $warnings[] = 'mô tả chưa nhắc tới ' . implode(', ', $missing);
+            }
+            if ($gender === 'nu' && $isMenOnly($product)) {
+                $warnings[] = 'đây là form nam';
+            }
+            [$budgetFit, $budgetWarning] = $this->danhGiaNganSach($product, $lower);
+            $fits = [...$fits, ...$budgetFit];
+            $warnings = [...$warnings, ...$budgetWarning];
+            if ($this->phanTramGiamGia($product) > 0) {
+                $fits[] = 'đang giảm ' . $this->phanTramGiamGia($product) . '%';
+            }
+
+            return [$fits, $warnings];
+        };
+
+        return $this->trinhBayTuVan(
+            'quan_ao',
+            $request,
+            $analysis,
+            $recommendation,
+            $picks,
+            $explain,
+            'Hiện trong kho chưa có ' . $this->tenLoaiQuanAo($type) . ' nào khớp các tiêu chí này. Bạn có thể đổi loại, nới ngân sách hoặc nhắn shop để được hỗ trợ size nhé.',
             $options
         );
     }
@@ -2306,6 +2855,8 @@ class ChatbotService
         if (!empty($product->TrongLuong)) {
             $specs = "<br><span style='font-size:12px; color:#555;'><b>Thông số:</b> " . e($product->TrongLuong) . ' | ' . e($product->DiemCanBang)
                 . ' | Độ cứng: ' . e($product->DoCung) . ' | ' . e(ucfirst($this->tenTrinhDo($product->TrinhDoPhuHop ?? null))) . '</span>';
+        } elseif (preg_match('/(quần áo|váy)/iu', (string) ($product->TenDanhMuc ?? ''))) {
+            $specs = "<br><span style='font-size:12px; color:#555;'><b>Size có sẵn:</b> " . e($product->SizeCoSan ?: 'chưa cập nhật') . '</span>';
         }
 
         $image = !empty($product->HinhAnh) ? $product->HinhAnh : ($product->HinhAnhPhu ?? null);

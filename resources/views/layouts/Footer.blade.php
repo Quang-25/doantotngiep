@@ -164,7 +164,7 @@
     Zalo
 </a>
 
-<a href="#" class="floating-store">
+<a href="{{ route('lienhe') }}" class="floating-store">
     <i class="bi bi-geo-alt-fill"></i>
     <span>
         Hệ thống cửa hàng
