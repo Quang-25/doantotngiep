@@ -131,14 +131,18 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         let htmlContent = '';
+        let sizeGioHang = {};
+        try { sizeGioHang = JSON.parse(localStorage.getItem('sizeGioHang') || '{}'); } catch (e) { /* bỏ qua */ }
         
         data.items.forEach(item => {
+            const size = sizeGioHang[item.ID_SanPham];
             htmlContent += `
                 <div class="cart-item-row d-flex align-items-center border-bottom" data-id="${item.ID_SanPham}">
                     <img src="${item.HinhAnh}" alt="Sản phẩm" class="cart-product-img me-3">
                     
                     <div class="cart-item-info pe-3">
                         <h6 class="text-dark fw-medium mb-2">${item.TenSanPham}</h6>
+                        ${size ? `<div class="small text-muted mb-1">Size: <b class="text-dark">${String(size).replace(/[^A-Za-z0-9]/g, '')}</b></div>` : ''}
                         <a href="#" class="text-decoration-none btn-delete-item" data-id="${item.ID_SanPham}">
                             <i class="bi bi-trash3 me-1"></i>Xóa
                         </a>

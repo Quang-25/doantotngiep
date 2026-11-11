@@ -12,7 +12,7 @@
     <!-- Thanh tìm kiếm (Đồng bộ 100% với Sản phẩm / Khách hàng) -->
     <div class="d-flex justify-content-between mb-3">
         <form action="/admin/don-hang" method="GET" class="d-flex search-form gap-2" style="max-width: 640px; width: 100%;">
-            <input type="text" name="search" class="form-control" placeholder="Tìm mã đơn, Tên hoặc SĐT..." value="{{ request('search') }}">
+            <input type="text" name="search" class="form-control" placeholder="Tìm mã đơn, tên, SĐT hoặc địa chỉ..." value="{{ request('search') }}">
             <select name="trang_thai" class="form-select" style="max-width: 210px;" onchange="this.form.submit()">
                 <option value="">Tất cả trạng thái</option>
                 <option value="ChoXacNhan" @selected($trangThai === 'ChoXacNhan')>Chờ xác nhận</option>
@@ -41,6 +41,7 @@
                     <tr>
                         <th>Mã Đơn</th>
                         <th>Người Nhận</th>
+                        <th>Địa Chỉ</th>
                         <th>Ngày Đặt</th>
                         <th>Thanh Toán</th>
                         <th>Tổng Tiền</th>
@@ -55,6 +56,11 @@
                         <td>
                             <b class="text-primary">{{ $don->TenNguoiNhan }}</b><br>
                             <small class="text-muted">{{ $don->SoDienThoaiNhan }}</small>
+                        </td>
+                        <td style="max-width: 220px;">
+                            <span class="d-inline-block text-truncate" style="max-width: 220px;" title="{{ $don->DiaChiGiaoHang }}">
+                                <i class="fas fa-map-marker-alt text-danger me-1"></i>{{ $don->DiaChiGiaoHang ?: '—' }}
+                            </span>
                         </td>
                         <td>{{ \Carbon\Carbon::parse($don->NgayDat)->format('d/m/Y H:i') }}</td>
                         <td><span class="badge bg-secondary">{{ $don->PhuongThucThanhToan }}</span></td>
@@ -79,6 +85,9 @@
                                 @if($th['lyDo'])
                                     <br><small class="text-muted">Lý do: {{ $th['lyDo'] }}</small>
                                 @endif
+                                @if($th['buoc'] === 'cho_hoan_tien')
+                                    <br><small class="text-primary">Hoàn tiền: {{ $don->PhuongThucThanhToan === 'VNPay' ? 'về tài khoản/thẻ VNPay' : 'tiền mặt' }}</small>
+                                @endif
                                 @if($th['buoc'] === 'tu_choi' && $th['lyDoTuChoi'])
                                     <br><small class="text-muted">Từ chối: {{ $th['lyDoTuChoi'] }}</small>
                                 @endif
@@ -100,6 +109,11 @@
                                 <!-- Nếu đang Giao hàng -> Hiện nút Hoàn thành -->
                                 <button class="btn btn-sm btn-success text-white btn-update-status" data-id="{{ $don->ID_DonHang }}" data-status="HoanThanh" title="Xác nhận giao thành công">
                                     <i class="fas fa-check-circle"></i> Hoàn thành
+                                </button>
+                            @endif
+                            @if(in_array($don->TrangThaiDon, ['ChoXacNhan', 'DangGiao']))
+                                <button class="btn btn-sm btn-outline-danger btn-update-status" data-id="{{ $don->ID_DonHang }}" data-status="DaHuy" title="Hủy đơn hàng (hoàn lại kho)">
+                                    <i class="fas fa-ban"></i> Hủy
                                 </button>
                             @endif
 
@@ -124,7 +138,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="7" class="text-center py-4">Không có đơn hàng nào.</td></tr>
+                    <tr><td colspan="8" class="text-center py-4">Không có đơn hàng nào.</td></tr>
                     @endforelse
                 </tbody>
             </table>

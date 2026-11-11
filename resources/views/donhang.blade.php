@@ -103,12 +103,13 @@
                     </div>
                     <label for="returnDetail" class="form-label mt-2 mb-1 small">Mô tả thêm <span id="returnDetailRequired" class="text-danger d-none">*</span></label>
                     <textarea class="form-control" id="returnDetail" rows="3" maxlength="500" placeholder="Ví dụ: vợt bị nứt khung ở đầu vợt, giày bị bong keo..."></textarea>
-                    <div class="small text-muted mt-2">Sản phẩm trả cần còn nguyên tem, hộp và phụ kiện đi kèm. Shop sẽ hoàn tiền sau khi nhận và kiểm tra hàng.</div>
+                    <div class="small text-primary mt-2" id="returnRefundHint"></div>
+                    <div class="small text-muted mt-2">Yêu cầu được chấp nhận ngay, không cần chờ duyệt. Bạn gửi hàng về shop (còn nguyên tem, hộp, phụ kiện); shop hoàn tiền sau khi nhận được hàng.</div>
                     <div class="text-danger small mt-2 d-none" id="returnError"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
-                    <button type="button" class="btn btn-warning" id="confirmReturnBtn">Gửi yêu cầu trả hàng</button>
+                    <button type="button" class="btn btn-warning" id="confirmReturnBtn">Xác nhận trả hàng</button>
                 </div>
             </div>
         </div>

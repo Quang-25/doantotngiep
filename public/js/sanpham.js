@@ -33,11 +33,14 @@ document.addEventListener('DOMContentLoaded', () => {
             data.data.forEach(sp => { 
                 let giaHTML = ''; 
 
-                if (sp.GiaKhuyenMai) { 
+                // Chỉ coi là giảm giá khi giá khuyến mãi > 0 và nhỏ hơn giá bán (giống mọi trang khác)
+                const giaBan = Number(sp.GiaBan) || 0;
+                const giaKM = Number(sp.GiaKhuyenMai) || 0;
+                if (giaKM > 0 && giaKM < giaBan) {
                     giaHTML = ` 
                         <div class="product-price"> 
-                            <span class="price-sale">${formatPrice(sp.GiaKhuyenMai)}đ</span> 
-                            <del>${formatPrice(sp.GiaBan)}đ</del> 
+                            <span class="price-sale">${formatPrice(giaKM)}đ</span>
+                            <del>${formatPrice(giaBan)}đ</del>
                         </div> 
                     `; 
                 } else { 

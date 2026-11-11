@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <td style="width: 60px;">
                                 <img src="${item.HinhAnh || 'https://via.placeholder.com/50'}" class="order-product-img">
                             </td>
-                            <td class="align-middle fw-bold">${item.TenSanPham}</td>
+                            <td class="align-middle fw-bold">${item.TenSanPham}${item.Size ? `<div class="small text-primary">Size: ${item.Size}</div>` : ''}</td>
                             <td class="align-middle text-center">x${item.SoLuong}</td>
                             <td class="align-middle text-end text-danger fw-bold">
                                 ${new Intl.NumberFormat('vi-VN').format(item.GiaMua)}đ
@@ -82,7 +82,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-   // 2. Chức năng CẬP NHẬT NHANH (Duyệt / Hoàn thành)
+    // Hỏi lý do khi shop hủy đơn; trả về null nếu admin bấm Hủy bỏ
+    function hoiLyDoHuy(dhId) {
+        while (true) {
+            const lyDo = prompt(`Nhập lý do HỦY đơn hàng #${dhId} (khách sẽ thấy lý do này):`, 'Hết hàng / không liên hệ được khách');
+            if (lyDo === null) return null;
+            if (lyDo.trim() !== '') return lyDo.trim().slice(0, 200);
+            alert('Vui lòng nhập lý do hủy đơn.');
+        }
+    }
+
+    // 2. Chức năng CẬP NHẬT NHANH (Duyệt / Hoàn thành)
     document.querySelectorAll('.btn-update-status').forEach(btn => {
         btn.addEventListener('click', async function () {
             const dhId = this.dataset.id;
@@ -99,6 +109,11 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (!confirm(confirmMsg)) return;
+            let lyDo = null;
+            if (newStatus === 'DaHuy') {
+                lyDo = hoiLyDoHuy(dhId);
+                if (lyDo === null) return;
+            }
 
             // Đổi text thành icon loading để tránh bấm 2 lần
             const originalHtml = this.innerHTML;
@@ -113,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ TrangThaiDon: newStatus })
+                    body: JSON.stringify({ TrangThaiDon: newStatus, ly_do: lyDo })
                 });
                 
                 const result = await response.json();
@@ -143,10 +158,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const dh_id = document.getElementById('dh_id').value;
         const trangThai = document.getElementById('TrangThaiDon').value;
-        if (trangThai === 'DaHuy' && !confirm(`Xác nhận HỦY đơn hàng #${dh_id}? Số lượng sản phẩm sẽ được hoàn lại kho.`)) {
-            btnSave.disabled = false;
-            btnSave.innerHTML = 'Lưu Trạng Thái';
-            return;
+        let lyDo = null;
+        if (trangThai === 'DaHuy') {
+            lyDo = confirm(`Xác nhận HỦY đơn hàng #${dh_id}? Số lượng sản phẩm sẽ được hoàn lại kho.`) ? hoiLyDoHuy(dh_id) : null;
+            if (lyDo === null) {
+                btnSave.disabled = false;
+                btnSave.innerHTML = 'Lưu Trạng Thái';
+                return;
+            }
         }
 
         try {
@@ -157,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ TrangThaiDon: trangThai })
+                body: JSON.stringify({ TrangThaiDon: trangThai, ly_do: lyDo })
             });
             const result = await response.json();
             

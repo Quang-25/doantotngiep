@@ -49,17 +49,27 @@
                         <td>{{ $sp->TenDanhMuc }}</td>
                         <td>{{ $sp->TenThuongHieu }}</td>
                         <td>
-                            <span class="text-danger fw-bold">{{ number_format($sp->GiaBan, 0, ',', '.') }}đ</span>
-                            @if($sp->GiaKhuyenMai)
-                                <br><small class="text-muted text-decoration-line-through">{{ number_format($sp->GiaKhuyenMai, 0, ',', '.') }}đ</small>
+                            @if($sp->GiaKhuyenMai && $sp->GiaKhuyenMai < $sp->GiaBan)
+                                {{-- Có khuyến mãi: giá đang bán (khuyến mãi) in đỏ, giá gốc gạch ngang --}}
+                                <span class="text-danger fw-bold">{{ number_format($sp->GiaKhuyenMai, 0, ',', '.') }}đ</span>
+                                <span class="badge bg-danger ms-1">-{{ round(($sp->GiaBan - $sp->GiaKhuyenMai) / $sp->GiaBan * 100) }}%</span>
+                                <br><small class="text-muted text-decoration-line-through">{{ number_format($sp->GiaBan, 0, ',', '.') }}đ</small>
+                            @else
+                                <span class="text-danger fw-bold">{{ number_format($sp->GiaBan, 0, ',', '.') }}đ</span>
+                                @if($sp->GiaKhuyenMai)
+                                    <br><small class="text-warning" title="Giá khuyến mãi phải nhỏ hơn giá bán">
+                                        <i class="fas fa-exclamation-triangle"></i> KM {{ number_format($sp->GiaKhuyenMai, 0, ',', '.') }}đ ≥ giá bán
+                                    </small>
+                                @endif
                             @endif
                         </td>
                         <td>{{ $sp->SoLuongTon }}</td>
                         <td>
-                            @if($sp->TrangThai == 'DangBan')
+                            {{-- Hết hàng (tồn kho <= 0) luôn hiện Ngừng kinh doanh, không hiện Đang bán --}}
+                            @if($sp->TrangThai == 'DangBan' && $sp->SoLuongTon > 0)
                                 <span class="badge bg-success">Đang Bán</span>
                             @else
-                                <span class="badge bg-secondary">Ngừng Bán</span>
+                                <span class="badge bg-secondary">Ngừng Kinh Doanh</span>
                             @endif
                         </td>
                         <td>
@@ -67,11 +77,13 @@
                                 data-id="{{ $sp->ID_SanPham }}" data-ten="{{ $sp->TenSanPham }}"
                                 data-danhmuc="{{ $sp->ID_DanhMuc }}" data-thuonghieu="{{ $sp->ID_ThuongHieu }}"
                                 data-giaban="{{ $sp->GiaBan }}" data-giakm="{{ $sp->GiaKhuyenMai }}"
-                                data-soluong="{{ $sp->SoLuongTon }}" data-mota="{{ $sp->MoTa }}"
+                                data-soluong="{{ $sp->SoLuongTon }}" data-mota="{{ $sp->MoTa }}" data-size="{{ \App\Support\SizeSanPham::chuanHoa($sp->SizeCoSan) }}"
+                                data-anhphu="{{ json_encode($hinhAnhPhu[$sp->ID_SanPham] ?? []) }}"
+                                data-thongso="{{ json_encode(['TrongLuong' => $sp->TrongLuong, 'ChuViTayCam' => trim((string) $sp->ChuViTayCam), 'ChatLieu' => $sp->ChatLieu, 'DiemCanBang' => $sp->DiemCanBang, 'DoCung' => $sp->DoCung, 'MucCangToiDa' => $sp->MucCangToiDa, 'TrinhDoPhuHop' => $sp->TrinhDoPhuHop]) }}"
                                 data-hinhanh="{{ $sp->HinhAnh }}">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-sm btn-danger btn-delete" data-id="{{ $sp->ID_SanPham }}" {{ $sp->TrangThai == 'NgungKinhDoanh' ? 'disabled' : '' }}>
+                            <button class="btn btn-sm btn-danger btn-delete" data-id="{{ $sp->ID_SanPham }}" {{ $sp->TrangThai == 'NgungKinhDoanh' || $sp->SoLuongTon <= 0 ? 'disabled' : '' }}>
                                 <i class="fas fa-trash"></i>
                             </button>
                         </td>
@@ -135,11 +147,74 @@
                         </div>
                     </div>
                     
+                    <!-- Thông số vợt (bảng thongsovot): chỉ hiện khi danh mục là Vợt cầu lông -->
+                    <div id="khuThongSoVot" class="border rounded p-3 mb-3 bg-light">
+                        <h6 class="fw-bold mb-1"><i class="fas fa-sliders-h me-1"></i> Thông số vợt</h6>
+                        <small class="d-block mb-3" id="ghiChuThongSoVot"></small>
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <label>Trọng lượng</label>
+                                <input type="text" class="form-control" name="TrongLuong" id="TrongLuong" maxlength="20" list="dsTrongLuong" placeholder="4U (80-84g)">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Chu vi tay cầm</label>
+                                <select class="form-select" name="ChuViTayCam" id="ChuViTayCam">
+                                    <option value="">- Chọn -</option>
+                                    <option value="to">To</option>
+                                    <option value="nhỏ">Nhỏ</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label>Chất liệu</label>
+                                <input type="text" class="form-control" name="ChatLieu" id="ChatLieu" maxlength="100" list="dsChatLieu" placeholder="Carbon">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Điểm cân bằng</label>
+                                <input type="text" class="form-control" name="DiemCanBang" id="DiemCanBang" maxlength="50" list="dsDiemCanBang" placeholder="Đầu nặng (Head Heavy)">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Độ cứng</label>
+                                <input type="text" class="form-control" name="DoCung" id="DoCung" maxlength="50" list="dsDoCung" placeholder="Trung bình">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Mức căng tối đa</label>
+                                <input type="text" class="form-control" name="MucCangToiDa" id="MucCangToiDa" maxlength="50" list="dsMucCang" placeholder="20-28 lbs">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Trình độ phù hợp</label>
+                                <select class="form-select" name="TrinhDoPhuHop" id="TrinhDoPhuHop">
+                                    <option value="MoiChoi">Mới chơi</option>
+                                    <option value="TrungCap" selected>Trung cấp</option>
+                                    <option value="NangCao">Nâng cao</option>
+                                    <option value="ChuyenNghiep">Chuyên nghiệp</option>
+                                </select>
+                            </div>
+                        </div>
+                        <datalist id="dsTrongLuong"><option value="3U (85-89g)"><option value="4U (80-84g)"><option value="5U (75-79g)"></datalist>
+                        <datalist id="dsChatLieu"><option value="Carbon"><option value="Nhôm"><option value="Titanium"><option value="Tungsten"><option value="Graphite"></datalist>
+                        <datalist id="dsDiemCanBang"><option value="Đầu nặng (Head Heavy)"><option value="Cân bằng (Even Balance)"><option value="Đầu nhẹ (Head Light)"></datalist>
+                        <datalist id="dsDoCung"><option value="Dẻo"><option value="Trung bình"><option value="Cứng"><option value="Rất cứng"></datalist>
+                        <datalist id="dsMucCang"><option value="18-24 lbs"><option value="20-26 lbs"><option value="20-28 lbs"><option value="22-30 lbs"></datalist>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Size có sẵn <small class="text-muted">(giày, quần áo — cách nhau bằng dấu phẩy)</small></label>
+                        <input type="text" class="form-control" name="SizeCoSan" id="SizeCoSan" maxlength="100" placeholder="VD giày: 39,40,41,42,43 — áo/váy: S,M,L,XL">
+                        <small class="text-muted">Giày để trống hoặc chỉ 1 size thì khách được chọn size chuẩn 38–44.</small>
+                    </div>
+
                     <div class="mb-3">
                         <label>Link Hình Ảnh (URL) *</label>
                         <input type="text" class="form-control" name="HinhAnh" id="HinhAnh" placeholder="https://cdn.shopvnb.com/..." required>
                     </div>
                     
+                    <div class="mb-3">
+                        <label>Hình ảnh phụ <small class="text-muted">(mỗi dòng 1 link, thứ tự dòng = thứ tự ảnh)</small></label>
+                        <textarea class="form-control" name="HinhAnhPhu" id="HinhAnhPhu" rows="3"
+                            placeholder="https://cdn.shopvnb.com/img/300x300/uploads/gallery/anh-1.webp&#10;https://cdn.shopvnb.com/img/300x300/uploads/gallery/anh-2.webp"></textarea>
+                        <div id="xemTruocAnhPhu" class="d-flex flex-wrap gap-2 mt-2"></div>
+                    </div>
+
                     <div class="mb-3">
                         <label>Mô tả chi tiết</label>
                         <textarea class="form-control" name="MoTa" id="MoTa" rows="3"></textarea>
@@ -157,5 +232,5 @@
 
 @section('scripts')
     <!-- JS Xử lý Thêm/Sửa/Xóa của trang Sản phẩm -->
-    <script src="{{ asset('js/admin/sanpham.js') }}"></script>
+    <script src="{{ asset('js/admin/sanpham.js') }}?v={{ filemtime(public_path('js/admin/sanpham.js')) }}"></script>
 @endsection

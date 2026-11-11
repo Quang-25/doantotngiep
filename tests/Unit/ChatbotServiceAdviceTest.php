@@ -41,15 +41,12 @@ class ChatbotServiceAdviceTest extends TestCase
 
     public function test_a_vague_racket_request_starts_clarifying_questions(): void
     {
-        [$first, $second] = $this->chat([
-            'Tôi muốn mua vợt cầu lông, tư vấn giúp tôi.',
-            'Tôi là người mới chơi và có lối chơi tấn công',
-        ]);
+        [$first] = $this->chat(['Tôi muốn mua vợt cầu lông, tư vấn giúp tôi.']);
 
         $this->assertStringStartsWith('Dạ, để tư vấn vợt sát nhu cầu hơn', $first);
         $this->assertStringContainsString('<!--tuvan:vot:tat_ca-->', $first);
-        $this->assertStringContainsString('người mới chơi, thích tấn công', $second);
-        $this->assertStringContainsString('<!--tuvan:vot:ngan_sach-->', $second);
+        // Đã nêu trình độ + lối chơi => đủ thông tin, tư vấn ra sản phẩm luôn (không hỏi thêm ngân sách).
+        $this->assertTrue($this->call('daDuThongTinTuVanVot', 'Tôi là người mới chơi và có lối chơi tấn công', $this->call('layTrangThaiTuVan', 'vot', 'Tôi là người mới chơi và có lối chơi tấn công')));
     }
 
     public function test_need_statements_for_shoes_and_accessories_start_clarification(): void
@@ -208,13 +205,14 @@ class ChatbotServiceAdviceTest extends TestCase
 
     public function test_answering_the_play_style_question_continues_the_interview(): void
     {
-        [, $second] = $this->chat([
-            'Tôi là người mới chơi đang muốn tìm mua một cây vợt',
-            'tôi thích đập cầu tấn công',
-        ]);
-
-        $this->assertStringContainsString('người mới chơi, thích tấn công', $second);
-        $this->assertStringContainsString('<!--tuvan:vot:ngan_sach-->', $second);
+        // Chỉ nêu trình độ (kể cả người mới) thì vẫn hỏi tiếp; nêu thêm một ý nữa thì đủ để tư vấn ra sản phẩm.
+        $only = 'Tôi là người mới chơi đang muốn tìm mua một cây vợt';
+        $this->assertFalse($this->call('daDuThongTinTuVanVot', $only, $this->call('layTrangThaiTuVan', 'vot', $only)));
+        foreach (['tôi chơi nâng cao, tay nhỏ', 'tôi mới chơi, thích tấn công', 'tôi chơi nâng cao tầm 3 triệu'] as $enough) {
+            $this->assertTrue($this->call('daDuThongTinTuVanVot', $enough, $this->call('layTrangThaiTuVan', 'vot', $enough)), $enough);
+        }
+        // Chưa có trình độ thì vẫn phải hỏi.
+        $this->assertFalse($this->call('daDuThongTinTuVanVot', 'tay tôi nhỏ', $this->call('layTrangThaiTuVan', 'vot', 'tay tôi nhỏ')));
     }
 
     public function test_level_and_style_without_the_word_racket_still_start_racket_advice(): void
@@ -228,7 +226,7 @@ class ChatbotServiceAdviceTest extends TestCase
     {
         $profile = $this->call('taoHoSoVot', 'người mới chơi thích tấn công tay hơi nhỏ');
 
-        $this->assertSame('G5', $profile['grip']);
+        $this->assertSame('nhỏ', $profile['grip']);
         $this->assertSame([20, 24], $profile['tension']);
         // Người mới thích tấn công: cân bằng hoặc hơi nặng đầu, không chỉ đầu nặng.
         $this->assertContains('deu', $profile['balances']);
@@ -237,6 +235,14 @@ class ChatbotServiceAdviceTest extends TestCase
         $g5 = (object) ['TrinhDoPhuHop' => 'MoiChoi', 'TrongLuong' => '5U', 'DiemCanBang' => 'Cân bằng', 'DoCung' => 'Dẻo', 'ChuViTayCam' => 'G5', 'MucCangToiDa' => '20-26 lbs'];
         $g4 = (object) ['TrinhDoPhuHop' => 'MoiChoi', 'TrongLuong' => '5U', 'DiemCanBang' => 'Cân bằng', 'DoCung' => 'Dẻo', 'ChuViTayCam' => 'G4', 'MucCangToiDa' => '20-26 lbs'];
         $this->assertGreaterThan($this->call('diemTheoHoSoVot', $g4, $profile), $this->call('diemTheoHoSoVot', $g5, $profile));
+
+        // Dữ liệu mới lưu chu vi tay cầm dạng "to" / "nhỏ" (có thể dư khoảng trắng).
+        $nho = (object) (['ChuViTayCam' => 'nhỏ '] + (array) $g5);
+        $to = (object) (['ChuViTayCam' => 'to'] + (array) $g4);
+        $this->assertSame('nhỏ', $this->call('chuanHoaCoCan', 'nhỏ '));
+        $this->assertSame('to', $this->call('chuanHoaCoCan', 'to'));
+        $this->assertSame('to', $this->call('layCoCan', 'tôi muốn vợt cán to'));
+        $this->assertGreaterThan($this->call('diemTheoHoSoVot', $to, $profile), $this->call('diemTheoHoSoVot', $nho, $profile));
     }
 
     public function test_picking_from_the_listed_products_is_detected(): void

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
+use App\Support\SizeSanPham;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\OrderService;
@@ -130,6 +131,8 @@ class DonHangController extends Controller
         return response()->json(['success' => true, 'message' => 'Đã hủy đơn hàng #' . $id . ' thành công.']);
     }
 
+    private const DIA_CHI_NHAN_TRA_HANG = 'Tổ 4, Đền Rồng, Phường Từ Sơn, Bắc Ninh (ĐT 035 214 3569)';
+
     // Khách đã nhận hàng (đơn Hoàn thành) và muốn trả lại, trong thời hạn cho phép.
     public function yeuCauTraHang(Request $request, int $id): JsonResponse
     {
@@ -156,8 +159,14 @@ class DonHangController extends Controller
         if ($lyDo === '' || mb_strlen($lyDo) > 200 || mb_strlen($chiTiet) > 500) {
             return response()->json(['success' => false, 'message' => 'Vui lòng chọn lý do trả hàng (mô tả thêm tối đa 500 ký tự).'], 422);
         }
+        // Đơn COD khách trả tiền mặt nên shop hoàn tiền mặt; đơn VNPay hoàn về tài khoản/thẻ đã thanh toán.
+        $laCod = $donHang->PhuongThucThanhToan !== 'VNPay';
+
+        // Không cần shop duyệt: ghi yêu cầu và chấp nhận luôn, khách gửi hàng về rồi shop hoàn tiền.
         $noiDung = $lyDo . ($chiTiet !== '' ? ' - ' . str_replace(["\r", "\n"], ' ', $chiTiet) : '');
-        $this->orderService->ghiThemGhiChu($id, OrderService::TRA_HANG_YEU_CAU . ' (' . now()->format('d/m/Y H:i') . '). Lý do: ' . $noiDung);
+        $luc = now()->format('d/m/Y H:i');
+        $this->orderService->ghiThemGhiChu($id, OrderService::TRA_HANG_YEU_CAU . ' (' . $luc . '). Lý do: ' . $noiDung);
+        $this->orderService->ghiThemGhiChu($id, OrderService::TRA_HANG_CHAP_NHAN . ' (tự động, ' . $luc . ')');
 
         // Báo khách đã nhận yêu cầu + báo shop có yêu cầu mới (lỗi mail không ảnh hưởng yêu cầu).
         $donMoi = DB::table('donhang')->where('ID_DonHang', $id)->first();
@@ -175,7 +184,12 @@ class DonHangController extends Controller
             Log::error('Lỗi gửi email yêu cầu trả hàng đơn #' . $id . ': ' . $e->getMessage());
         }
 
-        return response()->json(['success' => true, 'message' => 'Đã gửi yêu cầu trả hàng cho đơn #' . $id . '. Shop sẽ xem xét và phản hồi bạn qua email.']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã ghi nhận trả hàng đơn #' . $id . '. Bạn vui lòng đóng gói và gửi hàng về: ' . self::DIA_CHI_NHAN_TRA_HANG
+                . '. Shop sẽ hoàn ' . number_format($donHang->ThanhTien, 0, ',', '.') . 'đ cho bạn sau khi nhận được hàng'
+                . ($laCod ? ' (hoàn tiền mặt).' : ' (hoàn về tài khoản/thẻ đã thanh toán VNPay).'),
+        ]);
     }
 
     // ---------- Hàm hỗ trợ ----------
@@ -255,6 +269,9 @@ class DonHangController extends Controller
 
     private function dinhDangDon(object $donHang, array $sanPhams, bool $chiTiet = false, bool $daThanhToan = false): array
     {
+        $sizes = SizeSanPham::tuGhiChu($donHang->GhiChu ?? null);
+        $sanPhams = array_map(fn ($sp) => $sp + ['Size' => $sizes[$sp['TenSanPham']] ?? null], $sanPhams);
+
         $data = [
             'ID_DonHang' => (int) $donHang->ID_DonHang,
             'NgayDat' => $donHang->NgayDat,
@@ -320,7 +337,7 @@ class DonHangController extends Controller
             $buocCuoi = match ($buocTraHang) {
                 'cho_duyet' => ['ten' => 'Đã gửi yêu cầu trả hàng', 'moTa' => 'Shop đang xem xét yêu cầu của bạn' . ($lyDo ? '. Lý do: ' . $lyDo : '') . '.', 'trangThai' => 'hienTai'],
                 'tu_choi' => ['ten' => 'Shop từ chối trả hàng', 'moTa' => 'Lý do: ' . ($this->orderService->ghiChuBuocTraHang($donHang, OrderService::TRA_HANG_TU_CHOI) ?? 'không ghi rõ') . '. Liên hệ hotline 035 214 3569 nếu cần hỗ trợ.', 'trangThai' => 'huy'],
-                'cho_nhan_hang' => ['ten' => 'Shop đã chấp nhận trả hàng', 'moTa' => 'Bạn vui lòng đóng gói và gửi hàng về: Tổ 4, Đền Rồng, Phường Từ Sơn, Bắc Ninh (ĐT 035 214 3569). Shop hoàn tiền sau khi nhận hàng.', 'trangThai' => 'hienTai'],
+                'cho_nhan_hang' => ['ten' => 'Đã gửi yêu cầu trả hàng', 'moTa' => ($lyDo ? 'Lý do: ' . $lyDo . '. ' : '') . 'Bạn vui lòng đóng gói và gửi hàng về: ' . self::DIA_CHI_NHAN_TRA_HANG . '. Shop hoàn ' . $tien . ' sau khi nhận hàng.', 'trangThai' => 'hienTai'],
                 'cho_hoan_tien' => ['ten' => 'Shop đã nhận lại hàng', 'moTa' => 'Shop sẽ hoàn ' . $tien . ' cho bạn trong thời gian sớm nhất.', 'trangThai' => 'hienTai'],
                 default => ['ten' => 'Đã hoàn tiền', 'moTa' => 'Shop đã hoàn ' . $tien . ' cho bạn. Cảm ơn bạn đã mua sắm!', 'trangThai' => 'xong'],
             };
@@ -352,6 +369,9 @@ class DonHangController extends Controller
     {
         if ($donHang->GhiChu && preg_match('/Khách hủy đơn: (.+)$/u', $donHang->GhiChu, $matches)) {
             return 'Bạn đã hủy đơn. Lý do: ' . $matches[1];
+        }
+        if ($donHang->GhiChu && preg_match('/^Shop hủy đơn: (.+)$/mu', $donHang->GhiChu, $matches)) {
+            return 'Shop đã hủy đơn. Lý do: ' . $matches[1];
         }
 
         return 'Đơn hàng đã bị hủy.';

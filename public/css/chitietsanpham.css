@@ -302,3 +302,43 @@
         font-size: 1.05rem;
     }
 }
+/* ===== Chọn size ===== */
+.size-picker .size-picker-label {
+    min-width: 60px;
+}
+
+.size-option {
+    min-width: 48px;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    background: #fff;
+    color: #212529;
+    font-weight: 600;
+    transition: border-color .15s, color .15s, background .15s;
+}
+
+.size-option:hover {
+    border-color: #0d6efd;
+    color: #0d6efd;
+}
+
+.size-option.active {
+    border-color: #0d6efd;
+    background: #e7f0ff;
+    color: #0d6efd;
+    box-shadow: inset 0 0 0 1px #0d6efd;
+}
+
+.size-picker.is-invalid .size-option {
+    border-color: #dc3545;
+}
+
+@media (max-width: 576px) {
+    .size-option {
+        min-width: 42px;
+        height: 36px;
+        padding: 0 8px;
+    }
+}

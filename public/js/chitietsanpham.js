@@ -46,11 +46,47 @@ document.addEventListener('DOMContentLoaded', function() {
         return maPhien; 
     }
 
+    // ==========================================
+    // CHỌN SIZE (giày, quần áo)
+    // Size được nhớ ở trình duyệt theo từng sản phẩm trong giỏ: sizeGioHang = { ID_SanPham: "42" }
+    // ==========================================
+    const sizePicker = document.getElementById('sizePicker');
+    const inputSize = document.getElementById('inputSize');
+    const sizeError = document.getElementById('sizeError');
+
+    if (sizePicker) {
+        sizePicker.querySelectorAll('.size-option').forEach(btn => {
+            btn.addEventListener('click', function () {
+                sizePicker.querySelectorAll('.size-option').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                inputSize.value = this.dataset.size;
+                sizePicker.classList.remove('is-invalid');
+                sizeError.classList.add('d-none');
+            });
+        });
+    }
+
+    function luuSizeDaChon(idSanPham, size) {
+        try {
+            const sizes = JSON.parse(localStorage.getItem('sizeGioHang') || '{}');
+            sizes[idSanPham] = size;
+            localStorage.setItem('sizeGioHang', JSON.stringify(sizes));
+        } catch (e) { /* trình duyệt chặn lưu trữ: bỏ qua */ }
+    }
+
     // Hàm xử lý chung khi bấm gọi API
     async function xuLyDatHang(isBuyNow) {
         // Xác định nút nào vừa được bấm
         const button = isBuyNow ? btnMuaNgay : btnThemGio;
         if (!button || button.disabled) return;
+
+        // Bắt buộc chọn size với sản phẩm có size
+        if (sizePicker && !inputSize.value) {
+            sizePicker.classList.add('is-invalid');
+            sizeError.classList.remove('d-none');
+            sizePicker.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
 
         // Lấy dữ liệu
         const idSanPham = inputSanPham.value;
@@ -86,6 +122,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await res.json(); 
 
             if (data.success) { 
+                if (sizePicker) luuSizeDaChon(idSanPham, inputSize.value);
+
                 // Cập nhật lại số lượng giỏ hàng trên thanh Header
                 if (typeof window.laySoLuongGioHangToanCuc === 'function') {
                     window.laySoLuongGioHangToanCuc();
@@ -96,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.location.href = '/thanhtoan';
                 } else {
                     // Nếu là Thêm giỏ hàng -> Báo thành công
-                    alert(data.message || 'Đã thêm sản phẩm vào giỏ hàng thành công!');
+                    alert((data.message || 'Đã thêm sản phẩm vào giỏ hàng thành công!') + (sizePicker ? ` (Size ${inputSize.value})` : ''));
                     
                     // Khôi phục nút bấm
                     button.innerHTML = originalHTML;

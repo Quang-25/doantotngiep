@@ -131,8 +131,8 @@
                                     <label class="form-label" for="loc-cocan">Cỡ cán</label>
                                     <select name="co_can" id="loc-cocan" class="form-select">
                                         <option value="">Tất cả</option>
-                                        <option value="G4">G4 (cán to)</option>
-                                        <option value="G5">G5 (cán nhỏ)</option>
+                                        <option value="to">Cán to</option>
+                                        <option value="nhỏ">Cán nhỏ</option>
                                     </select>
                                 </div>
                             </div>

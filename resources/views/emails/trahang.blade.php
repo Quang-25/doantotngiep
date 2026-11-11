@@ -7,20 +7,30 @@
     @php $tien = number_format($donHang->ThanhTien, 0, ',', '.') . ' VNĐ'; @endphp
 
     @if($buoc === 'shop')
-        <h2 style="color: #dc2626;">Có yêu cầu trả hàng mới</h2>
-        <p>Khách <strong>{{ $donHang->TenNguoiNhan }}</strong> ({{ $donHang->SoDienThoaiNhan }}) vừa gửi yêu cầu trả hàng cho đơn <strong>#{{ $donHang->ID_DonHang }}</strong> ({{ $tien }}).</p>
+        <h2 style="color: #dc2626;">Khách trả hàng</h2>
+        <p>Khách <strong>{{ $donHang->TenNguoiNhan }}</strong> ({{ $donHang->SoDienThoaiNhan }}) vừa trả hàng đơn <strong>#{{ $donHang->ID_DonHang }}</strong> ({{ $tien }}, {{ $donHang->PhuongThucThanhToan }}).</p>
         @if($ghiChu)
             <p><strong>Lý do:</strong> {{ $ghiChu }}</p>
         @endif
-        <p>Vào trang <a href="{{ url('/admin/don-hang?trang_thai=TraHangChoDuyet') }}">Quản lý đơn hàng</a> để chấp nhận hoặc từ chối.</p>
+        <p>Yêu cầu đã được chấp nhận tự động. Khi nhận được hàng, vào <a href="{{ url('/admin/don-hang?trang_thai=TraHangChoNhan') }}">Quản lý đơn hàng</a> bấm <strong>Đã nhận hàng trả</strong>, sau đó hoàn tiền cho khách và bấm <strong>Đã hoàn tiền</strong>.</p>
     @else
         <h2>Xin chào {{ $donHang->TenNguoiNhan }},</h2>
 
         @if($buoc === 'yeu_cau')
-            <p>Badminton ProShop đã nhận được <strong>yêu cầu trả hàng</strong> cho đơn <strong>#{{ $donHang->ID_DonHang }}</strong>. Shop sẽ xem xét và phản hồi bạn sớm nhất.</p>
+            <p>Badminton ProShop đã <strong style="color:#16a34a;">ghi nhận trả hàng</strong> cho đơn <strong>#{{ $donHang->ID_DonHang }}</strong>.</p>
             @if($ghiChu)
                 <p><strong>Lý do bạn gửi:</strong> {{ $ghiChu }}</p>
             @endif
+            <div style="background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 15px; border-radius: 5px;">
+                Bạn vui lòng đóng gói sản phẩm (còn nguyên tem, phụ kiện đi kèm) và gửi về:<br>
+                <strong>Badminton Shop - Tổ 4, Đền Rồng, Phường Từ Sơn, Thành Phố Bắc Ninh</strong> - ĐT: 035 214 3569.<br>
+                Shop sẽ hoàn <strong>{{ $tien }}</strong> sau khi nhận được hàng
+                @if($donHang->PhuongThucThanhToan === 'VNPay')
+                    về tài khoản/thẻ bạn đã thanh toán VNPay.
+                @else
+                    bằng tiền mặt.
+                @endif
+            </div>
         @elseif($buoc === 'chap_nhan')
             <p>Yêu cầu trả hàng đơn <strong>#{{ $donHang->ID_DonHang }}</strong> đã được <strong style="color:#16a34a;">chấp nhận</strong>.</p>
             <div style="background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 15px; border-radius: 5px;">

@@ -17,9 +17,10 @@
                     <th style="text-align: center; padding: 6px;">SL</th>
                     <th style="text-align: right; padding: 6px;">Giá</th>
                 </tr>
+                @php $sizes = \App\Support\SizeSanPham::tuGhiChu($donHang->GhiChu ?? null); @endphp
                 @foreach($sanPhams as $sp)
                     <tr>
-                        <td style="padding: 6px; border-bottom: 1px solid #ddd;">{{ $sp->TenSanPham }}</td>
+                        <td style="padding: 6px; border-bottom: 1px solid #ddd;">{{ $sp->TenSanPham }}@if(!empty($sizes[$sp->TenSanPham])) <span style="color:#0d6efd;">(Size {{ $sizes[$sp->TenSanPham] }})</span>@endif</td>
                         <td style="padding: 6px; border-bottom: 1px solid #ddd; text-align: center;">x{{ $sp->SoLuong }}</td>
                         <td style="padding: 6px; border-bottom: 1px solid #ddd; text-align: right;">{{ number_format($sp->GiaMua, 0, ',', '.') }} VNĐ</td>
                     </tr>

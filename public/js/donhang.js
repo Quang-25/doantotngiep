@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <img src="${escapeHtml(item.HinhAnh)}" alt="${escapeHtml(item.TenSanPham)}" onerror="this.src='/images/no-image.jpg'">
                 <div>
                     <a href="/san-pham/${Number(item.ID_SanPham)}" class="order-item-name text-dark text-decoration-none">${escapeHtml(item.TenSanPham)}</a>
-                    <div class="text-muted small">x${Number(item.SoLuong)}</div>
+                    <div class="text-muted small">${item.Size ? `Size ${escapeHtml(item.Size)} · ` : ''}x${Number(item.SoLuong)}</div>
                 </div>
                 <div class="order-item-price">${formatMoney(item.GiaMua)}</div>
             </div>`).join('');
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
             buttons.push(`<button type="button" class="btn btn-outline-danger btn-sm" data-action="cancel" data-id="${order.ID_DonHang}">Hủy đơn</button>`);
         }
         if (order.CoTheTraHang) {
-            buttons.push(`<button type="button" class="btn btn-outline-warning btn-sm" data-action="return" data-id="${order.ID_DonHang}" data-deadline="${escapeHtml(order.HanTraHang || '')}">Trả hàng</button>`);
+            buttons.push(`<button type="button" class="btn btn-outline-warning btn-sm" data-action="return" data-id="${order.ID_DonHang}" data-deadline="${escapeHtml(order.HanTraHang || '')}" data-payment="${escapeHtml(order.PhuongThucThanhToan || '')}">Trả hàng</button>`);
         }
         if (order.TrangThai === 'HoanThanh' || order.TrangThai === 'DaHuy') {
             buttons.push(`<button type="button" class="btn btn-primary btn-sm" data-action="rebuy" data-id="${order.ID_DonHang}">Mua lại</button>`);
@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 ${order.CoTheHuy ? `<div class="text-end mt-3"><button type="button" class="btn btn-outline-danger" data-action="cancel" data-id="${order.ID_DonHang}">Hủy đơn hàng</button></div>` : ''}
                 ${order.CoTheTraHang ? `<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
                     <span class="small text-muted">Bạn có thể yêu cầu trả hàng đến ${escapeHtml(order.HanTraHang)}.</span>
-                    <button type="button" class="btn btn-outline-warning" data-action="return" data-id="${order.ID_DonHang}" data-deadline="${escapeHtml(order.HanTraHang || '')}">Yêu cầu trả hàng</button>
+                    <button type="button" class="btn btn-outline-warning" data-action="return" data-id="${order.ID_DonHang}" data-deadline="${escapeHtml(order.HanTraHang || '')}" data-payment="${escapeHtml(order.PhuongThucThanhToan || '')}">Yêu cầu trả hàng</button>
                 </div>` : ''}`;
         } catch (error) {
             detailBody.innerHTML = `<div class="alert alert-danger">${escapeHtml(error.message)}</div>`;
@@ -258,8 +258,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const confirmReturnBtn = document.getElementById('confirmReturnBtn');
     let returningOrderId = null;
 
-    function openReturn(id, deadline) {
+    function openReturn(id, deadline, payment) {
         returningOrderId = id;
+        document.getElementById('returnRefundHint').textContent = payment === 'VNPay'
+            ? 'Đơn đã thanh toán VNPay: tiền được hoàn về tài khoản/thẻ bạn đã thanh toán.'
+            : 'Đơn thanh toán khi nhận hàng (COD): shop hoàn lại tiền mặt cho bạn.';
         document.getElementById('returnOrderId').textContent = '#' + id;
         document.getElementById('returnDeadline').textContent = deadline ? 'Hạn gửi yêu cầu trả hàng: ' + deadline : '';
         document.getElementById('traLyDo1').checked = true;
@@ -346,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (button.dataset.action === 'detail') openDetail(id);
         if (button.dataset.action === 'cancel') openCancel(id);
         if (button.dataset.action === 'rebuy') rebuy(button.closest('.order-card'));
-        if (button.dataset.action === 'return') openReturn(id, button.dataset.deadline);
+        if (button.dataset.action === 'return') openReturn(id, button.dataset.deadline, button.dataset.payment);
     });
 
     // Mở thẳng tab theo đường dẫn, ví dụ /don-hang?trang_thai=DangGiao

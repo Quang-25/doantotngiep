@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\SizeSanPham;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\OrderService;
@@ -25,7 +26,8 @@ class AdminDonHangController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('ID_DonHang', 'LIKE', '%' . $search . '%')
                   ->orWhere('TenNguoiNhan', 'LIKE', '%' . $search . '%')
-                  ->orWhere('SoDienThoaiNhan', 'LIKE', '%' . $search . '%');
+                  ->orWhere('SoDienThoaiNhan', 'LIKE', '%' . $search . '%')
+                  ->orWhere('DiaChiGiaoHang', 'LIKE', '%' . $search . '%');
             });
         }
         $coGhiChu = fn ($q, $dong) => $q->where('GhiChu', 'LIKE', '%' . $dong . '%');
@@ -82,6 +84,12 @@ class AdminDonHangController extends Controller
             ->select('sanpham.TenSanPham', 'sanpham.HinhAnh', 'chitietdonhang.SoLuong', 'chitietdonhang.GiaMua')
             ->get();
 
+        // Size khách chọn (lưu trong ghi chú đơn)
+        $sizes = SizeSanPham::tuGhiChu($donHang->GhiChu);
+        foreach ($chiTiet as $item) {
+            $item->Size = $sizes[$item->TenSanPham] ?? null;
+        }
+
         return response()->json([
             'success' => true, 
             'donHang' => $donHang, 
@@ -120,10 +128,18 @@ class AdminDonHangController extends Controller
             ], 422);
         }
 
+        $lyDoHuy = trim(preg_replace('/\s+/u', ' ', (string) $request->input('ly_do')));
+        if ($trangThaiMoi === 'DaHuy' && ($lyDoHuy === '' || mb_strlen($lyDoHuy) > 200)) {
+            return response()->json(['success' => false, 'message' => 'Vui lòng nhập lý do hủy đơn (tối đa 200 ký tự).'], 422);
+        }
+        $daThanhToanVNPay = $trangThaiMoi === 'DaHuy' && $orderService->daThanhToanVNPay($id);
+
         try {
             if ($trangThaiMoi === 'DaHuy') {
-                // Hủy đơn: hoàn kho, trả lượt mã giảm giá.
-                $orderService->huyDon($id, 'Shop hủy đơn.');
+                // Hủy đơn: hoàn kho, trả lượt mã giảm giá, ghi lý do để khách xem trong Đơn mua.
+                if (!$orderService->huyDon($id, 'Shop hủy đơn: ' . $lyDoHuy)) {
+                    return response()->json(['success' => false, 'message' => 'Không thể hủy đơn này (đơn đã hoàn thành hoặc đã hủy).'], 422);
+                }
             } else {
                 DB::table('donhang')->where('ID_DonHang', $id)->update(['TrangThaiDon' => $trangThaiMoi]);
                 if ($trangThaiMoi === 'HoanThanh') {
@@ -133,6 +149,10 @@ class AdminDonHangController extends Controller
             }
 
             $message = 'Đã chuyển đơn #' . $id . ' sang "' . $tenTrangThai[$trangThaiMoi] . '".';
+            if ($trangThaiMoi === 'DaHuy') {
+                $message = 'Đã hủy đơn #' . $id . '. Sản phẩm đã được hoàn lại kho.'
+                    . ($daThanhToanVNPay ? ' Đơn này khách đã thanh toán VNPay, nhớ hoàn tiền cho khách.' : '');
+            }
             if ($trangThaiMoi === 'DangGiao') {
                 $message .= $this->guiEmailDaDuyet($id, $orderService)
                     ? ' Đã gửi email thông báo cho khách.'
