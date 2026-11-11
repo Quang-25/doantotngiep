@@ -3,9 +3,44 @@ document.addEventListener('DOMContentLoaded', function () {
     const myModal = new bootstrap.Modal(document.getElementById('modalSanPham'));
     const form = document.getElementById('formSanPham');
 
+    // Khu thông số vợt chỉ hiện khi chọn danh mục Vợt cầu lông (ID_DanhMuc = 1)
+    const DANH_MUC_VOT = '1';
+    const selectDanhMuc = document.getElementById('ID_DanhMuc');
+    const khuThongSoVot = document.getElementById('khuThongSoVot');
+    const ghiChuThongSoVot = document.getElementById('ghiChuThongSoVot');
+    const capNhatKhuThongSo = () => {
+        const laVot = selectDanhMuc.value === DANH_MUC_VOT;
+        khuThongSoVot.querySelectorAll('input, select').forEach(o => { o.disabled = !laVot; });
+        khuThongSoVot.style.opacity = laVot ? '1' : '.6';
+        ghiChuThongSoVot.className = 'd-block mb-3 ' + (laVot ? 'text-success' : 'text-muted');
+        ghiChuThongSoVot.textContent = laVot
+            ? 'Nhập thông số để khách xem ở trang chi tiết và chatbot tư vấn chính xác hơn.'
+            : 'Chọn danh mục "Vợt Cầu Lông" để nhập thông số (sản phẩm khác không cần).';
+    };
+    capNhatKhuThongSo();
+    selectDanhMuc.addEventListener('change', capNhatKhuThongSo);
+
+    // Hình ảnh phụ: xem trước các link đã nhập
+    const oAnhPhu = document.getElementById('HinhAnhPhu');
+    const xemTruocAnhPhu = document.getElementById('xemTruocAnhPhu');
+    const veXemTruocAnhPhu = () => {
+        xemTruocAnhPhu.innerHTML = '';
+        oAnhPhu.value.split('\n').map(s => s.trim()).filter(s => /^https?:\/\//i.test(s)).forEach((url, i) => {
+            const img = document.createElement('img');
+            img.src = url;
+            img.title = 'Ảnh ' + (i + 1);
+            img.style.cssText = 'width:64px;height:64px;object-fit:cover;border:1px solid #dee2e6;border-radius:6px;';
+            img.onerror = () => { img.style.borderColor = '#dc3545'; img.alt = 'Lỗi ảnh'; };
+            xemTruocAnhPhu.appendChild(img);
+        });
+    };
+    oAnhPhu.addEventListener('input', veXemTruocAnhPhu);
+
     // 1. Mở form Thêm mới (Reset trắng dữ liệu)
     document.getElementById('btnOpenAdd').addEventListener('click', () => {
         form.reset();
+        capNhatKhuThongSo();
+        veXemTruocAnhPhu();
         document.getElementById('sp_id').value = '';
         document.getElementById('modalTitle').textContent = 'Thêm Sản Phẩm Mới';
     });
@@ -22,7 +57,22 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('GiaKhuyenMai').value = this.dataset.giakm || '';
             document.getElementById('SoLuongTon').value = this.dataset.soluong;
             document.getElementById('MoTa').value = this.dataset.mota;
+            document.getElementById('SizeCoSan').value = this.dataset.size || '';
             document.getElementById('HinhAnh').value = this.dataset.hinhanh; // Đổ Link Ảnh
+
+            // Hình ảnh phụ
+            let anhPhu = [];
+            try { anhPhu = JSON.parse(this.dataset.anhphu || '[]'); } catch (e) { /* bỏ qua */ }
+            oAnhPhu.value = anhPhu.join('\n');
+            veXemTruocAnhPhu();
+
+            // Thông số vợt
+            let thongSo = {};
+            try { thongSo = JSON.parse(this.dataset.thongso || '{}'); } catch (e) { /* bỏ qua */ }
+            ['TrongLuong', 'ChuViTayCam', 'ChatLieu', 'DiemCanBang', 'DoCung', 'MucCangToiDa', 'TrinhDoPhuHop'].forEach(truong => {
+                if (thongSo[truong]) document.getElementById(truong).value = String(thongSo[truong]).trim();
+            });
+            capNhatKhuThongSo();
             
             document.getElementById('modalTitle').textContent = 'Cập Nhật Sản Phẩm #' + this.dataset.id;
             myModal.show();
@@ -82,16 +132,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 if (response.ok && result.success) {
                     
-                    // ĐÃ FIX: Xóa lệnh row.remove(); đi và thay bằng code cập nhật giao diện
+                    // Sản phẩm đã chuyển sang Ngừng kinh doanh (dữ liệu vẫn còn trong database)
+                    // => bỏ dòng khỏi trang quản lý ngay.
                     const row = document.getElementById(`row-${spId}`);
-                    
-                    // 1. Cập nhật cột Trạng thái (Cột số 7 tính từ 0) thành nhãn màu xám
-                    row.cells[7].innerHTML = '<span class="badge bg-secondary">Ngừng Kinh Doanh</span>';
-                    
-                    // 2. Vô hiệu hóa nút Xóa vừa bấm để không bị bấm nhầm lần 2
-                    this.disabled = true; 
-                    
                     alert(result.message);
+                    row.remove();
+                    // Trang hết dòng thì tải lại để lấy các sản phẩm của trang kế
+                    if (!document.querySelector('tr[id^="row-"]')) {
+                        window.location.reload();
+                    }
                 } else {
                     alert('Thất bại: ' + result.message);
                 }

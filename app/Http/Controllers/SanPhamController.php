@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\SanPham;
 use App\Models\DanhMuc;
 use App\Models\ThuongHieu;
+use App\Support\GiaSanPham;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB; 
 use Illuminate\Support\Facades\Schema;
@@ -105,7 +106,7 @@ class SanPhamController extends Controller
             'trong_luong' => fn ($q, $v) => $q->where('thongsovot.TrongLuong', 'like', $v . '%'),
             'can_bang' => fn ($q, $v) => $q->where('thongsovot.DiemCanBang', 'like', $v . '%'),
             'do_cung' => fn ($q, $v) => $q->where('thongsovot.DoCung', $v),
-            'co_can' => fn ($q, $v) => $q->where('thongsovot.ChuViTayCam', 'like', '%' . $v . '%'),
+            'co_can' => fn ($q, $v) => $q->where('thongsovot.ChuViTayCam', 'like', '%' . $v . '%'), // to / nhỏ
         ];
         $coLocVot = collect(array_keys($locVot))->contains(fn ($key) => $request->filled($key));
         if ($coLocVot) {
@@ -118,7 +119,7 @@ class SanPhamController extends Controller
         }
 
         // Giá đang bán (đã tính khuyến mãi)
-        $giaHienTai = 'CASE WHEN sanpham.GiaKhuyenMai > 0 AND sanpham.GiaKhuyenMai < sanpham.GiaBan THEN sanpham.GiaKhuyenMai ELSE sanpham.GiaBan END';
+        $giaHienTai = GiaSanPham::SQL_GIA_HIEN_TAI;
         [$giaTu, $giaDen] = $this->layKhoangGia($request);
         if ($giaTu !== null) {
             $query->whereRaw("($giaHienTai) >= ?", [$giaTu]);

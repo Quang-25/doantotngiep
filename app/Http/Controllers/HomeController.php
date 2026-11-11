@@ -14,11 +14,14 @@ class HomeController extends Controller
 
     public function  api(): JsonResponse
     {
-        $sanPhamBanChay = SanPham::take(6)->get();
+        // Chỉ hiển thị sản phẩm đang bán (ngừng kinh doanh thì ẩn khỏi trang chủ)
+        $sanPhamBanChay = SanPham::where('TrangThai', 'DangBan')->take(8)->get();
 
-        $sanPhamSale = SanPham::whereNotNull('GiaKhuyenMai')
+        $sanPhamSale = SanPham::where('TrangThai', 'DangBan')
+            ->whereNotNull('GiaKhuyenMai')
+            ->where('GiaKhuyenMai', '>', 0)
             ->where('GiaKhuyenMai', '<', DB::raw('GiaBan'))
-            ->take(6)
+            ->take(8)
             ->get();
 
         return response()->json([

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\SizeSanPham;
+use App\Support\GiaSanPham;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -33,14 +35,16 @@ class ThanhToanController extends Controller
             ->join('SanPham', 'ChiTietGioHang.ID_SanPham', '=', 'SanPham.ID_SanPham')
             ->where('GioHang.ID_KhachHang', $khachHang->ID_KhachHang)
             ->where('ChiTietGioHang.DaChon', 1)
-            ->select('SanPham.ID_SanPham', 'SanPham.TenSanPham', 'SanPham.GiaBan', 'SanPham.GiaKhuyenMai', 'ChiTietGioHang.SoLuong')
+            ->select('SanPham.ID_SanPham', 'SanPham.ID_DanhMuc', 'SanPham.SizeCoSan', 'SanPham.TenSanPham', 'SanPham.GiaBan', 'SanPham.GiaKhuyenMai', 'ChiTietGioHang.SoLuong')
             ->get();
 
         $tongTien = 0;
         foreach ($cartItems as $item) {
-            $giaThucTe = $item->GiaKhuyenMai ?? $item->GiaBan;
+            $giaThucTe = GiaSanPham::hienTai($item);
             $tongTien += $giaThucTe * $item->SoLuong;
             $item->GiaThucTe = $giaThucTe;
+            $item->DanhSachSize = SizeSanPham::danhSach($item);
+            $item->SizeMacDinh = SizeSanPham::macDinh($item);
         }
 
         // Lấy danh sách mã khuyến mãi hợp lệ hiển thị ra Popup
@@ -54,7 +58,10 @@ class ThanhToanController extends Controller
             })
             ->get();
 
-        return view('thanhtoan', compact('khachHang', 'cartItems', 'tongTien', 'danhSachKhuyenMai'));
+        // Mã đơn dự kiến hiển thị trên trang thanh toán (đơn sẽ được lưu với đúng mã này nếu còn trống).
+        $maDonHang = (int) DB::table('DonHang')->max('ID_DonHang') + 1;
+
+        return view('thanhtoan', compact('khachHang', 'cartItems', 'tongTien', 'danhSachKhuyenMai', 'maDonHang'));
     }
     
     public function processCheckout(Request $request)
@@ -88,7 +95,14 @@ class ThanhToanController extends Controller
                 }
             }
 
-            $idDonHang = DB::table('DonHang')->insertGetId([
+            // Size khách chọn (giày, quần áo) được ghi vào ghi chú đơn hàng.
+            $ghiChuSize = $this->taoGhiChuSize((array) $request->cart_items);
+            if ($ghiChuSize === false) {
+                DB::rollBack();
+                return response()->json(['status' => 'error', 'message' => 'Vui lòng chọn size hợp lệ cho các sản phẩm giày, quần áo.'], 422);
+            }
+
+            $duLieuDon = [
                 'ID_KhachHang' => $request->id_khachhang,
                 'ID_KhuyenMai' => $idKhuyenMai,
                 'TongTien' => $tongTien,
@@ -100,7 +114,9 @@ class ThanhToanController extends Controller
                 'PhuongThucThanhToan' => $phuongThucDonHang, 
                 'TrangThaiDon' => $trangThaiDon,
                 'NgayDat' => now(),
-            ]);
+                'GhiChu' => $ghiChuSize,
+            ];
+            $idDonHang = $this->luuDonHang($duLieuDon, (int) $request->input('ma_don_hang'));
 
             foreach ($request->cart_items as $item) {
                 DB::table('ChiTietDonHang')->insert([
@@ -153,7 +169,12 @@ class ThanhToanController extends Controller
             }
 
             $this->sendOrderEmail($idDonHang);
-            return response()->json(['status' => 'success', 'message' => 'Đặt hàng COD thành công! Vui lòng kiểm tra email.'], 200);
+            return response()->json([
+                'status' => 'success',
+                'ma_don_hang' => $idDonHang,
+                'message' => "Đặt hàng COD thành công!\nMã đơn hàng của bạn: #{$idDonHang}\nTổng thanh toán: "
+                    . number_format((float) $thanhTien, 0, ',', '.') . "đ\nVui lòng kiểm tra email để xem chi tiết đơn hàng.",
+            ], 200);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -221,6 +242,50 @@ class ThanhToanController extends Controller
             ->get();
 
         return view('theo-doi-don-hang', compact('donHangs'));
+    }
+
+    /**
+     * Tạo dòng ghi chú size, vd "Size đã chọn: Giày cầu lông Mizuno 24-2 - size 42".
+     * Trả về null nếu đơn không có sản phẩm cần size, false nếu thiếu/sai size.
+     */
+    private function taoGhiChuSize(array $cartItems): string|null|false
+    {
+        $ids = collect($cartItems)->pluck('id_sanpham')->filter()->map(fn ($id) => (int) $id)->all();
+        $sanPhams = DB::table('SanPham')->whereIn('ID_SanPham', $ids)
+            ->select('ID_SanPham', 'ID_DanhMuc', 'SizeCoSan', 'TenSanPham')->get()->keyBy('ID_SanPham');
+
+        $dong = [];
+        foreach ($cartItems as $item) {
+            $sanPham = $sanPhams[(int) ($item['id_sanpham'] ?? 0)] ?? null;
+            if (!$sanPham || !SizeSanPham::danhSach($sanPham)) {
+                continue;
+            }
+            $size = mb_strtoupper(trim((string) ($item['size'] ?? '')));
+            if (!in_array($size, SizeSanPham::danhSach($sanPham), true)) {
+                return false;
+            }
+            $dong[] = $sanPham->TenSanPham . ' - size ' . $size;
+        }
+
+        return $dong ? 'Size đã chọn: ' . implode('; ', $dong) : null;
+    }
+
+    /**
+     * Lưu đơn với mã đã hiển thị cho khách nếu mã đó còn trống;
+     * nếu đã có người khác đặt trước thì để MySQL tự cấp mã mới.
+     */
+    private function luuDonHang(array $duLieuDon, int $maDuKien): int
+    {
+        if ($maDuKien > 0 && !DB::table('DonHang')->where('ID_DonHang', $maDuKien)->exists()) {
+            try {
+                DB::table('DonHang')->insert(['ID_DonHang' => $maDuKien] + $duLieuDon);
+                return $maDuKien;
+            } catch (\Illuminate\Database\QueryException $e) {
+                // Trùng mã do đặt cùng lúc: dùng mã tự tăng bên dưới.
+            }
+        }
+
+        return (int) DB::table('DonHang')->insertGetId($duLieuDon);
     }
 
     private function sendOrderEmail(int $idDonHang)

@@ -56,7 +56,7 @@ class OrderService
     public const TEN_TRANG_THAI_TRA_HANG = [
         'cho_duyet' => 'Chờ shop duyệt trả hàng',
         'tu_choi' => 'Shop từ chối trả hàng',
-        'cho_nhan_hang' => 'Chờ gửi hàng trả về shop',
+        'cho_nhan_hang' => 'Khách trả hàng - chờ shop nhận hàng',
         'cho_hoan_tien' => 'Đã trả hàng - chờ hoàn tiền',
         'da_hoan_tien' => 'Đã trả hàng - đã hoàn tiền',
     ];

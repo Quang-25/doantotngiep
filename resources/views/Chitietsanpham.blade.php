@@ -89,6 +89,23 @@
                             </div>
                         </div>
 
+                        @php
+                            $dsSize = \App\Support\SizeSanPham::danhSach($sanPham);
+                            $sizeMacDinh = \App\Support\SizeSanPham::macDinh($sanPham);
+                        @endphp
+                        @if(count($dsSize) > 0)
+                            <div class="size-picker mb-4" id="sizePicker" data-required="1">
+                                <div class="d-flex align-items-center flex-wrap gap-2">
+                                    <label class="me-3 text-muted fw-medium size-picker-label">Size</label>
+                                    @foreach($dsSize as $size)
+                                        <button type="button" class="size-option {{ $size === $sizeMacDinh ? 'active' : '' }}" data-size="{{ $size }}">{{ $size }}</button>
+                                    @endforeach
+                                </div>
+                                <input type="hidden" name="size" id="inputSize" value="{{ $sizeMacDinh }}">
+                                <div class="size-picker-error text-danger small mt-2 d-none" id="sizeError">Vui lòng chọn size trước khi mua.</div>
+                            </div>
+                        @endif
+
                         <div class="d-flex gap-3">
                             <button type="button" id="btn-them-gio" class="btn btn-primary px-4 py-2 fw-bold rounded-1" style="background-color: #0d6efd; border-color: #0d6efd;" {{ $sanPham->SoLuongTon <= 0 ? 'disabled' : '' }}>
                             <i class="bi bi-cart-plus me-2 fs-5"></i>Thêm Vào Giỏ Hàng
@@ -108,8 +125,8 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active fw-bold text-dark" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc" type="button" role="tab">
                                 Mô Tả Sản Phẩm
-                                @if(!empty($sanPham->SizeCoSan))
-                                <span class="product-size-inline">Size: {{ $sanPham->SizeCoSan }}</span>
+                                @if(!empty($dsSize))
+                                <span class="product-size-inline">Size: {{ implode(', ', $dsSize) }}</span>
                                 @endif
                             </button>
                         </li>
@@ -135,6 +152,7 @@
                                     @if($thongSoVot->ChuViTayCam)<tr><th>Chu vi tay cầm</th><td>{{ $thongSoVot->ChuViTayCam }}</td></tr>@endif
                                     @if($thongSoVot->DiemCanBang)<tr><th>Điểm cân bằng</th><td>{{ $thongSoVot->DiemCanBang }}</td></tr>@endif
                                     @if($thongSoVot->DoCung)<tr><th>Độ cứng</th><td>{{ $thongSoVot->DoCung }}</td></tr>@endif
+                                    @if($thongSoVot->ChatLieu ?? null)<tr><th>Chất liệu</th><td>{{ $thongSoVot->ChatLieu }}</td></tr>@endif
                                     @if($thongSoVot->MucCangToiDa)<tr><th>Mức căng tối đa</th><td>{{ $thongSoVot->MucCangToiDa }}</td></tr>@endif
                                     @if($thongSoVot->TrinhDoPhuHop)<tr><th>Trình độ phù hợp</th><td>{{ $thongSoVot->TrinhDoPhuHop }}</td></tr>@endif
                                 </tbody>

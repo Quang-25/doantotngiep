@@ -75,6 +75,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const checkoutForm = document.querySelector('.customer-info-form');
     const submitBtn = document.querySelector('.btn-dat-hang');
 
+    // ==========================================
+    // CHỌN SIZE: lấy size khách đã chọn ở trang chi tiết (lưu trong trình duyệt)
+    // ==========================================
+    const sizeSelects = document.querySelectorAll('.checkout-size');
+    let sizeGioHang = {};
+    try { sizeGioHang = JSON.parse(localStorage.getItem('sizeGioHang') || '{}'); } catch (e) { /* bỏ qua */ }
+
+    sizeSelects.forEach(select => {
+        const daChon = sizeGioHang[select.dataset.id];
+        if (daChon && [...select.options].some(o => o.value === daChon)) {
+            select.value = daChon;
+        }
+        select.addEventListener('change', function () {
+            this.classList.remove('is-invalid');
+            sizeGioHang[this.dataset.id] = this.value;
+            try { localStorage.setItem('sizeGioHang', JSON.stringify(sizeGioHang)); } catch (e) { /* bỏ qua */ }
+        });
+    });
+
     if (checkoutForm && submitBtn) {
         checkoutForm.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -84,6 +103,15 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!currentUser || !currentUser.ID_KhachHang) {
                 alert('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!');
                 window.location.href = '/Dangnhap'; // Chuyển hướng về trang đăng nhập
+                return;
+            }
+
+            // Sản phẩm có size thì phải chọn size
+            const chuaChonSize = [...sizeSelects].filter(sel => !sel.value);
+            if (chuaChonSize.length > 0) {
+                chuaChonSize.forEach(sel => sel.classList.add('is-invalid'));
+                chuaChonSize[0].focus();
+                alert('Vui lòng chọn size cho: ' + chuaChonSize.map(sel => sel.dataset.ten).join(', '));
                 return;
             }
 
@@ -116,6 +144,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
                         // Đặt hàng COD thành công
                         alert(data.message);
+                        // Đơn đã ghi size, xóa size đã nhớ của các sản phẩm vừa đặt
+                        sizeSelects.forEach(sel => delete sizeGioHang[sel.dataset.id]);
+                        try { localStorage.setItem('sizeGioHang', JSON.stringify(sizeGioHang)); } catch (e) { /* bỏ qua */ }
                         window.location.href = '/don-hang'; // chuyển tới trang Đơn mua để theo dõi đơn
                     }
                 } else {

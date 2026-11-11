@@ -58,6 +58,14 @@
                             <span class="badge bg-secondary rounded-pill fs-6">{{ isset($cartItems) ? count($cartItems) : 0 }}</span>
                         </div>
 
+                        @if(!empty($maDonHang))
+                            <input type="hidden" name="ma_don_hang" value="{{ $maDonHang }}">
+                            <div class="d-flex justify-content-between align-items-center border rounded-3 bg-white px-3 py-2 mb-3">
+                                <span class="text-muted"><i class="bi bi-receipt me-1"></i>Mã đơn hàng</span>
+                                <span class="fw-bold text-primary fs-5">#{{ $maDonHang }}</span>
+                            </div>
+                        @endif
+
                         <div class="cart-summary border rounded-3 overflow-hidden mb-4 bg-white">
                             <ul class="list-group list-group-flush">
                                 
@@ -71,6 +79,19 @@
                                             <div>
                                                 <h6 class="my-0 text-dark">{{ $item->TenSanPham }}</h6>
                                                 <small class="text-muted">{{ number_format($item->GiaThucTe, 0, ',', '.') }}đ x {{ $item->SoLuong }}</small>
+                                                @if(!empty($item->DanhSachSize))
+                                                    <div class="d-flex align-items-center gap-2 mt-2">
+                                                        <label class="small text-muted mb-0" for="size_{{ $index }}">Size</label>
+                                                        <select class="form-select form-select-sm checkout-size" style="width: auto;"
+                                                            id="size_{{ $index }}" name="cart_items[{{ $index }}][size]"
+                                                            data-id="{{ $item->ID_SanPham }}" data-ten="{{ $item->TenSanPham }}">
+                                                            <option value="">-- Chọn size --</option>
+                                                            @foreach($item->DanhSachSize as $size)
+                                                                <option value="{{ $size }}" @selected($size === $item->SizeMacDinh)>{{ $size }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                @endif
                                             </div>
                                             <span class="text-muted">{{ number_format($item->GiaThucTe * $item->SoLuong, 0, ',', '.') }}đ</span>
                                         </li>

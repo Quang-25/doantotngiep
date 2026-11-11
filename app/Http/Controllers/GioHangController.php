@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\GiaSanPham;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\SanPham;
@@ -50,7 +51,7 @@ class GioHangController extends Controller
         $formattedItems = [];
 
         foreach ($items as $item) {
-            $giaThucTe = ($item->GiaKhuyenMai > 0) ? $item->GiaKhuyenMai : $item->GiaBan;
+            $giaThucTe = GiaSanPham::hienTai($item);
             $thanhTien = $giaThucTe * $item->SoLuong;
 
             $totalAmount += $thanhTien;

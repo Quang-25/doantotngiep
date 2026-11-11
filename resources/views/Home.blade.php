@@ -19,8 +19,8 @@
         <div class="banner-slider-wrapper">
             <div class="banner-slider-track" id="bannerTrack">
 
-                <!-- SLIDE 1: BANNER GỐC CỦA BẠN (GIỮ NGUYÊN 100%) -->
-                <section class="anhsanpham">
+                <!-- SLIDE 1: DÙNG ẢNH banner1.jpg -->
+                <section class="anhsanpham banner-slide-1">
                     <div class="container">
                         <div class="row align-items-center">
                             <div class="col-lg-7">
@@ -54,7 +54,7 @@
                     </div>
                 </section>
 
-                <!-- SLIDE 2: DÙNG ẢNH banner1.jpg -->
+                <!-- SLIDE 2: DÙNG ẢNH banner3.jpg -->
                 <section class="anhsanpham banner-slide-2">
                     <div class="container">
                         <div class="row align-items-center">
@@ -89,7 +89,7 @@
                     </div>
                 </section>
 
-                <!-- SLIDE 3: DÙNG ẢNH banner2.jpg -->
+                <!-- SLIDE 3: DÙNG ẢNH banner4.jpg -->
                 <section class="anhsanpham banner-slide-3">
                     <div class="container">
                         <div class="row align-items-center">

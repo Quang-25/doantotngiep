@@ -19,6 +19,11 @@
         <!-- KẾT THÚC KIỂM TRA KHUYẾN MÃI -->
         <p><strong>Địa chỉ nhận hàng:</strong> {{ $donHang->DiaChiGiaoHang }}</p>
         <p><strong>Phương thức:</strong> {{ $donHang->PhuongThucThanhToan }}</p>
+        @foreach(\App\Support\SizeSanPham::tuGhiChu($donHang->GhiChu ?? null) as $tenSp => $size)
+            @if($loop->first)<p><strong>Size đã chọn:</strong></p><ul style="margin-top:0;">@endif
+            <li>{{ $tenSp }}: <strong>{{ $size }}</strong></li>
+            @if($loop->last)</ul>@endif
+        @endforeach
     </div>
     <p style="margin-top: 30px; font-size: 12px; color: #777;">Email này được gửi tự động, vui lòng không trả lời.</p>
 </body>

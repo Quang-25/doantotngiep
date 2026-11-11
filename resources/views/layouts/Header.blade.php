@@ -131,7 +131,6 @@
                             <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=1&thuong_hieu=2') }}">Vợt Lining</a></li>
                             <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=1&thuong_hieu=3') }}">Vợt Victor</a></li>
                             <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=1&thuong_hieu=4') }}">Vợt Mizuno</a></li>
-                            <li><a class="dropdown-item" href="{{ url('/sanpham?danh_muc=1&thuong_hieu=5') }}">Vợt Gosen</a></li>
                             <li><hr class="dropdown-divider"></li>
                         </ul>
                     </li>
