@@ -40,13 +40,16 @@ class AdminBaoCaoController extends Controller
 
         // Tổng quan
         $tongQuan = [
-            ['Số đơn hoàn thành', $data['tongDon'], 'total_int'],
+            ['Tổng giá trị các đơn (hoàn thành + hủy + trả hàng) (VNĐ)', $data['tongGiaTriDon'], 'total_money'],
+            ['Trừ: giá trị đơn bị hủy (VNĐ)', -$data['giaTriHuy'], 'total_money'],
+            ['Trừ: giá trị đơn khách trả hàng (VNĐ)', -$data['giaTriHoanTra'], 'total_money'],
+            ['Doanh thu thực nhận (VNĐ)', $data['tongDoanhThu'], 'total_money'],
+            ['Số đơn hoàn thành được tính doanh thu', $data['tongDon'], 'total_int'],
+            ['Số đơn bị hủy', $data['soDonHuy'], 'total_int'],
+            ['Số đơn khách trả hàng', $data['soDonHoanTra'], 'total_int'],
             ['Tổng số sản phẩm bán ra', $data['tongSoLuong'], 'total_int'],
             ['Tổng tiền hàng (VNĐ)', $data['tongTienHang'], 'total_money'],
             ['Giảm giá từ mã khuyến mãi (VNĐ)', $data['tongGiamGia'], 'total_money'],
-            ['Doanh thu thực nhận (VNĐ)', $data['tongDoanhThu'], 'total_money'],
-            ['Số đơn khách trả hàng', $data['soDonHoanTra'], 'total_int'],
-            ['Giá trị hàng bị trả (VNĐ)', $data['giaTriHoanTra'], 'total_money'],
             ['Tỷ lệ trả hàng', $data['tyLeHoanTra'], 'total_percent'],
         ];
         foreach ($tongQuan as [$label, $value, $style]) {
@@ -83,7 +86,7 @@ class AdminBaoCaoController extends Controller
         $xlsx->merge("A{$row}:C{$row}");
 
         $xlsx->addRow([]);
-        $row = $xlsx->addRow([['v' => '* Doanh thu sản phẩm tính theo giá bán; doanh thu thực nhận đã trừ giảm giá từ mã khuyến mãi. Chỉ tính đơn đã hoàn thành.', 's' => 'note']]);
+        $row = $xlsx->addRow([['v' => '* Doanh thu sản phẩm tính theo giá bán; doanh thu thực nhận đã trừ giảm giá từ mã khuyến mãi. Doanh thu chỉ tính đơn đã hoàn thành, đã trừ đơn bị hủy và đơn khách trả hàng.', 's' => 'note']]);
         $xlsx->merge("A{$row}:F{$row}");
         $row = $xlsx->addRow([['v' => 'Ngày xuất: ' . now()->format('H:i d/m/Y') . ' - Người xuất: ' . $data['nguoiLap'], 's' => 'note']]);
         $xlsx->merge("A{$row}:F{$row}");
@@ -124,28 +127,40 @@ class AdminBaoCaoController extends Controller
         }
         $khoang = [$tu->format('Y-m-d') . ' 00:00:00', $den->format('Y-m-d') . ' 23:59:59'];
 
-        $donHoanThanh = DB::table('donhang')
-            ->where('TrangThaiDon', 'HoanThanh')
-            ->whereBetween('NgayDat', $khoang);
-        $tongQuan = (clone $donHoanThanh)
+        $orderService = app(OrderService::class);
+
+        // Doanh thu chỉ tính đơn đã hoàn thành và KHÔNG bị hủy / không nằm trong quy trình trả hàng.
+        $donTinhDoanhThu = $orderService->locDonTinhDoanhThu(DB::table('donhang'))->whereBetween('donhang.NgayDat', $khoang);
+        $tongQuan = (clone $donTinhDoanhThu)
             ->selectRaw('COUNT(*) as SoDon, COALESCE(SUM(ThanhTien), 0) as DoanhThu, COALESCE(SUM(TongTien), 0) as TienHang, COALESCE(SUM(TienGiam), 0) as GiamGia')
             ->first();
 
-        // Đơn khách đã trả hàng (shop đã nhận lại hàng) trong cùng khoảng ngày đặt
-        $hoanTra = DB::table('donhang')
-            ->where('TrangThaiDon', 'DaHuy')
-            ->where('GhiChu', 'like', '%' . OrderService::TRA_HANG_DA_NHAN . '%')
-            ->whereBetween('NgayDat', $khoang)
+        // Đơn khách trả hàng (từ lúc khách gửi yêu cầu) và đơn bị hủy: hai khoản bị trừ khỏi doanh thu.
+        $hoanTra = $orderService->locDonTraHang(DB::table('donhang'))->whereBetween('donhang.NgayDat', $khoang)
+            ->selectRaw('COUNT(*) as SoDon, COALESCE(SUM(ThanhTien), 0) as GiaTri')
+            ->first();
+        $biHuy = $orderService->locDonBiHuy(DB::table('donhang'))->whereBetween('donhang.NgayDat', $khoang)
             ->selectRaw('COUNT(*) as SoDon, COALESCE(SUM(ThanhTien), 0) as GiaTri')
             ->first();
         $soDonHoanTra = (int) $hoanTra->SoDon;
+
+        // Hàng khách đã hoàn về shop: đơn trả hàng mà shop đã bấm "Đã nhận hàng trả" (hàng được nhập lại kho).
+        $donHoanVe = DB::table('donhang')
+            ->where('TrangThaiDon', 'DaHuy')
+            ->where('GhiChu', 'like', '%' . OrderService::TRA_HANG_DA_NHAN . '%')
+            ->whereBetween('NgayDat', $khoang);
+        $hoanVe = (clone $donHoanVe)->selectRaw('COUNT(*) as SoDon, COALESCE(SUM(ThanhTien), 0) as GiaTri')->first();
+        $soSanPhamHoanVe = (int) DB::table('chitietdonhang')
+            ->whereIn('ID_DonHang', (clone $donHoanVe)->select('ID_DonHang'))
+            ->sum('SoLuong');
         // Tỷ lệ trả hàng = đơn bị trả / (đơn đang hoàn thành + đơn bị trả) = trên tổng đơn đã giao thành công
         $daGiao = (int) $tongQuan->SoDon + $soDonHoanTra;
 
-        $sanPhams = DB::table('chitietdonhang')
-            ->join('donhang', 'chitietdonhang.ID_DonHang', '=', 'donhang.ID_DonHang')
-            ->join('sanpham', 'chitietdonhang.ID_SanPham', '=', 'sanpham.ID_SanPham')
-            ->where('donhang.TrangThaiDon', 'HoanThanh')
+        $sanPhams = $orderService->locDonTinhDoanhThu(
+            DB::table('chitietdonhang')
+                ->join('donhang', 'chitietdonhang.ID_DonHang', '=', 'donhang.ID_DonHang')
+                ->join('sanpham', 'chitietdonhang.ID_SanPham', '=', 'sanpham.ID_SanPham')
+        )
             ->whereBetween('donhang.NgayDat', $khoang)
             ->select(
                 'sanpham.ID_SanPham',
@@ -170,6 +185,13 @@ class AdminBaoCaoController extends Controller
             'tongSoLuong' => (int) $sanPhams->sum('TongSoLuongBan'),
             'soDonHoanTra' => $soDonHoanTra,
             'giaTriHoanTra' => (float) $hoanTra->GiaTri,
+            'soDonHoanVe' => (int) $hoanVe->SoDon,
+            'giaTriHoanVe' => (float) $hoanVe->GiaTri,
+            'soSanPhamHoanVe' => $soSanPhamHoanVe,
+            'soDonHuy' => (int) $biHuy->SoDon,
+            'giaTriHuy' => (float) $biHuy->GiaTri,
+            // Tổng giá trị các đơn đã có kết quả (hoàn thành + hủy + trả hàng); trừ đơn hủy, đơn trả hàng ra là doanh thu thực.
+            'tongGiaTriDon' => (float) $tongQuan->DoanhThu + (float) $biHuy->GiaTri + (float) $hoanTra->GiaTri,
             'tyLeHoanTra' => $daGiao > 0 ? round($soDonHoanTra / $daGiao * 100, 1) : 0.0,
             'sanPhams' => $sanPhams,
             'nguoiLap' => (string) (session('HoTen') ?: 'Quản trị viên'),

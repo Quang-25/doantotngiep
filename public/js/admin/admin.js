@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!canvas || typeof Chart === 'undefined') return;
 
     // Đọc dữ liệu từ thuộc tính data-values do Blade gán
-    let values = [0, 0, 0, 0];
+    let values = [0, 0, 0, 0, 0];
     try {
         values = JSON.parse(canvas.dataset.values);
     } catch (e) {
@@ -15,10 +15,12 @@ document.addEventListener('DOMContentLoaded', function () {
     new Chart(canvas.getContext('2d'), {
         type: 'doughnut',
         data: {
-            labels: ['Chờ xác nhận', 'Đang giao', 'Hoàn thành', 'Đã hủy'],
+            // Chú thích ghi sẵn số đơn của từng nhóm để đối chiếu với trang Báo cáo thống kê.
+            labels: ['Chờ xác nhận', 'Đang giao', 'Hoàn thành', 'Đã hủy', 'Khách trả hàng']
+                .map((ten, i) => ten + ' (' + (values[i] || 0) + ')'),
             datasets: [{
                 data: values,
-                backgroundColor: ['#ffc107', '#0d6efd', '#198754', '#dc3545'],
+                backgroundColor: ['#ffc107', '#0d6efd', '#198754', '#6c757d', '#dc3545'],
                 borderWidth: 2,
                 borderColor: '#fff',
                 hoverOffset: 6
@@ -37,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     callbacks: {
                         label: function (c) {
                             const phanTram = tong ? Math.round(c.parsed / tong * 100) : 0;
-                            return ' ' + c.label + ': ' + c.parsed + ' đơn (' + phanTram + '%)';
+                            return ' ' + c.label.replace(/\s*\(\d+\)$/, '') + ': ' + c.parsed + ' đơn (' + phanTram + '%)';
                         }
                     }
                 }

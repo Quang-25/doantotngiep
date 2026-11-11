@@ -10,7 +10,8 @@ class AdminController extends Controller
     public function dashboard(): View
     {
         // 1. Chỉ số KPI
-        $tongDoanhThu  = DB::table('donhang')->where('TrangThaiDon', 'HoanThanh')->sum('ThanhTien');
+        // Doanh thu: đơn hoàn thành, đã trừ đơn hủy và đơn khách trả hàng.
+        $tongDoanhThu  = app(\App\Services\OrderService::class)->locDonTinhDoanhThu(DB::table('donhang'))->sum('donhang.ThanhTien');
         $tongDonHang   = DB::table('donhang')->count();
         $donChoXacNhan = DB::table('donhang')->where('TrangThaiDon', 'ChoXacNhan')->count();
         $tongKhachHang = DB::table('khachhang')->count();
@@ -22,12 +23,16 @@ class AdminController extends Controller
             ->pluck('SoLuong', 'TrangThaiDon')
             ->toArray();
 
+        // Cùng cách phân loại với trang Báo cáo thống kê: đơn hoàn thành được tính doanh thu, đơn bị hủy, đơn khách trả hàng.
+        // (Đơn trả hàng đã nhận lại có trạng thái "Đã hủy" trong database nhưng được tách riêng để không lẫn với đơn hủy.)
+        $orderService = app(\App\Services\OrderService::class);
         // Thứ tự phải khớp labels trong admin.js
         $chartData = [
             (int) ($thongKeDonHang['ChoXacNhan'] ?? 0),
             (int) ($thongKeDonHang['DangGiao'] ?? 0),
-            (int) ($thongKeDonHang['HoanThanh'] ?? 0),
-            (int) ($thongKeDonHang['DaHuy'] ?? 0),
+            $orderService->locDonTinhDoanhThu(DB::table('donhang'))->count(),
+            $orderService->locDonBiHuy(DB::table('donhang'))->count(),
+            $orderService->locDonTraHang(DB::table('donhang'))->count(),
         ];
 
         // 3. Cảnh báo tồn kho (< 5)

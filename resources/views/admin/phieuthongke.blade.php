@@ -116,13 +116,14 @@
 
         <h2>I. Tổng quan</h2>
         <table class="summary">
-            <tr><td>Số đơn hàng hoàn thành</td><td class="num">{{ number_format($tongDon, 0, ',', '.') }} đơn</td></tr>
+            <tr><td>Tổng giá trị các đơn (hoàn thành + hủy + trả hàng)</td><td class="num">{{ number_format($tongGiaTriDon, 0, ',', '.') }} đ</td></tr>
+            <tr><td>Trừ: đơn bị hủy ({{ $soDonHuy }} đơn)</td><td class="num">- {{ number_format($giaTriHuy, 0, ',', '.') }} đ</td></tr>
+            <tr><td>Trừ: đơn khách trả hàng ({{ $soDonHoanTra }} đơn)</td><td class="num">- {{ number_format($giaTriHoanTra, 0, ',', '.') }} đ</td></tr>
+            <tr><td><b>Doanh thu thực nhận (sau khi trừ)</b></td><td class="num"><b>{{ number_format($tongDoanhThu, 0, ',', '.') }} đ</b></td></tr>
+            <tr><td>Số đơn hàng hoàn thành được tính doanh thu</td><td class="num">{{ number_format($tongDon, 0, ',', '.') }} đơn</td></tr>
             <tr><td>Tổng số sản phẩm bán ra</td><td class="num">{{ number_format($tongSoLuong, 0, ',', '.') }} sản phẩm</td></tr>
             <tr><td>Tổng tiền hàng</td><td class="num">{{ number_format($tongTienHang, 0, ',', '.') }} đ</td></tr>
             <tr><td>Giảm giá từ mã khuyến mãi</td><td class="num">- {{ number_format($tongGiamGia, 0, ',', '.') }} đ</td></tr>
-            <tr><td><b>Doanh thu thực nhận</b></td><td class="num"><b>{{ number_format($tongDoanhThu, 0, ',', '.') }} đ</b></td></tr>
-            <tr><td>Số đơn khách trả hàng</td><td class="num">{{ number_format($soDonHoanTra, 0, ',', '.') }} đơn</td></tr>
-            <tr><td>Giá trị hàng bị trả</td><td class="num">{{ number_format($giaTriHoanTra, 0, ',', '.') }} đ</td></tr>
             <tr><td>Tỷ lệ trả hàng (trên số đơn đã giao thành công)</td><td class="num">{{ number_format($tyLeHoanTra, 1, ',', '.') }}%</td></tr>
         </table>
 

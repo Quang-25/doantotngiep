@@ -166,6 +166,6 @@
 
 @section('scripts')
     <!-- JS xử lý biểu đồ và các sự kiện -->
-    <script src="{{ asset('js/admin/admin.js') }}"></script>
+    <script src="{{ asset('js/admin/admin.js') }}?v={{ filemtime(public_path('js/admin/admin.js')) }}"></script>
     <script src="{{ asset('js/admin/donhang.js') }}"></script>
 @endsection

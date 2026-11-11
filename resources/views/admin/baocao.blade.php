@@ -61,19 +61,31 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card bg-danger text-white shadow-sm border-0 h-100">
                 <div class="card-body p-4 d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="text-uppercase mb-2">Đơn Khách Trả Hàng</h6>
-                        <h2 class="fw-bold m-0">{{ $soDonHoanTra }} đơn</h2>
-                        <small>Giá trị: {{ number_format($giaTriHoanTra, 0, ',', '.') }} đ</small>
+                        <h6 class="text-uppercase mb-2">Đơn Hàng Bị Hủy</h6>
+                        <h2 class="fw-bold m-0">{{ $soDonHuy }} đơn</h2>
+                        <small>Giá trị: {{ number_format($giaTriHuy, 0, ',', '.') }} đ</small>
                     </div>
-                    <i class="fas fa-undo fa-3x opacity-50"></i>
+                    <a href="{{ url('/admin/don-hang?trang_thai=DaHuy') }}" class="text-white" title="Xem các đơn đã hủy"><i class="fas fa-ban fa-3x opacity-50"></i></a>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
+            <div class="card bg-success text-white shadow-sm border-0 h-100">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-2">Hàng Khách Hoàn Về</h6>
+                        <h2 class="fw-bold m-0">{{ $soDonHoanVe }} đơn</h2>
+                        <small>Giá trị: {{ number_format($giaTriHoanVe, 0, ',', '.') }} đ · {{ $soSanPhamHoanVe }} sản phẩm đã nhập lại kho</small>
+                    </div>
+                    <a href="{{ url('/admin/don-hang?trang_thai=DaTraHang') }}" class="text-white" title="Xem các đơn khách đã hoàn hàng về shop"><i class="fas fa-box-open fa-3x opacity-50"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
             <div class="card bg-warning text-dark shadow-sm border-0 h-100">
                 <div class="card-body p-4 d-flex justify-content-between align-items-center">
                     <div>
