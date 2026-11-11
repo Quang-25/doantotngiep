@@ -181,6 +181,6 @@
         </div>
     </section>
     @include('layouts.footer')
-    <script src="{{ asset('js/sanpham.js') }}"></script>
+    <script src="{{ asset('js/sanpham.js') }}?v={{ filemtime(public_path('js/sanpham.js')) }}"></script>
 </body>
 </html>

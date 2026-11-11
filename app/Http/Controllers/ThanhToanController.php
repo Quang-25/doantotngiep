@@ -189,6 +189,11 @@ class ThanhToanController extends Controller
         $vnp_TxnRef = $request->get('vnp_TxnRef');
 
         if ($vnp_ResponseCode == '00') {
+            // Trang trả về bị tải lại: giao dịch đã xử lý rồi thì không trừ kho, không gửi email lần nữa.
+            if (DB::table('ThanhToan')->where('ID_DonHang', $vnp_TxnRef)->where('TrangThaiGiaoDich', 'ThanhCong')->exists()) {
+                return redirect('/don-hang')->with('success', 'Đơn hàng đã được thanh toán thành công trước đó.');
+            }
+
             // Đã thanh toán nhưng đơn vẫn Chờ xác nhận cho tới khi admin duyệt.
             DB::table('ThanhToan')->where('ID_DonHang', $vnp_TxnRef)->update(['TrangThaiGiaoDich' => 'ThanhCong']);
             

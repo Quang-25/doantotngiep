@@ -264,6 +264,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }); 
         } 
 
+        // Xóa hết chữ trong ô tìm kiếm => bỏ từ khóa và tự tải lại toàn bộ sản phẩm (giữ nguyên các bộ lọc khác).
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                if (searchInput.value.trim() !== '') return;
+                const params = new URLSearchParams(window.location.search);
+                if (!params.has('search')) return;
+                params.delete('search');
+                const query = params.toString();
+                window.history.pushState({}, '', '/sanpham' + (query ? `?${query}` : ''));
+                loadSanPham();
+            });
+        }
+
         if (searchInput) { 
             searchInput.addEventListener('keydown', event => { 
                 if (event.key === 'Enter') { 

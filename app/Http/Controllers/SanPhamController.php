@@ -31,12 +31,8 @@ class SanPhamController extends Controller
         }
 
         // Nếu load trang có sẵn search (Áo, Quần) thì lọc luôn Tên Sản Phẩm
-        if ($request->has('search')) {
-            $search = mb_strtolower(trim($request->search), 'UTF-8');
-            $query->where(function($q) use ($search) {
-                $q->whereRaw('LOWER(TenSanPham) LIKE ?', ["%{$search}%"])
-                  ->orWhereRaw('LOWER(MoTa) LIKE ?', ["%{$search}%"]);
-            });
+        if ($request->has('search') && trim((string) $request->search) !== '') {
+            $this->apDungTimKiem($query, (string) $request->search, $request->danh_muc);
         }
 
         if ($request->has('trinh_do')) {
@@ -51,6 +47,69 @@ class SanPhamController extends Controller
         return view('sanpham', compact('sanPhams'));
     }
 
+    // Bộ lọc tìm kiếm dùng chung cho trang danh sách và API.
+    // Gõ tên LOẠI sản phẩm (áo, quần, váy, giày, vợt) thì chỉ hiện đúng loại đó: "áo cầu lông" chỉ ra áo, không lẫn quần / váy.
+    // Các từ còn lại (hãng, tên mẫu...) là điều kiện bổ sung. Tìm theo từ khác (hãng, tên mẫu) thì giữ cách tìm cũ.
+    private function apDungTimKiem(\Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query, string $tuKhoa, mixed $idDanhMuc = null): void
+    {
+        $search = mb_strtolower(trim($tuKhoa), 'UTF-8');
+        $tu = preg_split('/\s+/u', $search, -1, PREG_SPLIT_NO_EMPTY);
+        $loai = $tu[0] ?? null;
+
+        // Loại phân biệt theo tên sản phẩm (cùng nằm trong danh mục Quần Áo / Váy).
+        $tienToTen = ['áo' => 'Áo%', 'quần' => 'Quần%', 'váy' => 'Váy%', 'đầm' => 'Váy%'];
+        // Loại theo danh mục.
+        $danhMucTheoLoai = ['vợt' => 1, 'giày' => 2, 'phụ kiện' => 4];
+
+        $thuocLoai = isset($tienToTen[$loai]) || isset($danhMucTheoLoai[$loai]);
+        if ($thuocLoai) {
+            // Bỏ tên loại và các từ chung "cầu lông" để lấy phần điều kiện bổ sung.
+            $conLai = array_values(array_filter(array_slice($tu, 1), fn ($t) => !in_array($t, ['cầu', 'lông', 'cau', 'long'], true)));
+
+            if (isset($tienToTen[$loai])) {
+                // So khớp phân biệt dấu (utf8mb4_bin) để "quần" không lẫn "quấn", "áo" không lẫn "ao...".
+                $query->where(function ($q) use ($tienToTen, $loai) {
+                    $q->whereRaw('sanpham.TenSanPham COLLATE utf8mb4_bin LIKE ?', [$tienToTen[$loai]])
+                      ->orWhereRaw('sanpham.TenSanPham COLLATE utf8mb4_bin LIKE ?', [mb_strtolower($tienToTen[$loai], 'UTF-8')]);
+                });
+            } elseif (empty($idDanhMuc)) {
+                $query->where('sanpham.ID_DanhMuc', $danhMucTheoLoai[$loai]);
+            }
+            foreach ($conLai as $t) {
+                $thuongHieu = ThuongHieu::whereRaw('LOWER(TenThuongHieu) LIKE ?', ["%{$t}%"])->first();
+                if ($thuongHieu) {
+                    $query->where('sanpham.ID_ThuongHieu', $thuongHieu->ID_ThuongHieu);
+                } else {
+                    $query->whereRaw('LOWER(sanpham.TenSanPham) LIKE ?', ["%{$t}%"]);
+                }
+            }
+
+            return;
+        }
+
+        // Cách tìm cũ cho các từ khóa khác (tên hãng, tên mẫu, từ bất kỳ).
+        if ($idDanhMuc) {
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(sanpham.TenSanPham) LIKE ?', ["%{$search}%"])
+                  ->orWhereRaw('LOWER(sanpham.MoTa) LIKE ?', ["%{$search}%"]);
+            });
+
+            return;
+        }
+        $danhMuc = DanhMuc::whereRaw('LOWER(TenDanhMuc) LIKE ?', ["%{$search}%"])->first();
+        $thuongHieu = ThuongHieu::whereRaw('LOWER(TenThuongHieu) LIKE ?', ["%{$search}%"])->first();
+        if ($danhMuc) {
+            $query->where('sanpham.ID_DanhMuc', $danhMuc->ID_DanhMuc);
+        } elseif ($thuongHieu) {
+            $query->where('sanpham.ID_ThuongHieu', $thuongHieu->ID_ThuongHieu);
+        } else {
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(sanpham.TenSanPham) LIKE ?', ["%{$search}%"])
+                  ->orWhereRaw('LOWER(sanpham.MoTa) LIKE ?', ["%{$search}%"]);
+            });
+        }
+    }
+
     // 2. HÀM API
     public function api(Request $request)
     {
@@ -58,33 +117,9 @@ class SanPhamController extends Controller
         $idDanhMuc = $request->danh_muc ?? $request->danhmuc;
 
         if ($request->search) {
-            $search = trim($request->search);
-            $search = mb_strtolower($search, 'UTF-8');
-
-            // NẾU ĐÃ CHỌN DANH MỤC: Chỉ tìm chữ "quần", "áo" trong Tên Sản Phẩm (Bỏ qua tên Danh Mục)
-            if ($idDanhMuc) {
-                $query->where(function ($q) use ($search) {
-                    $q->whereRaw('LOWER(sanpham.TenSanPham) LIKE ?', ["%{$search}%"])
-                      ->orWhereRaw('LOWER(sanpham.MoTa) LIKE ?', ["%{$search}%"]);
-                });
-            } else {
-                // TÌM KIẾM TỰ DO: Chạy như cũ (Tìm cả trong Danh mục và Thương hiệu)
-                $danhMuc = DanhMuc::whereRaw('LOWER(TenDanhMuc) LIKE ?', ["%{$search}%"])->first();
-                $thuongHieu = ThuongHieu::whereRaw('LOWER(TenThuongHieu) LIKE ?', ["%{$search}%"])->first();
-
-                if ($danhMuc) {
-                    $query->where('sanpham.ID_DanhMuc', $danhMuc->ID_DanhMuc);
-                } elseif ($thuongHieu) {
-                    $query->where('sanpham.ID_ThuongHieu', $thuongHieu->ID_ThuongHieu);
-                } else {
-                    $query->where(function ($q) use ($search) {
-                        $q->whereRaw('LOWER(sanpham.TenSanPham) LIKE ?', ["%{$search}%"])
-                          ->orWhereRaw('LOWER(sanpham.MoTa) LIKE ?', ["%{$search}%"]);
-                    });
-                }
-            }
+            $this->apDungTimKiem($query, (string) $request->search, $idDanhMuc);
         }
-        
+
         // Xử lý Danh mục mảng (Ví dụ: 3,5)
         if ($idDanhMuc) {
             $dmArray = explode(',', $idDanhMuc);

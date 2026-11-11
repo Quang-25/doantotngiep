@@ -61,6 +61,46 @@ class OrderService
         'da_hoan_tien' => 'Đã trả hàng - đã hoàn tiền',
     ];
 
+    // ---- Điều kiện dùng chung cho báo cáo doanh thu ----
+
+    // Đơn khách đã yêu cầu trả hàng và shop chưa từ chối (đang chờ nhận hàng / đã nhận lại / đã hoàn tiền).
+    private function dieuKienDangTraHang(\Illuminate\Database\Query\Builder $q, string $bang): void
+    {
+        $q->where("{$bang}.GhiChu", 'like', '%' . self::TRA_HANG_YEU_CAU . '%')
+          ->where("{$bang}.GhiChu", 'not like', '%' . self::TRA_HANG_TU_CHOI . '%');
+    }
+
+    // Đơn được TÍNH vào doanh thu: đã hoàn thành và KHÔNG nằm trong quy trình trả hàng.
+    public function locDonTinhDoanhThu(\Illuminate\Database\Query\Builder $query, string $bang = 'donhang'): \Illuminate\Database\Query\Builder
+    {
+        return $query->where("{$bang}.TrangThaiDon", 'HoanThanh')
+            ->where(function ($q) use ($bang) {
+                $q->whereNull("{$bang}.GhiChu")
+                  ->orWhere("{$bang}.GhiChu", 'not like', '%' . self::TRA_HANG_YEU_CAU . '%')
+                  ->orWhere("{$bang}.GhiChu", 'like', '%' . self::TRA_HANG_TU_CHOI . '%');
+            });
+    }
+
+    // Đơn khách trả hàng (bị TRỪ khỏi doanh thu): vừa gửi yêu cầu / chờ nhận hàng / đã nhận lại hàng / đã hoàn tiền.
+    public function locDonTraHang(\Illuminate\Database\Query\Builder $query, string $bang = 'donhang'): \Illuminate\Database\Query\Builder
+    {
+        return $query->whereIn("{$bang}.TrangThaiDon", ['HoanThanh', 'DaHuy'])
+            ->where(function ($q) use ($bang) {
+                $this->dieuKienDangTraHang($q, $bang);
+            });
+    }
+
+    // Đơn bị hủy (khách hoặc shop hủy) và không phải đơn trả hàng: bị TRỪ khỏi doanh thu.
+    public function locDonBiHuy(\Illuminate\Database\Query\Builder $query, string $bang = 'donhang'): \Illuminate\Database\Query\Builder
+    {
+        return $query->where("{$bang}.TrangThaiDon", 'DaHuy')
+            ->where(function ($q) use ($bang) {
+                $q->whereNull("{$bang}.GhiChu")
+                  ->orWhere("{$bang}.GhiChu", 'not like', '%' . self::TRA_HANG_YEU_CAU . '%')
+                  ->orWhere("{$bang}.GhiChu", 'like', '%' . self::TRA_HANG_TU_CHOI . '%');
+            });
+    }
+
     // Bước trả hàng hiện tại của đơn (null nếu chưa có yêu cầu).
     public function trangThaiTraHang(object $donHang): ?string
     {
